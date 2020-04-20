@@ -257,11 +257,23 @@ class GraphandModel {
     Object.assign(this, data);
   }
 
-  async update(payload: any) {
+  async update(payload: any, preStore = false) {
     const { constructor } = Object.getPrototypeOf(this);
-    const { data } = await constructor._client._axios.patch(constructor.baseUrl, { query: { _id: this._id }, ...payload });
-    const item = new constructor(data.data.rows[0]);
-    constructor.upsertStore(item);
+    if (preStore) {
+      const _item = new constructor({ ...this, ...payload });
+      constructor.upsertStore(_item);
+    }
+
+    try {
+      const { data } = await constructor._client._axios.patch(constructor.baseUrl, { query: { _id: this._id }, ...payload });
+      const item = new constructor(data.data.rows[0]);
+      constructor.upsertStore(item);
+    } catch (e) {
+      if (preStore) {
+        constructor.upsertStore(this);
+      }
+      throw e;
+    }
     return this;
   }
 
