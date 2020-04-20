@@ -1,23 +1,13 @@
 import isEqual from "fast-deep-equal";
 import { createStore, Store } from "redux";
 import Client from "../Client";
-import ConnectableModel from "./ConnectableModel";
 
-class GraphandModel extends ConnectableModel {
+class GraphandModel {
   _id: string;
 
   static _client: Client;
   static cache = {};
   static _store?: Store;
-  static connectConfig = {
-    find: (list, item) => item && list.find((i) => i._id === item._id),
-    mapDataToList: (data) => (data ? data.rows : []),
-    async fetch(query, opts) {
-      const { cache, waitRequest, callback } = opts;
-      const res = await this.query(query, cache, waitRequest, callback);
-      return res.data.data;
-    },
-  };
 
   static reinit() {
     this.clearCache();
@@ -34,13 +24,9 @@ class GraphandModel extends ConnectableModel {
   }
 
   static get store() {
-    if (!this._connectConfig) {
-      throw new Error("Please provide a valid _connectConfig object.");
-    }
-
     if (!this._store) {
       const _upsert = (state, item) => {
-        const found = this._connectConfig.find(state.list, item);
+        const found = state.list.find((i) => i._id === item._id);
         if (found) {
           return {
             ...state,
@@ -51,7 +37,7 @@ class GraphandModel extends ConnectableModel {
         return { ...state, list: [...state.list, item] };
       };
       const _update = (state, item, payload) => {
-        const found = this._connectConfig.find(state.list, item);
+        const found = state.list.find((i) => i._id === item._id);
         if (found) {
           return {
             ...state,
@@ -68,7 +54,7 @@ class GraphandModel extends ConnectableModel {
         return state;
       };
       const _delete = (state, item) => {
-        const found = this._connectConfig.find(state.list, item);
+        const found = state.list.find((i) => i._id === item._id);
         return { ...state, list: [...state.list.filter((i) => i !== found)] };
       };
 
@@ -268,8 +254,6 @@ class GraphandModel extends ConnectableModel {
   }
 
   constructor(data) {
-    super();
-
     Object.assign(this, data);
   }
 

@@ -1,27 +1,18 @@
 import axios, { AxiosInstance } from "axios";
 import Account from "./models/Account";
 import Data from "./models/Data";
+import GraphandModel from "./utils/GraphandModel";
 
 interface ClientOptions {
   project: string;
   accessToken?: string;
 }
 
-interface ConnectOptions {
-  name: string;
-  baseQuery: object;
-  list: boolean;
-  mapDataToList: Function;
-  find: Function;
-  cache: boolean;
-  init: boolean;
-}
-
 class Client {
   _options: ClientOptions;
   _axios: AxiosInstance;
   private _accessToken: string;
-  private _models = {};
+  static GraphandModel = GraphandModel;
 
   DataModel = Data.setClient(this);
   AccountModel = Account.setClient(this);
@@ -101,19 +92,8 @@ class Client {
     return new Client({ ...this._options, ...options });
   }
 
-  connectData(slug: string, options: ConnectOptions) {
-    if (!this._models[slug]) {
-      this._models[slug] = class extends this.DataModel {
-        static apiIdentifier = slug;
-      };
-      Object.defineProperty(this._models[slug], "name", { value: `GraphandModel<${slug}>` });
-    }
-
-    return this._models[slug].connect((options && options.name) || slug, options);
-  }
-
-  connectAccounts(options: ConnectOptions) {
-    return this.AccountModel.connect((options && options.name) || "accounts", options);
+  plugin(plugin: Function) {
+    plugin(this);
   }
 }
 
