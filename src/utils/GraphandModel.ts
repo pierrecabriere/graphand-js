@@ -1,14 +1,20 @@
+import isEqual from "fast-deep-equal";
+import { createStore, Store } from "redux";
 import Client from "../Client";
 import ConnectableModel from "./ConnectableModel";
 
 class GraphandModel extends ConnectableModel {
+  _id: string;
+
   static _client: Client;
   static cache = {};
+  static _store?: Store;
   static connectConfig = {
     find: (list, item) => item && list.find((i) => i._id === item._id),
     mapDataToList: (data) => (data ? data.rows : []),
-    async fetch(...opts) {
-      const res = await this.query(...opts);
+    async fetch(query, opts) {
+      const { cache, waitRequest, callback } = opts;
+      const res = await this.query(query, cache, waitRequest, callback);
       return res.data.data;
     },
   };
@@ -27,7 +33,126 @@ class GraphandModel extends ConnectableModel {
     return this;
   }
 
-  static async query(query: any, cache: boolean = true, waitRequest: boolean = false, callback?: Function) {
+  static get store() {
+    if (!this._connectConfig) {
+      throw new Error("Please provide a valid _connectConfig object.");
+    }
+
+    if (!this._store) {
+      const _upsert = (state, item) => {
+        const found = this._connectConfig.find(state.list, item);
+        if (found) {
+          return {
+            ...state,
+            list: state.list.map((i) => (i === found ? item : i)),
+          };
+        }
+
+        return { ...state, list: [...state.list, item] };
+      };
+      const _update = (state, item, payload) => {
+        const found = this._connectConfig.find(state.list, item);
+        if (found) {
+          return {
+            ...state,
+            list: state.list.map((i) => {
+              if (i === found) {
+                Object.assign(i, payload);
+              }
+
+              return i;
+            }),
+          };
+        }
+
+        return state;
+      };
+      const _delete = (state, item) => {
+        const found = this._connectConfig.find(state.list, item);
+        return { ...state, list: [...state.list.filter((i) => i !== found)] };
+      };
+
+      this._store = createStore((state = { list: [] }, { type, target, payload }) => {
+        switch (type) {
+          case "UPSERT":
+            if (Array.isArray(payload)) {
+              payload.forEach((item) => (state = _upsert(state, item)));
+            } else {
+              state = _upsert(state, payload);
+            }
+
+            return state;
+          case "UPDATE":
+            if (target) {
+              state = _update(state, target, payload);
+            }
+
+            return state;
+          case "DELETE":
+            state = _delete(state, payload);
+
+            return state;
+          case "REINIT":
+            return { list: [] };
+          default:
+            return state;
+        }
+      });
+    }
+
+    return this._store;
+  }
+
+  static reinitStore() {
+    this.store.dispatch({
+      type: "REINIT",
+    });
+
+    return this;
+  }
+
+  static deleteFromStore(payload) {
+    this.store.dispatch({
+      type: "DELETE",
+      payload,
+    });
+  }
+
+  static upsertStore(payload) {
+    this.store.dispatch({
+      type: "UPSERT",
+      payload,
+    });
+  }
+
+  static updateStore(target, payload) {
+    this.store.dispatch({
+      type: "UPDATE",
+      target,
+      payload,
+    });
+  }
+
+  static getList() {
+    return this.store.getState().list;
+  }
+
+  static get(_id, fetch = false) {
+    if (fetch) {
+      return new Promise(async (resolve, reject) => {
+        try {
+          await this.query(_id, undefined, true);
+          resolve(this.get(_id, false));
+        } catch (e) {
+          reject(e);
+        }
+      });
+    }
+
+    return this.getList().find((item) => item._id === _id);
+  }
+
+  static async query(query: any, cache = true, waitRequest = false, callback?: Function) {
     if (typeof query === "string") {
       query = { query: { _id: query } };
     } else if (!query) {
@@ -51,7 +176,7 @@ class GraphandModel extends ConnectableModel {
         const modified =
           list.length !== rows.length ||
           !!rows.find((item) => {
-            return !list.find((_item) => JSON.stringify(_item) === JSON.stringify(item));
+            return !list.find((_item) => isEqual(_item, item));
           });
 
         if (modified) {
@@ -116,13 +241,11 @@ class GraphandModel extends ConnectableModel {
     return res;
   }
 
-  static async delete(payload: GraphandModel|any) {
+  static async delete(payload: GraphandModel | any) {
     try {
-      if (payload._id) {
+      if (payload instanceof GraphandModel) {
         await this._client._axios.delete(this.baseUrl, { data: { query: { _id: payload._id } } });
-
         this.clearCache();
-
         this.deleteFromStore(payload);
       } else {
         await this._client._axios.delete(this.baseUrl, { data: payload });
@@ -148,6 +271,14 @@ class GraphandModel extends ConnectableModel {
     super();
 
     Object.assign(this, data);
+  }
+
+  async update(payload: any) {
+    const { constructor } = Object.getPrototypeOf(this);
+    const { data } = await constructor._client._axios.patch(constructor.baseUrl, { query: { _id: this._id }, ...payload });
+    const item = new constructor(data.data.rows[0]);
+    constructor.upsertStore(item);
+    return this;
   }
 
   delete() {
