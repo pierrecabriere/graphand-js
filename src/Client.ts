@@ -97,7 +97,7 @@ class Client {
   }
 
   plugin(plugin: Function, options: any) {
-    plugin.apply(this, options);
+    plugin(this, options);
   }
 }
 

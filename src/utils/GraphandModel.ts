@@ -154,28 +154,34 @@ class GraphandModel {
     }
 
     const request = (cacheKey?: string) =>
-      this._client._axios.post(`${this.baseUrl}/query`, query).then((res) => {
-        res.data.data.rows = res.data.data.rows.map((item) => new this(item));
-        const { rows } = res.data.data;
+      this._client._axios
+        .post(`${this.baseUrl}/query`, query)
+        .then((res) => {
+          res.data.data.rows = res.data.data.rows.map((item) => new this(item));
+          const { rows } = res.data.data;
 
-        const list = this.getList();
-        const modified =
-          list.length !== rows.length ||
-          !!rows.find((item) => {
-            return !list.find((_item) => isEqual(_item, item));
-          });
+          const list = this.getList();
+          const modified =
+            list.length !== rows.length ||
+            !!rows.find((item) => {
+              return !list.find((_item) => isEqual(_item, item));
+            });
 
-        if (modified) {
-          this.upsertStore(rows);
-        }
+          if (modified) {
+            this.upsertStore(rows);
+          }
 
-        if (cacheKey) {
-          this.cache[cacheKey] = this.cache[cacheKey] || {};
-          this.cache[cacheKey].previous = res;
-        }
+          if (cacheKey) {
+            this.cache[cacheKey] = this.cache[cacheKey] || {};
+            this.cache[cacheKey].previous = res;
+          }
 
-        return res;
-      });
+          return res;
+        })
+        .catch((e) => {
+          delete this.cache[cacheKey];
+          throw e;
+        });
 
     let res;
     if (cache) {
