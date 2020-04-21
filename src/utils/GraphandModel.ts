@@ -124,18 +124,20 @@ class GraphandModel {
   }
 
   static get(_id, fetch = false) {
-    if (fetch) {
+    const item = this.getList().find((item) => item._id === _id);
+
+    if (!item && fetch) {
       return new Promise(async (resolve, reject) => {
         try {
-          await this.query(_id, undefined, true);
-          resolve(this.get(_id, false));
+          const res = await this.query(_id, undefined, true);
+          resolve(this.get(res.data.data.rows[0]._id, false));
         } catch (e) {
           reject(e);
         }
       });
     }
 
-    return this.getList().find((item) => item._id === _id);
+    return item;
   }
 
   static async query(query: any, cache = true, waitRequest = false, callback?: Function) {
