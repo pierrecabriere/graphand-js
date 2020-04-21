@@ -54,6 +54,10 @@ class Client {
     return new Client(options);
   }
 
+  logout() {
+    this.accessToken = undefined;
+  }
+
   async login(credentials) {
     const {
       data: { accessToken },
