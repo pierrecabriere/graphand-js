@@ -96,8 +96,8 @@ class Client {
     return new Client({ ...this._options, ...options });
   }
 
-  plugin(plugin: Function) {
-    plugin(this);
+  plugin(plugin: Function, options: any) {
+    plugin.apply(this, options);
   }
 }
 
