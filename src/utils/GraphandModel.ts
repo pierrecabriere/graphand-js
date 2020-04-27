@@ -11,6 +11,44 @@ class GraphandModel {
   static translatable = true;
   static _store?: Store;
   static baseUrl;
+  static queryUrl;
+
+  constructor(data) {
+    Object.assign(this, data);
+
+    return new Proxy(this, {
+      get: (target, key) => {
+        switch (key) {
+          case "constructor":
+            return target.constructor;
+          case "_id":
+            return target._id;
+          case "__raw":
+            return target;
+          default:
+            break;
+        }
+
+        const { constructor } = Object.getPrototypeOf(this);
+
+        if (constructor.translatable) {
+          let locale = constructor._client.locale;
+          if (locale && constructor._client._project?.locales && !constructor._client._project.locales.includes(locale)) {
+            locale = undefined;
+          }
+
+          if (locale && target.translations && target.translations[locale] && target.translations[locale][key] !== undefined) {
+            return target.translations[locale][key];
+          }
+        }
+
+        return target[key];
+      },
+      ownKeys: (target) => {
+        return Reflect.ownKeys(target).filter((key: string) => !/^__/.test(key) && !["translations"].includes(key));
+      },
+    });
+  }
 
   static reinit() {
     this.clearCache();
@@ -160,7 +198,7 @@ class GraphandModel {
     return item;
   }
 
-  static async query(query: any, cache = true, waitRequest = false, callback?: Function) {
+  static async query(query: any, cache = true, waitRequest = false, callback?: Function, hooks = true) {
     await this._client._project;
 
     if (typeof query === "string") {
@@ -177,12 +215,18 @@ class GraphandModel {
       }
     }
 
-    query.translations = this._client._project?.locales;
+    if (this.translatable) {
+      query.translations = this._client._project?.locales;
+    }
+
+    if (hooks) {
+      await this.beforeQuery?.call(this, query);
+    }
 
     const request = (cacheKey?: string) =>
       this._client._axios
-        .post(`${this.baseUrl}/query`, query)
-        .then((res) => {
+        .post(this.queryUrl || `${this.baseUrl}/query`, query)
+        .then(async (res) => {
           if (res.data.data.rows) {
             res.data.data.rows = res.data.data.rows.map((item) => new this(item));
 
@@ -213,10 +257,18 @@ class GraphandModel {
             this.cache[cacheKey].previous = res;
           }
 
+          if (hooks) {
+            await this.afterQuery?.call(this, query, res);
+          }
+
           return res;
         })
-        .catch((e) => {
+        .catch(async (e) => {
           delete this.cache[cacheKey];
+
+          if (hooks) {
+            await this.afterQuery?.call(this, query, null, e);
+          }
           throw e;
         });
 
@@ -292,45 +344,22 @@ class GraphandModel {
     return this;
   }
 
-  constructor(data) {
-    Object.assign(this, data);
+  async update(payload: any, preStore = false, hooks = true) {
+    const constructor = this.constructor as any;
+    await constructor._client._project;
 
-    return new Proxy(this, {
-      get: (target, key) => {
-        switch (key) {
-          case "constructor":
-            return target.constructor;
-          case "_id":
-            return target._id;
-          case "__raw":
-            return target;
-          default:
-            break;
-        }
+    if (constructor.translatable) {
+      payload.translations = constructor._client._project?.locales;
+    }
 
-        const { constructor } = Object.getPrototypeOf(this);
+    if (payload.locale && constructor._client._project && payload.locale === constructor._client._project.defaultLocale) {
+      delete payload.locale;
+    }
 
-        if (constructor.translatable) {
-          let locale = constructor._client.locale;
-          if (locale && !constructor._client._project?.locales?.includes(locale)) {
-            locale = undefined;
-          }
+    if (hooks) {
+      await constructor.beforeUpdate?.call(this, payload);
+    }
 
-          if (locale && target.translations && target.translations[locale] && target.translations[locale][key] !== undefined) {
-            return target.translations[locale][key];
-          }
-        }
-
-        return target[key];
-      },
-      ownKeys: (target) => {
-        return Reflect.ownKeys(target).filter((key: string) => !/^__/.test(key) && !["translations"].includes(key));
-      },
-    });
-  }
-
-  async update(payload: any, preStore = false) {
-    const { constructor } = Object.getPrototypeOf(this);
     if (preStore) {
       const _item = new constructor({ ...this, ...payload });
       constructor.upsertStore(_item);
@@ -340,9 +369,17 @@ class GraphandModel {
       const { data } = await constructor._client._axios.patch(constructor.baseUrl, { query: { _id: this._id }, ...payload });
       const item = new constructor(data.data.rows[0]);
       constructor.upsertStore(item);
+
+      if (hooks) {
+        await constructor.afterUpdate?.call(this, item);
+      }
     } catch (e) {
       if (preStore) {
         constructor.upsertStore(this);
+      }
+
+      if (hooks) {
+        await constructor.afterUpdate?.call(this, null, e);
       }
       throw e;
     }
@@ -350,8 +387,19 @@ class GraphandModel {
   }
 
   delete() {
-    return Object.getPrototypeOf(this).constructor.delete(this);
+    const constructor = this.constructor as any;
+    return constructor.delete(this);
   }
+
+  // hooks
+  static beforeQuery;
+  static afterQuery;
+  static beforeUpdate;
+  static afterUpdate;
+  static beforeCreate;
+  static afterUpdtae;
+  static beforeDelete;
+  static afterDelete;
 }
 
 export default GraphandModel;
