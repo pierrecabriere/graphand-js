@@ -6,48 +6,88 @@ import GraphandModel from "./utils/GraphandModel";
 interface ClientOptions {
   project: string;
   accessToken?: string;
+  locales: string[];
 }
 
 class Client {
   _options: ClientOptions;
   _axios: AxiosInstance;
   private _accessToken: string;
-  static GraphandModel = GraphandModel;
+  private _locale: string;
+  _project: any;
 
+  GraphandModel = GraphandModel.setClient(this);
   DataModel = Data.setClient(this);
   AccountModel = Account.setClient(this);
 
   constructor(options: ClientOptions) {
-    this._options = options;
-
-    if (!/^(?=[a-f\d]{24}$)(\d+[a-f]|[a-f]+\d)/i.test(this._options.project)) {
-      throw new Error("Invalid project ID");
-    }
+    //@ts-ignore
+    this._options = options || {};
 
     if (this._options.accessToken) {
       this.accessToken = this._options.accessToken;
     }
 
     this._axios = axios.create({
-      baseURL: `https://${this._options.project}.api.graphand.io`,
+      baseURL: this._options.project ? `https://${this._options.project}.api.graphand.io` : "https://api.graphand.io",
       transformRequest: [
         (data, headers) => {
-          if (this.accessToken) {
-            headers.Authorization = `Bearer ${this.accessToken}`;
-          }
+          const token =
+            this.accessToken ||
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiZ3Vlc3QiLCJpYXQiOjE1NjE0MjA5NDF9.1NFWwau0ume5sIsEBafFltPvyh7x4-LpDMNR8wgI90c";
+          headers.Authorization = `Bearer ${token}`;
 
           return data;
         },
       ].concat(axios.defaults.transformRequest),
     });
+
+    if (this._options.project) {
+      this._initProject();
+    }
+  }
+
+  private async _initProject() {
+    this._project = axios
+      .get(`https://api.graphand.io/projects/${this._options.project}`, {
+        headers: {
+          Authorization:
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiZ3Vlc3QiLCJpYXQiOjE1NjE0MjA5NDF9.1NFWwau0ume5sIsEBafFltPvyh7x4-LpDMNR8wgI90c",
+        },
+      })
+      .then((res) => {
+        this._project = res.data.data;
+        if (!this.locale) {
+          this.locale = this._project.defaultLocale;
+        }
+      })
+      .catch((e) => {
+        throw new Error("Invalid project ID");
+      });
   }
 
   get accessToken() {
     return this._accessToken;
   }
 
-  set accessToken(token) {
+  set accessToken(token: string) {
+    this.setAccessToken(token);
+  }
+
+  setAccessToken(token: string) {
     this._accessToken = token;
+  }
+
+  get locale() {
+    return this._locale;
+  }
+
+  set locale(locale: string) {
+    this.setLocale(locale);
+  }
+
+  setLocale(locale: string) {
+    this._locale = locale;
   }
 
   static createClient(options: ClientOptions) {
@@ -60,7 +100,9 @@ class Client {
 
   async login(credentials) {
     const {
-      data: { accessToken },
+      data: {
+        data: { accessToken },
+      },
     } = await this._axios.post("/auth/login", credentials);
     this.accessToken = accessToken;
     return accessToken;
@@ -96,7 +138,7 @@ class Client {
     return new Client({ ...this._options, ...options });
   }
 
-  plugin(plugin: Function, options: any) {
+  plugin(plugin: Function, options: any = {}) {
     plugin(this, options);
   }
 }

@@ -1,6 +1,8 @@
 import GraphandModel from "../utils/GraphandModel";
 
 class Account extends GraphandModel {
+  static apiIdentifier = "accounts";
+
   static get baseUrl() {
     return "/accounts";
   }

@@ -4,10 +4,13 @@ import Client from "../Client";
 
 class GraphandModel {
   _id: string;
+  translations: any[];
 
   static _client: Client;
   static cache = {};
+  static translatable = true;
   static _store?: Store;
+  static baseUrl;
 
   static reinit() {
     this.clearCache();
@@ -16,7 +19,7 @@ class GraphandModel {
 
   static clearCache() {
     // @ts-ignore
-    Object.values(this.cache).forEach((cacheItem) => {
+    Object.values(this.cache).forEach((cacheItem: any) => {
       delete cacheItem.request;
     });
 
@@ -119,7 +122,24 @@ class GraphandModel {
     });
   }
 
-  static getList() {
+  static getList(query?: object) {
+    if (query) {
+      const parent = this;
+      return new Promise(async (resolve, reject) => {
+        try {
+          const {
+            data: {
+              data: { rows },
+            },
+          } = await parent.query(query);
+          const list = parent.getList();
+          resolve(rows.map((row) => list.find((item) => item._id === row._id)));
+        } catch (e) {
+          reject(e);
+        }
+      });
+    }
+
     return this.store.getState().list;
   }
 
@@ -130,7 +150,7 @@ class GraphandModel {
       return new Promise(async (resolve, reject) => {
         try {
           const res = await this.query(_id, undefined, true);
-          resolve(this.get(res.data.data.rows[0]._id, false));
+          resolve(this.get((res.data.data.rows && res.data.data.rows[0]._id) || res.data.data._id, false));
         } catch (e) {
           reject(e);
         }
@@ -141,6 +161,8 @@ class GraphandModel {
   }
 
   static async query(query: any, cache = true, waitRequest = false, callback?: Function) {
+    await this._client._project;
+
     if (typeof query === "string") {
       query = { query: { _id: query } };
     } else if (!query) {
@@ -155,22 +177,35 @@ class GraphandModel {
       }
     }
 
+    query.translations = this._client._project?.locales;
+
     const request = (cacheKey?: string) =>
       this._client._axios
         .post(`${this.baseUrl}/query`, query)
         .then((res) => {
-          res.data.data.rows = res.data.data.rows.map((item) => new this(item));
-          const { rows } = res.data.data;
+          if (res.data.data.rows) {
+            res.data.data.rows = res.data.data.rows.map((item) => new this(item));
 
-          const list = this.getList();
-          const modified =
-            list.length !== rows.length ||
-            !!rows.find((item) => {
-              return !list.find((_item) => isEqual(_item, item));
-            });
+            const rows = res.data.data.rows || [res.data.data];
 
-          if (modified) {
-            this.upsertStore(rows);
+            const list = this.getList();
+            const modified =
+              list.length !== rows.length ||
+              !!rows.find((item) => {
+                return !list.find((_item) => isEqual(_item, item));
+              });
+
+            if (modified) {
+              this.upsertStore(rows);
+            }
+          } else {
+            res.data.data = new this(res.data.data);
+            const list = this.getList();
+            const modified = !isEqual(list[0], res.data.data);
+
+            if (modified) {
+              this.upsertStore(res.data.data);
+            }
           }
 
           if (cacheKey) {
@@ -252,10 +287,6 @@ class GraphandModel {
     return true;
   }
 
-  static get baseUrl() {
-    return null;
-  }
-
   static setClient(client) {
     this._client = client;
     return this;
@@ -263,6 +294,39 @@ class GraphandModel {
 
   constructor(data) {
     Object.assign(this, data);
+
+    return new Proxy(this, {
+      get: (target, key) => {
+        switch (key) {
+          case "constructor":
+            return target.constructor;
+          case "_id":
+            return target._id;
+          case "__raw":
+            return target;
+          default:
+            break;
+        }
+
+        const { constructor } = Object.getPrototypeOf(this);
+
+        if (constructor.translatable) {
+          let locale = constructor._client.locale;
+          if (locale && !constructor._client._project?.locales?.includes(locale)) {
+            locale = undefined;
+          }
+
+          if (locale && target.translations && target.translations[locale] && target.translations[locale][key] !== undefined) {
+            return target.translations[locale][key];
+          }
+        }
+
+        return target[key];
+      },
+      ownKeys: (target) => {
+        return Reflect.ownKeys(target).filter((key: string) => !/^__/.test(key) && !["translations"].includes(key));
+      },
+    });
   }
 
   async update(payload: any, preStore = false) {
