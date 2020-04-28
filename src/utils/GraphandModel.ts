@@ -344,20 +344,41 @@ class GraphandModel {
     return this;
   }
 
-  async update(payload: any, preStore = false, hooks = true) {
-    const constructor = this.constructor as any;
-    await constructor._client._project;
-
-    if (constructor.translatable) {
-      payload.translations = constructor._client._project?.locales;
+  static async update(query, payload, hooks = true) {
+    if (this.translatable && this._client._project) {
+      payload.translations = this._client._project.locales;
     }
 
-    if (payload.locale && constructor._client._project && payload.locale === constructor._client._project.defaultLocale) {
+    if (payload.locale && this._client._project && payload.locale === this._client._project.defaultLocale) {
       delete payload.locale;
     }
 
     if (hooks) {
-      await constructor.beforeUpdate?.call(this, payload);
+      await this.beforeUpdate?.call(this, payload);
+    }
+
+    try {
+      const { data } = await this._client._axios.patch(this.baseUrl, { query, ...payload });
+      const items = data.data.rows.map((item) => new this(item));
+      this.upsertStore(items);
+
+      if (hooks) {
+        await this.afterUpdate?.call(this, items);
+      }
+    } catch (e) {
+      if (hooks) {
+        await this.afterUpdate?.call(this, null, e);
+      }
+
+      throw e;
+    }
+  }
+
+  async update(payload: any, preStore = false, hooks = true) {
+    const constructor = this.constructor as any;
+
+    if (hooks) {
+      await constructor.beforeUpdate?.call(constructor, payload);
     }
 
     if (preStore) {
@@ -366,12 +387,10 @@ class GraphandModel {
     }
 
     try {
-      const { data } = await constructor._client._axios.patch(constructor.baseUrl, { query: { _id: this._id }, ...payload });
-      const item = new constructor(data.data.rows[0]);
-      constructor.upsertStore(item);
+      await constructor.update({ _id: this._id }, payload, false);
 
       if (hooks) {
-        await constructor.afterUpdate?.call(this, item);
+        await constructor.afterUpdate?.call(this, constructor.get(this._id));
       }
     } catch (e) {
       if (preStore) {
@@ -381,8 +400,10 @@ class GraphandModel {
       if (hooks) {
         await constructor.afterUpdate?.call(this, null, e);
       }
+
       throw e;
     }
+
     return this;
   }
 
