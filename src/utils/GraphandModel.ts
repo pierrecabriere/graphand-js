@@ -12,6 +12,7 @@ class GraphandModel {
   static _store?: Store;
   static baseUrl;
   static queryUrl;
+  static prevListLength?: number;
 
   constructor(data) {
     Object.assign(this, data);
@@ -56,7 +57,6 @@ class GraphandModel {
   }
 
   static clearCache() {
-    // @ts-ignore
     Object.values(this.cache).forEach((cacheItem: any) => {
       delete cacheItem.request;
     });
@@ -99,7 +99,7 @@ class GraphandModel {
         return { ...state, list: [...state.list.filter((i) => i !== found)] };
       };
 
-      this._store = createStore((state = { list: [] }, { type, target, payload }) => {
+      this._store = createStore((state: { list: GraphandModel[] } = { list: [] }, { type, target, payload }) => {
         switch (type) {
           case "UPSERT":
             if (Array.isArray(payload)) {
@@ -107,23 +107,23 @@ class GraphandModel {
             } else {
               state = _upsert(state, payload);
             }
-
-            return state;
+            break;
           case "UPDATE":
             if (target) {
               state = _update(state, target, payload);
             }
-
-            return state;
+            break;
           case "DELETE":
             state = _delete(state, payload);
-
-            return state;
+            break;
           case "REINIT":
-            return { list: [] };
+            state = { list: [] };
+            break;
           default:
-            return state;
+            break;
         }
+
+        return state;
       });
     }
 
@@ -300,7 +300,7 @@ class GraphandModel {
       } else if (this.cache[cacheKey].previous && !this.cache[cacheKey].request) {
         res = this.cache[cacheKey].previous;
         this.cache[cacheKey].request = request(cacheKey);
-        callback && callback(false);
+        callback && callback(res);
 
         this.cache[cacheKey].request.then(async (_res) => {
           callback && callback(_res);
@@ -322,26 +322,56 @@ class GraphandModel {
     return res;
   }
 
-  static async delete(payload: GraphandModel | any) {
+  static async create(payload, hooks = true) {
+    const config = { params: {} };
+
+    if (payload.locale && this._client._project && payload.locale === this._client._project.defaultLocale) {
+      delete payload.locale;
+    }
+
+    const args = { payload, config };
+
+    if (hooks) {
+      await this.beforeCreate?.call(this, args);
+    }
+
+    let item;
     try {
-      if (payload instanceof GraphandModel) {
-        await this._client._axios.delete(this.baseUrl, { data: { query: { _id: payload._id } } });
-        this.clearCache();
-        this.deleteFromStore(payload);
-      } else {
-        await this._client._axios.delete(this.baseUrl, { data: payload });
-        this.reinit();
+      const req = this._client._axios
+        .post(this.baseUrl, args.payload, args.config)
+        .then(async (res) => {
+          item = new this(res.data.data);
+          this.clearCache();
+          this.upsertStore(item);
+
+          if (hooks) {
+            await this.afterCreate?.call(this, item, null, args);
+          }
+
+          return item;
+        })
+        .catch(async (e) => {
+          if (hooks) {
+            await this.afterCreate?.call(this, null, e, args);
+          }
+
+          throw e;
+        });
+
+      const middlewareData = await this.middlewareCreate?.call(this, args, req);
+      if (middlewareData !== undefined) {
+        return middlewareData;
       }
+      item = await req;
     } catch (e) {
+      if (hooks) {
+        await this.afterCreate?.call(this, null, e, args);
+      }
+
       throw e;
     }
 
-    return true;
-  }
-
-  static setClient(client) {
-    this._client = client;
-    return this;
+    return item;
   }
 
   static async update(query, payload, hooks = true) {
@@ -381,16 +411,18 @@ class GraphandModel {
       await constructor.beforeUpdate?.call(constructor, payload);
     }
 
+    const _id = payload._id || this._id;
+
     if (preStore) {
       const _item = new constructor({ ...this, ...payload });
       constructor.upsertStore(_item);
     }
 
     try {
-      await constructor.update({ _id: this._id }, payload, false);
+      await constructor.update({ _id }, payload, false);
 
       if (hooks) {
-        await constructor.afterUpdate?.call(this, constructor.get(this._id));
+        await constructor.afterUpdate?.call(this, constructor.get(_id));
       }
     } catch (e) {
       if (preStore) {
@@ -407,18 +439,46 @@ class GraphandModel {
     return this;
   }
 
+  static async delete(payload: GraphandModel | any) {
+    if (payload instanceof GraphandModel) {
+      try {
+        this.deleteFromStore(payload);
+        await this._client._axios.delete(this.baseUrl, { data: { query: { _id: payload._id } } });
+        this.clearCache();
+      } catch (e) {
+        this.upsertStore(payload);
+        throw e;
+      }
+    } else {
+      try {
+        await this._client._axios.delete(this.baseUrl, { data: payload });
+        this.reinit();
+      } catch (e) {
+        throw e;
+      }
+    }
+
+    return true;
+  }
+
   delete() {
     const constructor = this.constructor as any;
     return constructor.delete(this);
   }
 
+  static setClient(client) {
+    this._client = client;
+    return this;
+  }
+
   // hooks
   static beforeQuery;
   static afterQuery;
+  static beforeCreate;
+  static middlewareCreate;
+  static afterCreate;
   static beforeUpdate;
   static afterUpdate;
-  static beforeCreate;
-  static afterUpdtae;
   static beforeDelete;
   static afterDelete;
 }
