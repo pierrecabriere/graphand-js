@@ -7,6 +7,7 @@ interface ClientOptions {
   project: string;
   accessToken?: string;
   locales: string[];
+  host?: string;
 }
 
 class Client {
@@ -29,7 +30,7 @@ class Client {
     }
 
     this._axios = axios.create({
-      baseURL: this._options.project ? `https://${this._options.project}.api.graphand.io` : "https://api.graphand.io",
+      baseURL: this._options.project ? `https://${this._options.project}.api.graphand.io` : this._options.host || "https://api.graphand.io",
       transformRequest: [
         (data, headers) => {
           const token =

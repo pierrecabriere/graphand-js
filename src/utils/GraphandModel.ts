@@ -439,21 +439,41 @@ class GraphandModel {
     return this;
   }
 
-  static async delete(payload: GraphandModel | any) {
+  static async delete(payload: GraphandModel | any, hooks = true) {
+    const args = { payload };
+
+    if (hooks) {
+      await this.beforeDelete?.call(this, args);
+    }
+
+    this.clearCache();
     if (payload instanceof GraphandModel) {
       try {
         this.deleteFromStore(payload);
         await this._client._axios.delete(this.baseUrl, { data: { query: { _id: payload._id } } });
-        this.clearCache();
+        if (hooks) {
+          await this.afterDelete?.call(this, args);
+        }
       } catch (e) {
         this.upsertStore(payload);
+        if (hooks) {
+          await this.afterDelete?.call(this, args, e);
+        }
+
         throw e;
       }
     } else {
       try {
         await this._client._axios.delete(this.baseUrl, { data: payload });
+        if (hooks) {
+          await this.afterDelete?.call(this, args);
+        }
         this.reinit();
       } catch (e) {
+        if (hooks) {
+          await this.afterDelete?.call(this, args, e);
+        }
+
         throw e;
       }
     }
