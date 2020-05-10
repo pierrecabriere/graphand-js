@@ -15,7 +15,11 @@ class GraphandModel {
   static prevListLength?: number;
 
   constructor(data) {
-    Object.assign(this, data);
+    try {
+      Object.assign(this, data);
+    } catch (e) {
+      console.error(e);
+    }
 
     return new Proxy(this, {
       get: (target, key) => {
@@ -269,6 +273,7 @@ class GraphandModel {
           if (hooks) {
             await this.afterQuery?.call(this, query, null, e);
           }
+
           throw e;
         });
 
