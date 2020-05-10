@@ -454,8 +454,8 @@ class GraphandModel {
     this.clearCache();
     if (payload instanceof GraphandModel) {
       try {
-        this.deleteFromStore(payload);
         await this._client._axios.delete(this.baseUrl, { data: { query: { _id: payload._id } } });
+        this.deleteFromStore(payload);
         if (hooks) {
           await this.afterDelete?.call(this, args);
         }
