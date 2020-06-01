@@ -16,10 +16,9 @@ class Client {
   private _accessToken: string;
   private _locale: string;
   _project: any;
+  _models: {};
 
   GraphandModel = GraphandModel.setClient(this);
-  DataModel = Data.setClient(this);
-  AccountModel = Account.setClient(this);
 
   constructor(options: ClientOptions) {
     //@ts-ignore
@@ -65,6 +64,27 @@ class Client {
       .catch((e) => {
         throw new Error("Invalid project ID");
       });
+  }
+
+  get models() {
+    return new Proxy(this, {
+      get: function (oTarget, sKey) {
+        switch (sKey) {
+          case "Data":
+            return Data.setClient(oTarget);
+          case "Account":
+            return Account.setClient(oTarget);
+        }
+
+        if (!oTarget._models[sKey]) {
+          oTarget._models[sKey] = class extends Data.setClient(oTarget) {
+            static apiIdentifier = sKey;
+          };
+        }
+
+        return oTarget._models[sKey];
+      },
+    });
   }
 
   get accessToken() {

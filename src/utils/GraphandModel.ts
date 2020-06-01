@@ -1,6 +1,8 @@
 import isEqual from "fast-deep-equal";
 import { createStore, Store } from "redux";
+import { Observable, Subject, Subscriber } from "rxjs";
 import Client from "../Client";
+import ModelObserver from "./ModelObserver";
 
 class GraphandModel {
   _id: string;
@@ -73,6 +75,12 @@ class GraphandModel {
       const _upsert = (state, item) => {
         const found = state.list.find((i) => i._id === item._id);
         if (found) {
+          Object.keys(item).forEach((key) => {
+            if (typeof item[key] === "string" && found[key] && typeof found[key] === "object" && found[key]._id === item[key]) {
+              item[key] = found[key];
+            }
+          });
+
           return {
             ...state,
             list: state.list.map((i) => (i === found ? item : i)),
@@ -325,6 +333,10 @@ class GraphandModel {
     }
 
     return res;
+  }
+
+  static observe(options: any = {}) {
+    return new ModelObserver(options, this);
   }
 
   static async create(payload, hooks = true) {
