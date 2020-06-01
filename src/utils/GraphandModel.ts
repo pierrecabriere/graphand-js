@@ -73,13 +73,19 @@ class GraphandModel {
   static get store() {
     if (!this._store) {
       const _upsert = (state, item) => {
-        const found = state.list.find((i) => i._id === item._id);
-        if (found) {
-          Object.keys(item).forEach((key) => {
-            if (typeof item[key] === "string" && found[key] && typeof found[key] === "object" && found[key]._id === item[key]) {
-              item[key] = found[key];
+        const _upsertObject = (input, payload) => {
+          Object.keys(input).forEach((key) => {
+            if (typeof input[key] === "string" && payload[key] && typeof payload[key] === "object" && payload[key]._id === input[key]) {
+              item[key] = payload[key];
+            } else if (item[key] && typeof item[key] === "object" && payload[key] && typeof payload[key] === "object") {
+              _upsertObject(item[key], found[key]);
             }
           });
+        };
+
+        const found = state.list.find((i) => i._id === item._id);
+        if (found) {
+          _upsertObject(item, found);
 
           return {
             ...state,
