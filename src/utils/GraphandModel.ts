@@ -1,6 +1,5 @@
 import isEqual from "fast-deep-equal";
 import { createStore, Store } from "redux";
-import { Observable, Subject, Subscriber } from "rxjs";
 import Client from "../Client";
 import ModelObserver from "./ModelObserver";
 
@@ -15,6 +14,7 @@ class GraphandModel {
   static baseUrl;
   static queryUrl;
   static prevListLength?: number;
+  static socket = null;
 
   constructor(data) {
     try {
@@ -55,6 +55,32 @@ class GraphandModel {
         return Reflect.ownKeys(target).filter((key: string) => !/^__/.test(key) && !["translations"].includes(key));
       },
     });
+  }
+
+  static sync() {
+    if (this._client && this._client.socket && this.socket !== this._client.socket) {
+      this._client.socket.on(this.baseUrl, ({ action, payload }) => {
+        switch (action) {
+          case "create":
+            this.upsertStore(payload.map((item) => new this(item)));
+            break;
+          case "update":
+            this.upsertStore(payload.map((item) => new this(item)));
+            break;
+          case "delete":
+            this.deleteFromStore(payload);
+            break;
+        }
+      });
+      this.socket = this._client.socket;
+    }
+
+    return this;
+  }
+
+  static unsync() {
+    this._client.socket.off(this.baseUrl);
+    delete this.socket;
   }
 
   static reinit() {
@@ -118,6 +144,7 @@ class GraphandModel {
       };
 
       this._store = createStore((state: { list: GraphandModel[] } = { list: [] }, { type, target, payload }) => {
+        const prevList = state.list;
         switch (type) {
           case "UPSERT":
             if (Array.isArray(payload)) {
@@ -132,13 +159,20 @@ class GraphandModel {
             }
             break;
           case "DELETE":
-            state = _delete(state, payload);
+            if (Array.isArray(payload)) {
+              payload.forEach((item) => (state = _delete(state, item)));
+            } else {
+              state = _delete(state, payload);
+            }
             break;
           case "REINIT":
             state = { list: [] };
             break;
           default:
             break;
+        }
+        if (prevList.length !== state.list.length) {
+          this.clearCache();
         }
 
         return state;
@@ -364,7 +398,6 @@ class GraphandModel {
         .post(this.baseUrl, args.payload, args.config)
         .then(async (res) => {
           item = new this(res.data.data);
-          this.clearCache();
           this.upsertStore(item);
 
           if (hooks) {
@@ -413,7 +446,9 @@ class GraphandModel {
     try {
       const { data } = await this._client._axios.patch(this.baseUrl, { query, ...payload });
       const items = data.data.rows.map((item) => new this(item));
-      this.upsertStore(items);
+      if (!this.socket) {
+        this.upsertStore(items);
+      }
 
       if (hooks) {
         await this.afterUpdate?.call(this, items);
@@ -469,7 +504,6 @@ class GraphandModel {
       await this.beforeDelete?.call(this, args);
     }
 
-    this.clearCache();
     if (payload instanceof GraphandModel) {
       try {
         await this._client._axios.delete(this.baseUrl, { data: { query: { _id: payload._id } } });

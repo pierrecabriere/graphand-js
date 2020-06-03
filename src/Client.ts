@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios";
+import io from "socket.io-client";
 import Account from "./models/Account";
 import Data from "./models/Data";
 import GraphandModel from "./utils/GraphandModel";
@@ -13,6 +14,7 @@ interface ClientOptions {
 class Client {
   _options: ClientOptions;
   _axios: AxiosInstance;
+  private _socket: any;
   private _accessToken: string;
   private _locale: string;
   _project: any;
@@ -29,7 +31,7 @@ class Client {
     }
 
     this._axios = axios.create({
-      baseURL: this._options.project ? `https://${this._options.project}.api.graphand.io` : this._options.host || "https://api.graphand.io",
+      baseURL: this._options.host || (this._options.project ? `https://${this._options.project}.api.graphand.io` : "https://api.graphand.io"),
       transformRequest: [
         (data, headers) => {
           const token =
@@ -71,9 +73,9 @@ class Client {
       get: function (oTarget, sKey) {
         switch (sKey) {
           case "Data":
-            return Data.setClient(oTarget);
+            return Data.setClient(oTarget).sync();
           case "Account":
-            return Account.setClient(oTarget);
+            return Account.setClient(oTarget).sync();
         }
 
         if (!oTarget._models[sKey]) {
@@ -82,7 +84,7 @@ class Client {
           };
         }
 
-        return oTarget._models[sKey];
+        return oTarget._models[sKey].sync();
       },
     });
   }
@@ -97,6 +99,33 @@ class Client {
 
   setAccessToken(token: string) {
     this._accessToken = token;
+
+    if (token) {
+      this.connectSocket();
+    } else {
+      this.disconnectSocket();
+    }
+  }
+
+  get socket() {
+    return this._socket;
+  }
+
+  async connectSocket() {
+    await this._project;
+
+    if (this._socket) {
+      this.disconnectSocket();
+    }
+
+    this._socket = io.connect(this._options.host || "https://api.graphand.io", {
+      query: { token: this.accessToken, projectId: this._options.project },
+    });
+  }
+
+  disconnectSocket() {
+    this._socket?.disconnect();
+    delete this._socket;
   }
 
   get locale() {
