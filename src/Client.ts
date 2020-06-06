@@ -9,6 +9,7 @@ interface ClientOptions {
   accessToken?: string;
   locales: string[];
   host?: string;
+  socket: boolean;
 }
 
 class Client {
@@ -79,12 +80,12 @@ class Client {
         }
 
         if (!oTarget._models[sKey]) {
-          oTarget._models[sKey] = class extends Data.setClient(oTarget) {
+          oTarget._models[sKey] = class extends Data {
             static apiIdentifier = sKey;
           };
         }
 
-        return oTarget._models[sKey].sync();
+        return oTarget._models[sKey].setClient(oTarget).sync();
       },
     });
   }
@@ -100,10 +101,12 @@ class Client {
   setAccessToken(token: string) {
     this._accessToken = token;
 
-    if (token) {
-      this.connectSocket();
-    } else {
-      this.disconnectSocket();
+    if (this._options.socket) {
+      if (token) {
+        this.connectSocket();
+      } else {
+        this.disconnectSocket();
+      }
     }
   }
 

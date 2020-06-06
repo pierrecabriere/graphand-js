@@ -105,6 +105,22 @@ class GraphandModel {
               item[key] = payload[key];
             } else if (item[key] && typeof item[key] === "object" && payload[key] && typeof payload[key] === "object") {
               _upsertObject(item[key], found[key]);
+            } else if (
+              (typeof input[key] === "string" &&
+                payload[key] &&
+                typeof payload[key] === "object" &&
+                payload[key]._id &&
+                payload[key]._id !== input[key]) ||
+              (input[key] &&
+                typeof input[key] === "object" &&
+                input[key]._id &&
+                payload[key] &&
+                typeof payload[key] === "object" &&
+                payload[key]._id &&
+                payload[key]._id !== input[key]._id)
+            ) {
+              this.clearCache();
+              state.list = [];
             }
           });
         };
@@ -398,7 +414,9 @@ class GraphandModel {
         .post(this.baseUrl, args.payload, args.config)
         .then(async (res) => {
           item = new this(res.data.data);
-          this.upsertStore(item);
+          if (!this.socket) {
+            this.upsertStore(item);
+          }
 
           if (hooks) {
             await this.afterCreate?.call(this, item, null, args);
@@ -507,12 +525,17 @@ class GraphandModel {
     if (payload instanceof GraphandModel) {
       try {
         await this._client._axios.delete(this.baseUrl, { data: { query: { _id: payload._id } } });
-        this.deleteFromStore(payload);
+        if (!this.socket) {
+          this.deleteFromStore(payload);
+        }
         if (hooks) {
           await this.afterDelete?.call(this, args);
         }
       } catch (e) {
-        this.upsertStore(payload);
+        if (!this.socket) {
+          this.upsertStore(payload);
+        }
+
         if (hooks) {
           await this.afterDelete?.call(this, args, e);
         }
