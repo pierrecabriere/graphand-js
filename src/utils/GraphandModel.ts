@@ -112,7 +112,7 @@ class GraphandModel {
             if (typeof input[key] === "string" && payload[key] && typeof payload[key] === "object" && payload[key]._id === input[key]) {
               item[key] = payload[key];
             } else if (item[key] && typeof item[key] === "object" && payload[key] && typeof payload[key] === "object") {
-              _upsertObject(item[key], found[key]);
+              _upsertObject(item[key], payload[key]);
             } else if (
               (typeof input[key] === "string" &&
                 payload[key] &&
