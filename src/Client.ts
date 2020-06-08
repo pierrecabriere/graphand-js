@@ -29,10 +29,6 @@ class Client {
     //@ts-ignore
     this._options = options || {};
 
-    if (this._options.accessToken) {
-      this.accessToken = this._options.accessToken;
-    }
-
     this._axios = axios.create({
       baseURL: this._options.host || (this._options.project ? `https://${this._options.project}.api.graphand.io` : "https://api.graphand.io"),
       transformRequest: [
@@ -65,6 +61,10 @@ class Client {
     if (this._options.project) {
       this._initProject();
     }
+
+    if (this._options.accessToken) {
+      this.accessToken = this._options.accessToken;
+    }
   }
 
   private async _initProject() {
@@ -91,10 +91,12 @@ class Client {
       get: function (oTarget, sKey) {
         switch (sKey) {
           case "Data":
-            return Data.setClient(oTarget).sync();
+            return Data.setClient(oTarget);
           case "Account":
-            return Account.setClient(oTarget).sync();
+            return Account.setClient(oTarget);
         }
+
+        oTarget._models = oTarget._models || {};
 
         if (!oTarget._models[sKey]) {
           oTarget._models[sKey] = class extends Data {
@@ -102,7 +104,7 @@ class Client {
           };
         }
 
-        return oTarget._models[sKey].setClient(oTarget).sync();
+        return oTarget._models[sKey].setClient(oTarget);
       },
     });
   }

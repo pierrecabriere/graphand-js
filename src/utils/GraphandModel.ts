@@ -101,6 +101,8 @@ class GraphandModel {
       delete cacheItem.request;
     });
 
+    console.log("clearCache");
+
     return this;
   }
 
@@ -133,6 +135,7 @@ class GraphandModel {
           });
         };
 
+        state.list = state.list || [];
         const found = state.list.find((i) => i._id === item._id);
         if (found) {
           _upsertObject(item, found);
@@ -146,6 +149,7 @@ class GraphandModel {
         return { ...state, list: [...state.list, item] };
       };
       const _update = (state, item, payload) => {
+        state.list = state.list || [];
         const found = state.list.find((i) => i._id === item._id);
         if (found) {
           return {
@@ -163,12 +167,14 @@ class GraphandModel {
         return state;
       };
       const _delete = (state, item) => {
+        state.list = state.list || [];
         const found = state.list.find((i) => i._id === item._id);
         return { ...state, list: [...state.list.filter((i) => i !== found)] };
       };
 
-      this._store = createStore((state: { list: GraphandModel[] } = { list: [] }, { type, target, payload }) => {
+      this._store = createStore((state: { list: GraphandModel[] } = { list: null }, { type, target, payload }) => {
         const prevList = state.list;
+        const wasInitialized = !!prevList;
         switch (type) {
           case "UPSERT":
             if (Array.isArray(payload)) {
@@ -195,7 +201,8 @@ class GraphandModel {
           default:
             break;
         }
-        if (prevList.length !== state.list.length) {
+
+        if (wasInitialized && prevList.length !== state.list.length) {
           this.clearCache();
         }
 
@@ -254,7 +261,7 @@ class GraphandModel {
       });
     }
 
-    return this.store.getState().list;
+    return this.store.getState().list || [];
   }
 
   static get(_id, fetch = false) {
@@ -374,7 +381,7 @@ class GraphandModel {
             return res;
           });
         }
-      } else if (this.cache[cacheKey].previous && !this.cache[cacheKey].request) {
+      } else if (this.cache[cacheKey].previous && !waitRequest) {
         res = this.cache[cacheKey].previous;
         this.cache[cacheKey].request = request(cacheKey);
         callback && callback(res);

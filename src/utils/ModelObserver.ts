@@ -36,23 +36,22 @@ class ModelObserver {
       const refresh = async () => {
         subscriber.next({ loading: true });
         const { data } = await model.query(this.current, true, true);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
         ids = data.data.rows.map((item) => item._id);
-        subscriber.next({ loading: false, count: data.data.count });
-        triggerSubscription();
+        triggerSubscription({ loading: false, count: data.data.count });
       };
 
-      const triggerSubscription = () => {
+      const triggerSubscription = (payload = {}) => {
         if (!ids) {
           return subscriber.next({ list: [] });
         }
 
-        const list = model.getList();
-        return subscriber.next({ list: ids.map((id) => list.find((item) => item._id === id)).filter((item) => item) });
+        const modelList = model.getList();
+        const list = ids.map((id) => modelList.find((item) => item._id === id)).filter((item) => item);
+        return subscriber.next({ list, ...payload });
       };
 
       const subscriptionHandler = () => {
-        if (!prevList) {
+        if (!prevList || !ids) {
           return;
         }
 
@@ -60,17 +59,18 @@ class ModelObserver {
         const prevListLength = prevList.length;
         const listLength = list.length;
         if (prevListLength !== listLength || !isEqual(prevList, list)) {
-          prevList = list;
-          if (prevListLength !== listLength) {
+          if (prevListLength < listLength) {
             refresh();
           } else {
             triggerSubscription();
+
+            if (prevListLength !== listLength) {
+              refresh();
+            }
           }
+          prevList = list;
         }
       };
-
-      model.store.subscribe(subscriptionHandler);
-      prevList = model.getList();
 
       Object.keys(subjects).forEach((key) => {
         const subject = subjects[key];
@@ -82,6 +82,9 @@ class ModelObserver {
           },
         });
       });
+
+      prevList = model.getList();
+      model.store.subscribe(subscriptionHandler);
     });
 
     this.list = new Observable((subscriber) => {
@@ -89,7 +92,7 @@ class ModelObserver {
       mainObservable.subscribe(({ list }) => {
         if (list !== undefined && !isEqual(prevList, list)) {
           prevList = list;
-          subscriber.next(list);
+          subscriber.next(list || []);
         }
       });
     });
@@ -99,7 +102,7 @@ class ModelObserver {
       mainObservable.subscribe(({ count }) => {
         if (count !== undefined && !isEqual(prevCount, count)) {
           prevCount = count;
-          subscriber.next(count);
+          subscriber.next(count || 0);
         }
       });
     });
@@ -137,6 +140,10 @@ class ModelObserver {
           this[key](options[key]);
         }
       });
+
+      if (!this.current.query) {
+        this.reload();
+      }
     });
   }
 }
