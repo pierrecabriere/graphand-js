@@ -101,8 +101,6 @@ class GraphandModel {
       delete cacheItem.request;
     });
 
-    console.log("clearCache");
-
     return this;
   }
 
