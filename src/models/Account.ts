@@ -3,9 +3,7 @@ import GraphandModel from "../utils/GraphandModel";
 class Account extends GraphandModel {
   static apiIdentifier = "accounts";
 
-  static get baseUrl() {
-    return "/accounts";
-  }
+  static baseUrl = "/accounts";
 
   static async login(credentials) {
     return this._client.login(credentials);

@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios";
+import { Subject } from "rxjs";
 import io from "socket.io-client";
 import Account from "./models/Account";
 import Data from "./models/Data";
@@ -20,6 +21,7 @@ class Client {
   private _locale: string;
   _project: any;
   _models: {};
+  socketSubject = new Subject();
 
   GraphandModel = GraphandModel.setClient(this);
 
@@ -43,6 +45,21 @@ class Client {
           return data;
         },
       ].concat(axios.defaults.transformRequest),
+    });
+
+    this.socketSubject.subscribe({
+      next: (reconnect = true) => {
+        if (this._socket) {
+          this._socket?.disconnect();
+          delete this._socket;
+        }
+
+        if (reconnect) {
+          this._socket = io.connect(this._options.host || "https://api.graphand.io", {
+            query: { token: this.accessToken, projectId: this._options.project },
+          });
+        }
+      },
     });
 
     if (this._options.project) {
@@ -114,21 +131,22 @@ class Client {
     return this._socket;
   }
 
-  async connectSocket() {
-    await this._project;
+  registerModel(Model: any, options: { sync?: boolean }) {
+    Model.setClient(this);
 
-    if (this._socket) {
-      this.disconnectSocket();
+    if (options.sync) {
+      Model.sync();
     }
 
-    this._socket = io.connect(this._options.host || "https://api.graphand.io", {
-      query: { token: this.accessToken, projectId: this._options.project },
-    });
+    return Model;
+  }
+
+  connectSocket() {
+    this.socketSubject.next();
   }
 
   disconnectSocket() {
-    this._socket?.disconnect();
-    delete this._socket;
+    this.socketSubject.next(false);
   }
 
   get locale() {

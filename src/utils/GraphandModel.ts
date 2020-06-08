@@ -14,7 +14,7 @@ class GraphandModel {
   static baseUrl;
   static queryUrl;
   static prevListLength?: number;
-  static socket = null;
+  static socketSubscription = null;
 
   constructor(data) {
     try {
@@ -57,30 +57,38 @@ class GraphandModel {
     });
   }
 
+  private static setupSocket() {
+    if (!this._client?.socket) {
+      return;
+    }
+
+    this._client.socket.on(this.baseUrl, ({ action, payload }) => {
+      switch (action) {
+        case "create":
+          this.upsertStore(payload.map((item) => new this(item)));
+          break;
+        case "update":
+          this.upsertStore(payload.map((item) => new this(item)));
+          break;
+        case "delete":
+          this.deleteFromStore(payload);
+          break;
+      }
+    });
+  }
+
   static sync() {
-    if (this._client && this._client.socket && this.socket !== this._client.socket) {
-      this._client.socket.on(this.baseUrl, ({ action, payload }) => {
-        switch (action) {
-          case "create":
-            this.upsertStore(payload.map((item) => new this(item)));
-            break;
-          case "update":
-            this.upsertStore(payload.map((item) => new this(item)));
-            break;
-          case "delete":
-            this.deleteFromStore(payload);
-            break;
-        }
-      });
-      this.socket = this._client.socket;
+    if (this._client && !this.socketSubscription) {
+      this.setupSocket();
+      this.socketSubscription = this._client.socketSubject.asObservable().subscribe(() => this.setupSocket());
     }
 
     return this;
   }
 
   static unsync() {
-    this._client.socket.off(this.baseUrl);
-    delete this.socket;
+    this.socketSubscription.unsubscribe();
+    delete this.socketSubscription;
   }
 
   static reinit() {
@@ -414,7 +422,7 @@ class GraphandModel {
         .post(this.baseUrl, args.payload, args.config)
         .then(async (res) => {
           item = new this(res.data.data);
-          if (!this.socket) {
+          if (!this.socketSubscription) {
             this.upsertStore(item);
           }
 
@@ -464,7 +472,7 @@ class GraphandModel {
     try {
       const { data } = await this._client._axios.patch(this.baseUrl, { query, ...payload });
       const items = data.data.rows.map((item) => new this(item));
-      if (!this.socket) {
+      if (!this.socketSubscription) {
         this.upsertStore(items);
       }
 
@@ -525,14 +533,14 @@ class GraphandModel {
     if (payload instanceof GraphandModel) {
       try {
         await this._client._axios.delete(this.baseUrl, { data: { query: { _id: payload._id } } });
-        if (!this.socket) {
+        if (!this.socketSubscription) {
           this.deleteFromStore(payload);
         }
         if (hooks) {
           await this.afterDelete?.call(this, args);
         }
       } catch (e) {
-        if (!this.socket) {
+        if (!this.socketSubscription) {
           this.upsertStore(payload);
         }
 
