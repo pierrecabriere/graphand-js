@@ -92,7 +92,7 @@ class GraphandModel {
   }
 
   static reinit() {
-    this.clearCache();
+    this.cache = {};
     return this.reinitStore();
   }
 
@@ -561,7 +561,6 @@ class GraphandModel {
         if (hooks) {
           await this.afterDelete?.call(this, args);
         }
-        this.reinit();
       } catch (e) {
         if (hooks) {
           await this.afterDelete?.call(this, args, e);
