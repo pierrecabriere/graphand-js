@@ -11,7 +11,7 @@ class Account extends GraphandModel {
 
   static async getCurrent() {
     const { data } = await this._client._axios.get(`/accounts/current`);
-    return new this(data.data);
+    return data.data ? new this(data.data) : null;
   }
 }
 

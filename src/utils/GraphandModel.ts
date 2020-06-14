@@ -93,6 +93,8 @@ class GraphandModel {
 
   static reinit() {
     this.cache = {};
+
+    console.log("reinit");
     return this.reinitStore();
   }
 
@@ -100,6 +102,8 @@ class GraphandModel {
     Object.values(this.cache).forEach((cacheItem: any) => {
       delete cacheItem.request;
     });
+
+    console.log("clearCache");
 
     return this;
   }
@@ -171,8 +175,6 @@ class GraphandModel {
       };
 
       this._store = createStore((state: { list: GraphandModel[] } = { list: null }, { type, target, payload }) => {
-        const prevList = state.list;
-        const wasInitialized = !!prevList;
         switch (type) {
           case "UPSERT":
             if (Array.isArray(payload)) {
@@ -198,10 +200,6 @@ class GraphandModel {
             break;
           default:
             break;
-        }
-
-        if (wasInitialized && prevList.length !== state.list.length) {
-          this.clearCache();
         }
 
         return state;
@@ -262,14 +260,18 @@ class GraphandModel {
     return this.store.getState().list || [];
   }
 
-  static get(_id, fetch = false) {
+  static get(_id, fetch) {
+    if (!_id) {
+      return null;
+    }
+
     const item = this.getList().find((item) => item._id === _id);
 
-    if (!item && fetch) {
+    if ((!item && fetch !== false) || fetch === true) {
       return new Promise(async (resolve, reject) => {
         try {
           const res = await this.query(_id, undefined, true);
-          resolve(this.get((res.data.data.rows && res.data.data.rows[0]._id) || res.data.data._id, false));
+          resolve(this.get((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id, false));
         } catch (e) {
           reject(e);
         }
@@ -289,16 +291,16 @@ class GraphandModel {
     }
 
     // return from cache if request id
-    if (query.query && query.query._id && typeof query.query._id === "string") {
-      const item = this.getList().find((item) => item._id === query.query._id);
-      if (item) {
-        return { data: { data: { rows: [item], count: 1 } } };
-      }
-    }
+    // if (query.query && query.query._id && typeof query.query._id === "string") {
+    //   const item = this.getList().find((item) => item._id === query.query._id);
+    //   if (item) {
+    //     return { data: { data: { rows: [item], count: 1 } } };
+    //   }
+    // }
 
-    if (this.translatable) {
-      query.translations = this._client._project?.locales;
-    }
+    // if (this.translatable && this._client._project?.locales?.length) {
+    //   query.translations = this._client._project?.locales;
+    // }
 
     if (hooks) {
       await this.beforeQuery?.call(this, query);
@@ -450,6 +452,7 @@ class GraphandModel {
         return middlewareData;
       }
       item = await req;
+      this.clearCache();
     } catch (e) {
       if (hooks) {
         await this.afterCreate?.call(this, null, e, args);
@@ -544,6 +547,7 @@ class GraphandModel {
         if (hooks) {
           await this.afterDelete?.call(this, args);
         }
+        this.clearCache();
       } catch (e) {
         if (!this.socketSubscription) {
           this.upsertStore(payload);
@@ -561,6 +565,7 @@ class GraphandModel {
         if (hooks) {
           await this.afterDelete?.call(this, args);
         }
+        this.clearCache();
       } catch (e) {
         if (hooks) {
           await this.afterDelete?.call(this, args, e);

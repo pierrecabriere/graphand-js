@@ -1,11 +1,7 @@
 import isEqual from "fast-deep-equal";
-import { Observable, Subject } from "rxjs";
+import { Observable, Subject, Subscription } from "rxjs";
 
 class ModelObserver {
-  list;
-  count;
-  loading;
-
   select: Function;
   populate: Function;
   sort: Function;
@@ -15,7 +11,14 @@ class ModelObserver {
   query: Function;
   reload: Function;
 
-  private _current: { select?: any; populate?: any; sort?: any; pageSize?: any; page?: any; translations?: any; query?: any } = {};
+  list: Subject<any>;
+  loading: Subject<any>;
+  count: Subject<any>;
+
+  subjectTimeout;
+  mainSubscription: Subscription;
+
+  private _current: { select?: any; populate?: any; sort?: any; pageSize?: any; page?: any; translations?: any; query?: any } = { page: 1 };
   get current() {
     return this._current;
   }
@@ -55,21 +58,23 @@ class ModelObserver {
           return;
         }
 
-        const list = model.getList();
-        const prevListLength = prevList.length;
-        const listLength = list.length;
-        if (prevListLength !== listLength || !isEqual(prevList, list)) {
-          if (prevListLength < listLength) {
-            refresh();
-          } else {
-            triggerSubscription();
-
-            if (prevListLength !== listLength) {
+        setTimeout(() => {
+          const list = model.getList();
+          const prevListLength = prevList.length;
+          const listLength = list.length;
+          if (prevListLength !== listLength || !isEqual(prevList, list)) {
+            if (prevListLength < listLength) {
               refresh();
+            } else {
+              triggerSubscription();
+
+              if (prevListLength !== listLength) {
+                refresh();
+              }
             }
+            prevList = list;
           }
-          prevList = list;
-        }
+        });
       };
 
       Object.keys(subjects).forEach((key) => {
@@ -78,7 +83,10 @@ class ModelObserver {
         subject.subscribe({
           next: (v: any) => {
             Object.assign(this.current, { [key]: v });
-            refresh();
+            this.subjectTimeout && clearTimeout(this.subjectTimeout);
+            this.subjectTimeout = setTimeout(() => {
+              refresh().then(() => (prevList = model.getList()));
+            });
           },
         });
       });
@@ -87,35 +95,9 @@ class ModelObserver {
       model.store.subscribe(subscriptionHandler);
     });
 
-    this.list = new Observable((subscriber) => {
-      let prevList;
-      mainObservable.subscribe(({ list }) => {
-        if (list !== undefined && !isEqual(prevList, list)) {
-          prevList = list;
-          subscriber.next(list || []);
-        }
-      });
-    });
-
-    this.count = new Observable((subscriber) => {
-      let prevCount;
-      mainObservable.subscribe(({ count }) => {
-        if (count !== undefined && !isEqual(prevCount, count)) {
-          prevCount = count;
-          subscriber.next(count || 0);
-        }
-      });
-    });
-
-    this.loading = new Observable((subscriber) => {
-      let prevLoading;
-      mainObservable.subscribe(({ loading }) => {
-        if (loading !== undefined && !isEqual(prevLoading, loading)) {
-          prevLoading = loading;
-          subscriber.next(loading);
-        }
-      });
-    });
+    this.list = new Subject();
+    this.loading = new Subject();
+    this.count = new Subject();
 
     this.reload = () => {
       subjects.query?.next(this.current.query);
@@ -134,17 +116,44 @@ class ModelObserver {
       });
     });
 
-    setTimeout(() => {
-      Object.keys(subjects).forEach((key) => {
-        if (options[key] && options[key] !== this.current[key]) {
-          this[key](options[key]);
-        }
-      });
+    Object.keys(subjects).forEach((key) => {
+      if (options[key] && options[key] !== this.current[key]) {
+        this[key](options[key]);
+      }
+    });
 
+    let prevList;
+    let prevLoading;
+    let prevCount;
+    this.mainSubscription = mainObservable.subscribe(({ list, loading, count }) => {
+      if (list !== undefined && !isEqual(prevList, list)) {
+        prevList = list;
+        this.list.next(list);
+      }
+
+      if (loading !== undefined && !isEqual(prevLoading, loading)) {
+        prevLoading = list;
+        this.loading.next(loading);
+      }
+
+      if (count !== undefined && !isEqual(prevCount, count)) {
+        prevCount = count;
+        this.count.next(count);
+      }
+    });
+
+    setTimeout(() => {
       if (!this.current.query) {
         this.reload();
       }
-    });
+    }, 100);
+  }
+
+  unobserve() {
+    // this.list?.complete();
+    // this.loading?.complete();
+    // this.count?.complete();
+    // this.mainSubscription?.unsubscribe();
   }
 }
 

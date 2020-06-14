@@ -3,6 +3,7 @@ import { Subject } from "rxjs";
 import io from "socket.io-client";
 import Account from "./models/Account";
 import Data from "./models/Data";
+import Role from "./models/Role";
 import GraphandModel from "./utils/GraphandModel";
 
 interface ClientOptions {
@@ -20,7 +21,7 @@ class Client {
   private _accessToken: string;
   private _locale: string;
   _project: any;
-  _models: {};
+  _models: any = {};
   socketSubject = new Subject();
 
   GraphandModel = GraphandModel.setClient(this);
@@ -33,9 +34,7 @@ class Client {
       baseURL: this._options.host || (this._options.project ? `https://${this._options.project}.api.graphand.io` : "https://api.graphand.io"),
       transformRequest: [
         (data, headers) => {
-          const token =
-            this.accessToken ||
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiZ3Vlc3QiLCJpYXQiOjE1NjE0MjA5NDF9.1NFWwau0ume5sIsEBafFltPvyh7x4-LpDMNR8wgI90c";
+          const token = this.accessToken || this._options.accessToken;
           headers.Authorization = `Bearer ${token}`;
 
           return data;
@@ -89,19 +88,23 @@ class Client {
   get models() {
     return new Proxy(this, {
       get: function (oTarget, sKey) {
-        switch (sKey) {
-          case "Data":
-            return Data.setClient(oTarget);
-          case "Account":
-            return Account.setClient(oTarget);
-        }
-
-        oTarget._models = oTarget._models || {};
-
         if (!oTarget._models[sKey]) {
-          oTarget._models[sKey] = class extends Data {
-            static apiIdentifier = sKey;
-          };
+          switch (sKey) {
+            case "Data":
+              oTarget._models[sKey] = Data.setClient(oTarget);
+              break;
+            case "Account":
+              oTarget._models[sKey] = Account.setClient(oTarget);
+              break;
+            case "Role":
+              oTarget._models[sKey] = Role.setClient(oTarget);
+              break;
+            default:
+              oTarget._models[sKey] = class extends Data {
+                static apiIdentifier = sKey;
+              };
+              break;
+          }
         }
 
         return oTarget._models[sKey].setClient(oTarget);
@@ -133,11 +136,15 @@ class Client {
     return this._socket;
   }
 
-  registerModel(Model: any, options: { sync?: boolean }) {
+  registerModel(Model: any, options: { sync?: boolean; name?: string } = {}) {
     Model.setClient(this);
 
     if (options.sync) {
       Model.sync();
+    }
+
+    if (options.name) {
+      this._models[options.name] = Model;
     }
 
     return Model;
@@ -203,7 +210,13 @@ class Client {
 
       window.addEventListener("message", callback);
 
-      loginWindow = window.open("https://graphand.io/auth", "_blank", `fullscreen=no,height=${height},width=${width},top=${top},left=${left}`);
+      alert("ok");
+
+      loginWindow = window.open(
+        "http://graphand.io.local:3000/auth",
+        "_blank",
+        `fullscreen=no,height=${height},width=${width},top=${top},left=${left}`,
+      );
     });
   };
 
