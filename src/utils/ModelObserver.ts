@@ -82,7 +82,11 @@ class ModelObserver {
 
         subject.subscribe({
           next: (v: any) => {
-            Object.assign(this.current, { [key]: v });
+            if (v !== undefined) {
+              Object.assign(this.current, { [key]: v });
+            } else {
+              delete this.current[key];
+            }
             this.subjectTimeout && clearTimeout(this.subjectTimeout);
             this.subjectTimeout = setTimeout(() => {
               refresh().then(() => (prevList = model.getList()));
