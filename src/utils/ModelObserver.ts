@@ -9,7 +9,6 @@ class ModelObserver {
   page: Function;
   translations: Function;
   query: Function;
-  reload: Function;
 
   list: Subject<any>;
   loading: Subject<any>;
@@ -17,6 +16,13 @@ class ModelObserver {
 
   subjectTimeout;
   mainSubscription: Subscription;
+  model;
+
+  prevList = null;
+  prevLoading = null;
+  prevCount = null;
+
+  subjects: any = {};
 
   private _current: { select?: any; populate?: any; sort?: any; pageSize?: any; page?: any; translations?: any; query?: any } = { page: 1 };
   get current() {
@@ -25,8 +31,9 @@ class ModelObserver {
 
   constructor(options, model) {
     const observeKeys = ["select", "populate", "sort", "pageSize", "page", "translations", "query"];
+    this.model = model;
 
-    const subjects: any = observeKeys.reduce((result: object, key: string) => {
+    this.subjects = observeKeys.reduce((result: object, key: string) => {
       Object.assign(result, { [key]: new Subject() });
       return result;
     }, {});
@@ -77,15 +84,15 @@ class ModelObserver {
         });
       };
 
-      Object.keys(subjects).forEach((key) => {
-        const subject = subjects[key];
+      Object.keys(this.subjects).forEach((key) => {
+        const subject = this.subjects[key];
 
         subject.subscribe({
           next: (v: any) => {
             if (v !== undefined) {
-              Object.assign(this.current, { [key]: v });
+              Object.assign(this._current, { [key]: v });
             } else {
-              delete this.current[key];
+              delete this._current[key];
             }
             this.subjectTimeout && clearTimeout(this.subjectTimeout);
             this.subjectTimeout = setTimeout(() => {
@@ -103,46 +110,37 @@ class ModelObserver {
     this.loading = new Subject();
     this.count = new Subject();
 
-    this.reload = () => {
-      subjects.query?.next(this.current.query);
-    };
-
-    Object.keys(subjects).forEach((key) => {
-      const subject = subjects[key];
+    Object.keys(this.subjects).forEach((key) => {
+      const subject = this.subjects[key];
 
       Object.assign(this, {
         [key]: (v) => {
-          if (v !== this.current[key]) {
-            setTimeout(() => subject.next(v));
-          }
+          setTimeout(() => subject.next(v));
           return this;
         },
       });
     });
 
-    Object.keys(subjects).forEach((key) => {
-      if (options[key] && options[key] !== this.current[key]) {
-        this[key](options[key]);
-      }
-    });
-
-    let prevList;
-    let prevLoading;
-    let prevCount;
     this.mainSubscription = mainObservable.subscribe(({ list, loading, count }) => {
-      if (list !== undefined && !isEqual(prevList, list)) {
-        prevList = list;
+      if (list !== undefined && !isEqual(this.prevList, list)) {
+        this.prevList = list;
         this.list.next(list);
       }
 
-      if (loading !== undefined && !isEqual(prevLoading, loading)) {
-        prevLoading = list;
+      if (loading !== undefined && !isEqual(this.prevLoading, loading)) {
+        this.prevLoading = list;
         this.loading.next(loading);
       }
 
-      if (count !== undefined && !isEqual(prevCount, count)) {
-        prevCount = count;
+      if (count !== undefined && !isEqual(this.prevCount, count)) {
+        this.prevCount = count;
         this.count.next(count);
+      }
+    });
+
+    Object.keys(this.subjects).forEach((key) => {
+      if (options[key] !== undefined && options[key] !== this.current[key]) {
+        this[key](options[key]);
       }
     });
 
@@ -154,10 +152,30 @@ class ModelObserver {
   }
 
   unobserve() {
-    // this.list?.complete();
-    // this.loading?.complete();
-    // this.count?.complete();
-    // this.mainSubscription?.unsubscribe();
+    this.list?.complete();
+    this.loading?.complete();
+    this.count?.complete();
+    this.mainSubscription?.unsubscribe();
+  }
+
+  reload(clearCache = false) {
+    if (clearCache) {
+      console.log(this.current);
+      this.model.clearCache(this.current);
+    }
+
+    this.prevList = null;
+    this.prevLoading = null;
+    this.prevCount = null;
+    this.subjects.query?.next(this.current.query);
+  }
+
+  set(options) {
+    Object.keys(this.subjects).forEach((key) => {
+      if (options[key] !== this.current[key]) {
+        this[key](options[key]);
+      }
+    });
   }
 }
 

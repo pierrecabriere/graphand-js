@@ -94,16 +94,18 @@ class GraphandModel {
   static reinit() {
     this.cache = {};
 
-    console.log("reinit");
     return this.reinitStore();
   }
 
-  static clearCache() {
-    Object.values(this.cache).forEach((cacheItem: any) => {
-      delete cacheItem.request;
-    });
-
-    console.log("clearCache");
+  static clearCache(query?) {
+    if (query) {
+      const cacheKey = `${this.name}:${JSON.stringify(query)}`;
+      this.cache[cacheKey] && delete this.cache[cacheKey].request;
+    } else {
+      Object.values(this.cache).forEach((cacheItem: any) => {
+        delete cacheItem.request;
+      });
+    }
 
     return this;
   }
@@ -580,7 +582,7 @@ class GraphandModel {
 
   delete() {
     const constructor = this.constructor as any;
-    return constructor.delete(this);
+    return constructor.delete(this, ...arguments);
   }
 
   static setClient(client) {
