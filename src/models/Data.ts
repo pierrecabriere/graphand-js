@@ -6,6 +6,10 @@ class Data extends GraphandModel {
   static get baseUrl() {
     return `/data/${this.apiIdentifier}`;
   }
+
+  static get queryFields() {
+    return { model: { $subquery: { slug: this.apiIdentifier } } };
+  }
 }
 
 export default Data;

@@ -5,7 +5,6 @@ import ModelObserver from "./ModelObserver";
 
 class GraphandModel {
   _id: string;
-  translations: any[];
 
   static _client: Client;
   static cache = {};
@@ -15,46 +14,99 @@ class GraphandModel {
   static queryUrl;
   static prevListLength?: number;
   static socketSubscription = null;
+  private static _fields = {};
+  private static _fieldsSubscription;
+  static baseFields = {};
+  static queryFields;
+  static defaultField;
+  static _fieldsObserver;
+  static __registered = false;
+  static __initialized = false;
+  private _data: any = {};
 
   constructor(data) {
-    try {
-      Object.assign(this, data);
-    } catch (e) {
-      console.error(e);
+    this._id = data._id;
+    this._data = data;
+  }
+
+  get raw() {
+    return this._data;
+  }
+
+  static get fieldsObserver() {
+    if (!this.queryFields) {
+      return;
     }
 
-    return new Proxy(this, {
-      get: (target, key) => {
-        switch (key) {
-          case "constructor":
-            return target.constructor;
-          case "_id":
-            return target._id;
-          case "__raw":
-            return target;
-          default:
-            break;
+    if (!this._fieldsObserver) {
+      this._fieldsObserver = this._client.models.DataField.observe({ query: this.queryFields });
+    }
+
+    return this._fieldsObserver;
+  }
+
+  static get fields() {
+    if (this.queryFields && !this._fieldsSubscription) {
+      this._fieldsSubscription = this.fieldsObserver.list.subscribe(async (list) => {
+        const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
+        const fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
+        if (!isEqual(this._fields, fields)) {
+          this._fields = fields;
+          this.fieldsObserver.list.next(list);
         }
+      });
+    }
 
-        const { constructor } = Object.getPrototypeOf(this);
+    return { ...this._fields, ...this.baseFields };
+  }
 
-        if (constructor.translatable) {
-          let locale = constructor._client.locale;
-          if (locale && constructor._client._project?.locales && !constructor._client._project.locales.includes(locale)) {
-            locale = undefined;
+  static setPrototypeFields() {
+    const fields = this.fields;
+    Object.keys(fields).forEach((slug) => {
+      const field = fields[slug];
+      if (field.assign === false) {
+        return;
+      }
+
+      Object.defineProperty(this.prototype, slug, {
+        configurable: true,
+        get: function () {
+          let value = this._data[slug];
+
+          const { constructor } = Object.getPrototypeOf(this);
+
+          if (constructor.translatable) {
+            let locale = constructor._client.locale;
+            if (locale && constructor._client._project?.locales && !constructor._client._project.locales.includes(locale)) {
+              locale = undefined;
+            }
+
+            if (locale && this._data.translations && this._data.translations[locale] && this._data.translations[locale][slug] !== undefined) {
+              value = this._data.translations[locale][slug];
+            }
           }
 
-          if (locale && target.translations && target.translations[locale] && target.translations[locale][key] !== undefined) {
-            return target.translations[locale][key];
+          if (field.getter) {
+            return field.getter(value);
           }
-        }
 
-        return target[key];
-      },
-      ownKeys: (target) => {
-        return Reflect.ownKeys(target).filter((key: string) => !/^__/.test(key) && !["translations"].includes(key));
-      },
+          return value;
+        },
+        set(v) {
+          this._data[slug] = v;
+        },
+      });
     });
+  }
+
+  static async init() {
+    if (this.queryFields) {
+      const list = await this._client.models.DataField.getList({ page: 1, query: this.queryFields });
+      const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
+      this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
+    }
+
+    this.setPrototypeFields();
   }
 
   private static setupSocket() {

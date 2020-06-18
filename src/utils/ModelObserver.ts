@@ -10,11 +10,12 @@ class ModelObserver {
   translations: Function;
   query: Function;
 
-  list: Subject<any>;
-  loading: Subject<any>;
-  count: Subject<any>;
+  list = new Subject();
+  loading = new Subject();
+  count = new Subject();
 
   subjectTimeout;
+  reloadTimeout;
   mainSubscription: Subscription;
   model;
 
@@ -106,10 +107,6 @@ class ModelObserver {
       model.store.subscribe(subscriptionHandler);
     });
 
-    this.list = new Subject();
-    this.loading = new Subject();
-    this.count = new Subject();
-
     Object.keys(this.subjects).forEach((key) => {
       const subject = this.subjects[key];
 
@@ -160,7 +157,6 @@ class ModelObserver {
 
   reload(clearCache = false) {
     if (clearCache) {
-      console.log(this.current);
       this.model.clearCache(this.current);
     }
 

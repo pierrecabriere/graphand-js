@@ -3,6 +3,8 @@ import { Subject } from "rxjs";
 import io from "socket.io-client";
 import Account from "./models/Account";
 import Data from "./models/Data";
+import DataField from "./models/DataField";
+import DataModel from "./models/DataModel";
 import Role from "./models/Role";
 import GraphandModel from "./utils/GraphandModel";
 
@@ -20,9 +22,13 @@ class Client {
   private _socket: any;
   private _accessToken: string;
   private _locale: string;
+  private _loadStack = [];
+  worker = new Subject();
   _project: any;
   _models: any = {};
   socketSubject = new Subject();
+  loadTimeout;
+  prevLoading;
 
   GraphandModel = GraphandModel.setClient(this);
 
@@ -57,47 +63,82 @@ class Client {
       },
     });
 
-    if (this._options.project) {
-      this._initProject();
-    }
-
     if (this._options.accessToken) {
       this.accessToken = this._options.accessToken;
     }
+
+    if (this._options.project) {
+      this._initProject();
+    }
+  }
+
+  isLoading() {
+    return !!this._loadStack.length;
+  }
+
+  get loading() {
+    return this.isLoading();
+  }
+
+  private load(key) {
+    this._loadStack.push(key);
+    this.loadTimeout && clearTimeout(this.loadTimeout);
+    this.loadTimeout = setTimeout(() => {
+      if (this.loading !== this.prevLoading) {
+        this.prevLoading = this.loading;
+        this.worker.next(this.loading);
+      }
+    }, 100);
+  }
+
+  private unload(key) {
+    this._loadStack.splice(this._loadStack.indexOf(key), 1);
+    this.loadTimeout && clearTimeout(this.loadTimeout);
+    this.loadTimeout = setTimeout(() => {
+      if (this.loading !== this.prevLoading) {
+        this.prevLoading = this.loading;
+        this.worker.next(this.loading);
+      }
+    }, 100);
   }
 
   private async _initProject() {
-    this._project = axios
-      .get(`https://api.graphand.io/projects/${this._options.project}`, {
+    this.load("project");
+    try {
+      const { data } = await axios.get(`https://api.graphand.io/projects/${this._options.project}`, {
         headers: {
-          Authorization:
-            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiZ3Vlc3QiLCJpYXQiOjE1NjE0MjA5NDF9.1NFWwau0ume5sIsEBafFltPvyh7x4-LpDMNR8wgI90c",
+          Authorization: `Bearer ${this.accessToken}`,
         },
-      })
-      .then((res) => {
-        this._project = res.data.data;
-        if (!this.locale) {
-          this.locale = this._project.defaultLocale;
-        }
-      })
-      .catch((e) => {
-        throw new Error("Invalid project ID");
       });
+      this._project = data.data;
+      if (!this.locale) {
+        this.locale = this._project.defaultLocale;
+      }
+    } catch (e) {
+      throw new Error("Invalid project ID");
+    }
+    this.unload("project");
   }
 
-  get models() {
+  get models(): any {
     return new Proxy(this, {
       get: function (oTarget, sKey) {
         if (!oTarget._models[sKey]) {
           switch (sKey) {
             case "Data":
-              oTarget._models[sKey] = Data.setClient(oTarget);
+              oTarget._models[sKey] = Data;
               break;
             case "Account":
-              oTarget._models[sKey] = Account.setClient(oTarget);
+              oTarget._models[sKey] = Account;
               break;
             case "Role":
-              oTarget._models[sKey] = Role.setClient(oTarget);
+              oTarget._models[sKey] = Role;
+              break;
+            case "DataField":
+              oTarget._models[sKey] = DataField;
+              break;
+            case "DataModel":
+              oTarget._models[sKey] = DataModel;
               break;
             default:
               oTarget._models[sKey] = class extends Data {
@@ -105,11 +146,18 @@ class Client {
               };
               break;
           }
+
+          oTarget.registerModel(oTarget._models[sKey]);
         }
 
-        return oTarget._models[sKey].setClient(oTarget);
+        return oTarget._models[sKey];
       },
     });
+  }
+
+  getModelByIdentifier(identifier: string) {
+    const Model = Object.values(this._models).find((m: any) => m.apiIdentifier === identifier);
+    return Model || this.models[identifier];
   }
 
   get accessToken() {
@@ -136,7 +184,12 @@ class Client {
     return this._socket;
   }
 
-  registerModel(Model: any, options: { sync?: boolean; name?: string } = {}) {
+  async registerModel(Model: any, options: { sync?: boolean; name?: string } = {}) {
+    if (Model.__registered) {
+      return;
+    }
+
+    this.load(Model);
     Model.setClient(this);
 
     if (options.sync) {
@@ -147,6 +200,9 @@ class Client {
       this._models[options.name] = Model;
     }
 
+    await Model.init();
+    this.unload(Model);
+    Model.__registered = true;
     return Model;
   }
 
@@ -209,8 +265,6 @@ class Client {
       };
 
       window.addEventListener("message", callback);
-
-      alert("ok");
 
       loginWindow = window.open(
         "http://graphand.io.local:3000/auth",
