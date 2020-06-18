@@ -29,6 +29,30 @@ class GraphandModel {
     this._data = data;
   }
 
+  get(slug, decode = true, fields) {
+    const { constructor } = Object.getPrototypeOf(this);
+    fields = fields || constructor.fields;
+    const field = fields[slug];
+    let value = this._data[slug];
+
+    if (constructor.translatable) {
+      let locale = constructor._client.locale;
+      if (locale && constructor._client._project?.locales && !constructor._client._project.locales.includes(locale)) {
+        locale = undefined;
+      }
+
+      if (locale && this._data.translations && this._data.translations[locale] && this._data.translations[locale][slug] !== undefined) {
+        value = this._data.translations[locale][slug];
+      }
+    }
+
+    if (field.getter && decode) {
+      return field.getter(value);
+    }
+
+    return value;
+  }
+
   get raw() {
     return this._data;
   }
@@ -71,26 +95,7 @@ class GraphandModel {
       Object.defineProperty(this.prototype, slug, {
         configurable: true,
         get: function () {
-          let value = this._data[slug];
-
-          const { constructor } = Object.getPrototypeOf(this);
-
-          if (constructor.translatable) {
-            let locale = constructor._client.locale;
-            if (locale && constructor._client._project?.locales && !constructor._client._project.locales.includes(locale)) {
-              locale = undefined;
-            }
-
-            if (locale && this._data.translations && this._data.translations[locale] && this._data.translations[locale][slug] !== undefined) {
-              value = this._data.translations[locale][slug];
-            }
-          }
-
-          if (field.getter) {
-            return field.getter(value);
-          }
-
-          return value;
+          return this.get(slug, true, fields);
         },
         set(v) {
           this._data[slug] = v;

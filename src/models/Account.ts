@@ -24,6 +24,9 @@ class Account extends GraphandModel {
       email: new GraphandFieldText({
         name: "Email",
       }),
+      password: new GraphandFieldText({
+        name: "Mot de passe",
+      }),
       role: new GraphandFieldRelation({
         name: "Role",
         model: this._client.models.Role,

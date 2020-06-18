@@ -6,6 +6,7 @@ import Data from "./models/Data";
 import DataField from "./models/DataField";
 import DataModel from "./models/DataModel";
 import Role from "./models/Role";
+import GraphandError from "./utils/GraphandError";
 import GraphandModel from "./utils/GraphandModel";
 
 interface ClientOptions {
@@ -47,6 +48,19 @@ class Client {
         },
       ].concat(axios.defaults.transformRequest),
     });
+
+    this._axios.interceptors.response.use(
+      (r) => r,
+      (error) => {
+        try {
+          const { errors } = error.response.data;
+          error.graphandErrors = error.graphandErrors || [];
+          error.graphandErrors = error.graphandErrors.concat(errors.map((e) => GraphandError.fromJSON(e)));
+        } catch (e) {}
+
+        return Promise.reject(error.graphandErrors || [new GraphandError(error.message)]);
+      },
+    );
 
     this.socketSubject.subscribe({
       next: (reconnect = true) => {
