@@ -239,25 +239,25 @@ class GraphandModel {
   static get store() {
     if (!this._store) {
       const _upsert = (state, item) => {
-        const _upsertObject = (input, payload) => {
-          Object.keys(input).forEach((key) => {
-            if (typeof input[key] === "string" && payload[key] && typeof payload[key] === "object" && payload[key]._id === input[key]) {
-              item[key] = payload[key];
-            } else if (item[key] && typeof item[key] === "object" && payload[key] && typeof payload[key] === "object") {
-              _upsertObject(item[key], payload[key]);
+        const _upsertObject = (input, found) => {
+          Object.keys(input.constructor.fields).forEach((key) => {
+            if (typeof input.raw[key] === "string" && found.raw[key] && typeof found.raw[key] === "object" && found.raw[key]._id === input.raw[key]) {
+              item[key] = found.raw[key];
+            } else if (item[key] && typeof item[key] === "object" && found.raw[key] && typeof found.raw[key] === "object") {
+              _upsertObject(item[key], found.raw[key]);
             } else if (
-              (typeof input[key] === "string" &&
-                payload[key] &&
-                typeof payload[key] === "object" &&
-                payload[key]._id &&
-                payload[key]._id !== input[key]) ||
-              (input[key] &&
-                typeof input[key] === "object" &&
-                input[key]._id &&
-                payload[key] &&
-                typeof payload[key] === "object" &&
-                payload[key]._id &&
-                payload[key]._id !== input[key]._id)
+              (typeof input.raw[key] === "string" &&
+                found.raw[key] &&
+                typeof found.raw[key] === "object" &&
+                found.raw[key]._id &&
+                found.raw[key]._id !== input.raw[key]) ||
+              (input.raw[key] &&
+                typeof input.raw[key] === "object" &&
+                input.raw[key]._id &&
+                found.raw[key] &&
+                typeof found.raw[key] === "object" &&
+                found.raw[key]._id &&
+                found.raw[key]._id !== input.raw[key]._id)
             ) {
               this.clearCache();
               state.list = [];
@@ -268,7 +268,7 @@ class GraphandModel {
         state.list = state.list || [];
         const found = state.list.find((i) => i._id === item._id);
         if (found) {
-          _upsertObject(item, found);
+          // _upsertObject(item, found);
 
           return {
             ...state,
@@ -367,7 +367,7 @@ class GraphandModel {
     });
   }
 
-  static getList(query?: object): GraphandModelList {
+  static getList(query?: any): GraphandModelList {
     if (query) {
       const parent = this;
       // @ts-ignore
@@ -378,7 +378,7 @@ class GraphandModel {
               data: { rows },
             },
           } = await parent.query(query);
-          const storeList = parent.getList();
+          const storeList = parent.store.getState().list;
           const list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r);
           resolve(new GraphandModelList(parent, ...list));
         } catch (e) {
@@ -395,7 +395,9 @@ class GraphandModel {
       return null;
     }
 
-    if (fetch) {
+    const item = this.getList().find((item) => item._id === _id);
+
+    if (!item && fetch) {
       return new GraphandModelPromise(async (resolve, reject) => {
         try {
           const res = await this.query(_id, undefined, true);
@@ -404,9 +406,9 @@ class GraphandModel {
           reject(e);
         }
       }, _id);
-    } else {
-      return this.getList().find((item) => item._id === _id);
     }
+
+    return item && new GraphandModelPromise((resolve) => resolve(item), item._id);
   }
 
   static async query(query: any, cache = true, waitRequest = false, callback?: Function, hooks = true) {
