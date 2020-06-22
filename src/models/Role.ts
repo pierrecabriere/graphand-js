@@ -8,13 +8,11 @@ class Role extends GraphandModel {
 
   static defaultField = "name";
 
-  static get baseFields() {
-    return {
-      name: new GraphandFieldText({
-        name: "Nom",
-      }),
-    };
-  }
+  static baseFields = {
+    name: new GraphandFieldText({
+      name: "Nom",
+    }),
+  };
 }
 
 export default Role;

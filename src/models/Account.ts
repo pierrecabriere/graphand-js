@@ -31,7 +31,6 @@ class Account extends GraphandModel {
         name: "Role",
         model: this._client.models.Role,
         multiple: false,
-        defaultField: "name",
       }),
     };
   }

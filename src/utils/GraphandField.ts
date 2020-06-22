@@ -1,11 +1,14 @@
+import GraphandModel from "./GraphandModel";
+
 class GraphandField {
+  name;
   defaultValue;
 
-  constructor(data: any = {}) {
+  constructor(data?: any) {
     Object.assign(this, data);
   }
 
-  getter(value) {
+  getter(value, from: GraphandModel) {
     return value;
   }
 

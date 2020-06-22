@@ -71,16 +71,8 @@ class ModelObserver {
           const prevListLength = prevList.length;
           const listLength = list.length;
           if (prevListLength !== listLength || !isEqual(prevList, list)) {
-            if (prevListLength < listLength) {
-              refresh();
-            } else {
-              triggerSubscription();
-
-              if (prevListLength !== listLength) {
-                refresh();
-              }
-            }
             prevList = list;
+            refresh();
           }
         });
       };

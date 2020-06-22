@@ -1,6 +1,14 @@
 import isEqual from "fast-deep-equal";
 import { createStore, Store } from "redux";
+import { Observable } from "rxjs";
 import Client from "../Client";
+import Account from "../models/Account";
+import GraphandFieldDate from "./fields/GraphandFieldDate";
+import GraphandFieldId from "./fields/GraphandFieldId";
+import GraphandFieldRelation from "./fields/GraphandFieldRelation";
+import GraphandModelList from "./GraphandModelList";
+import GraphandModelListPromise from "./GraphandModelListPromise";
+import GraphandModelPromise from "./GraphandModelPromise";
 import ModelObserver from "./ModelObserver";
 
 class GraphandModel {
@@ -24,12 +32,12 @@ class GraphandModel {
   static __initialized = false;
   private _data: any = {};
 
-  constructor(data) {
+  constructor(data: any = {}) {
     this._id = data._id;
     this._data = data;
   }
 
-  get(slug, decode = true, fields) {
+  get(slug, decode = false, fields) {
     const { constructor } = Object.getPrototypeOf(this);
     fields = fields || constructor.fields;
     const field = fields[slug];
@@ -46,11 +54,50 @@ class GraphandModel {
       }
     }
 
-    if (field.getter && decode) {
-      return field.getter(value);
+    if (value === undefined) {
+      value = field ? field.defaultValue : this[slug];
+    }
+
+    if (field?.getter) {
+      value = field.getter(value, this);
+      if (decode && field?.setter) {
+        value = field.setter(value, this);
+      }
     }
 
     return value;
+  }
+
+  set(slug, value, fields) {
+    const { constructor } = Object.getPrototypeOf(this);
+    fields = fields || constructor.fields;
+    const field = fields[slug];
+
+    if (field?.setter) {
+      value = field.setter(value, this);
+    }
+
+    this._data[slug] = value;
+
+    return this;
+  }
+
+  subscribe() {
+    const { constructor } = Object.getPrototypeOf(this);
+    const parent = this;
+    const observable = new Observable((subscriber) => {
+      let prevRaw = parent.raw;
+      constructor.store.subscribe(async () => {
+        const item = await constructor.get(parent._id);
+        if (item && !isEqual(item.raw, prevRaw)) {
+          prevRaw = item.raw;
+          subscriber.next(item);
+        } else if (!item) {
+          subscriber.next(item);
+        }
+      });
+    });
+    return observable.subscribe.apply(observable, arguments);
   }
 
   get raw() {
@@ -81,7 +128,27 @@ class GraphandModel {
       });
     }
 
-    return { ...this._fields, ...this.baseFields };
+    return {
+      _id: new GraphandFieldId(),
+      ...this._fields,
+      ...this.baseFields,
+      createdBy: new GraphandFieldRelation({
+        name: "Créé par",
+        model: Account,
+        multiple: false,
+      }),
+      createdAt: new GraphandFieldDate({
+        name: "Créé à",
+      }),
+      updatedBy: new GraphandFieldRelation({
+        name: "Modifié par",
+        model: Account,
+        multiple: false,
+      }),
+      updatedAt: new GraphandFieldDate({
+        name: "Modifié à",
+      }),
+    };
   }
 
   static setPrototypeFields() {
@@ -95,7 +162,7 @@ class GraphandModel {
       Object.defineProperty(this.prototype, slug, {
         configurable: true,
         get: function () {
-          return this.get(slug, true, fields);
+          return this.get(slug, false, fields);
         },
         set(v) {
           this._data[slug] = v;
@@ -122,12 +189,14 @@ class GraphandModel {
     this._client.socket.on(this.baseUrl, ({ action, payload }) => {
       switch (action) {
         case "create":
+          this.clearCache();
           this.upsertStore(payload.map((item) => new this(item)));
           break;
         case "update":
           this.upsertStore(payload.map((item) => new this(item)));
           break;
         case "delete":
+          this.clearCache();
           this.deleteFromStore(payload);
           break;
       }
@@ -298,46 +367,46 @@ class GraphandModel {
     });
   }
 
-  static getList(query?: object) {
+  static getList(query?: object): GraphandModelList {
     if (query) {
       const parent = this;
-      return new Promise(async (resolve, reject) => {
+      // @ts-ignore
+      return new GraphandModelListPromise(async (resolve, reject) => {
         try {
           const {
             data: {
               data: { rows },
             },
           } = await parent.query(query);
-          const list = parent.getList();
-          resolve(rows.map((row) => list.find((item) => item._id === row._id)));
+          const storeList = parent.getList();
+          const list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r);
+          resolve(new GraphandModelList(parent, ...list));
         } catch (e) {
           reject(e);
         }
-      });
+      }, query);
     }
 
-    return this.store.getState().list || [];
+    return new GraphandModelList(this, ...(this.store.getState().list || []));
   }
 
-  static get(_id, fetch) {
+  static get(_id, fetch = true) {
     if (!_id) {
       return null;
     }
 
-    const item = this.getList().find((item) => item._id === _id);
-
-    if ((!item && fetch !== false) || fetch === true) {
-      return new Promise(async (resolve, reject) => {
+    if (fetch) {
+      return new GraphandModelPromise(async (resolve, reject) => {
         try {
           const res = await this.query(_id, undefined, true);
           resolve(this.get((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id, false));
         } catch (e) {
           reject(e);
         }
-      });
+      }, _id);
+    } else {
+      return this.getList().find((item) => item._id === _id);
     }
-
-    return item;
   }
 
   static async query(query: any, cache = true, waitRequest = false, callback?: Function, hooks = true) {
@@ -369,7 +438,7 @@ class GraphandModel {
       this._client._axios
         .post(this.queryUrl || `${this.baseUrl}/query`, query)
         .then(async (res) => {
-          if (res.data.data.rows) {
+          if (res.data?.data?.rows) {
             res.data.data.rows = res.data.data.rows.map((item) => new this(item));
 
             const rows = res.data.data.rows || [res.data.data];
@@ -489,6 +558,7 @@ class GraphandModel {
         .then(async (res) => {
           item = new this(res.data.data);
           if (!this.socketSubscription) {
+            this.clearCache();
             this.upsertStore(item);
           }
 
@@ -511,7 +581,6 @@ class GraphandModel {
         return middlewareData;
       }
       item = await req;
-      this.clearCache();
     } catch (e) {
       if (hooks) {
         await this.afterCreate?.call(this, null, e, args);
@@ -523,7 +592,7 @@ class GraphandModel {
     return item;
   }
 
-  static async update(query, payload, hooks = true) {
+  static async update(query, payload, hooks = true, clearCache = false) {
     if (this.translatable && this._client._project) {
       payload.translations = this._client._project.locales;
     }
@@ -538,7 +607,16 @@ class GraphandModel {
 
     try {
       const { data } = await this._client._axios.patch(this.baseUrl, { query, ...payload });
+      if (!data) {
+        return;
+      }
+
       const items = data.data.rows.map((item) => new this(item));
+
+      if (clearCache) {
+        this.clearCache();
+      }
+
       if (!this.socketSubscription) {
         this.upsertStore(items);
       }
@@ -555,7 +633,7 @@ class GraphandModel {
     }
   }
 
-  async update(payload: any, preStore = false, hooks = true) {
+  async update(payload: any, preStore = false, hooks = true, clearCache = false) {
     const constructor = this.constructor as any;
 
     if (hooks) {
@@ -570,7 +648,7 @@ class GraphandModel {
     }
 
     try {
-      await constructor.update({ _id }, payload, false);
+      await constructor.update({ _id }, payload, false, clearCache);
 
       if (hooks) {
         await constructor.afterUpdate?.call(this, constructor.get(_id));
@@ -601,12 +679,12 @@ class GraphandModel {
       try {
         await this._client._axios.delete(this.baseUrl, { data: { query: { _id: payload._id } } });
         if (!this.socketSubscription) {
+          this.clearCache();
           this.deleteFromStore(payload);
         }
         if (hooks) {
           await this.afterDelete?.call(this, args);
         }
-        this.clearCache();
       } catch (e) {
         if (!this.socketSubscription) {
           this.upsertStore(payload);

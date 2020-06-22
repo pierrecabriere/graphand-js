@@ -5,6 +5,7 @@ import Account from "./models/Account";
 import Data from "./models/Data";
 import DataField from "./models/DataField";
 import DataModel from "./models/DataModel";
+import Media from "./models/Media";
 import Role from "./models/Role";
 import GraphandError from "./utils/GraphandError";
 import GraphandModel from "./utils/GraphandModel";
@@ -15,6 +16,7 @@ interface ClientOptions {
   locales: string[];
   host?: string;
   socket: boolean;
+  ssl: boolean;
 }
 
 class Client {
@@ -28,17 +30,25 @@ class Client {
   _project: any;
   _models: any = {};
   socketSubject = new Subject();
+  mediasQueue = [];
+  mediasQueueSubject = new Subject();
   loadTimeout;
   prevLoading;
 
   GraphandModel = GraphandModel.setClient(this);
 
   constructor(options: ClientOptions) {
-    //@ts-ignore
-    this._options = options || {};
+    this._options = Object.assign(
+      {},
+      {
+        host: "api.graphand.io",
+        ssl: true,
+      },
+      options,
+    );
 
     this._axios = axios.create({
-      baseURL: this._options.host || (this._options.project ? `https://${this._options.project}.api.graphand.io` : "https://api.graphand.io"),
+      baseURL: `${this._options.ssl ? "https" : "http"}://${this._options.project ? `${this._options.project}.` : ""}${this._options.host}`,
       transformRequest: [
         (data, headers) => {
           const token = this.accessToken || this._options.accessToken;
@@ -70,8 +80,27 @@ class Client {
         }
 
         if (reconnect) {
-          this._socket = io.connect(this._options.host || "https://api.graphand.io", {
+          this._socket = io.connect(`${options.ssl ? "https" : "http"}://${this._options.host}`, {
             query: { token: this.accessToken, projectId: this._options.project },
+          });
+
+          this.socket.on("/uploads", ({ action, payload }) => {
+            const queueItem = this.mediasQueue.find((item) => (payload.socket ? item.socket === payload.socket : item.name === payload.name));
+            payload.status = action;
+            switch (action) {
+              case "start":
+                this.mediasQueue.push(payload);
+                break;
+              case "progress":
+              case "end":
+              case "aborted":
+                if (queueItem) {
+                  Object.assign(queueItem, payload);
+                } else {
+                  this.mediasQueue.push(payload);
+                }
+            }
+            this.mediasQueueSubject.next({ action, payload });
           });
         }
       },
@@ -83,6 +112,10 @@ class Client {
 
     if (this._options.project) {
       this._initProject();
+    }
+
+    if (this._options.socket) {
+      this.connectSocket();
     }
   }
 
@@ -119,7 +152,7 @@ class Client {
   private async _initProject() {
     this.load("project");
     try {
-      const { data } = await axios.get(`https://api.graphand.io/projects/${this._options.project}`, {
+      const { data } = await axios.get(`${this._options.ssl ? "https" : "http"}://${this._options.host}/projects/${this._options.project}`, {
         headers: {
           Authorization: `Bearer ${this.accessToken}`,
         },
@@ -154,15 +187,18 @@ class Client {
             case "DataModel":
               oTarget._models[sKey] = DataModel;
               break;
+            case "Media":
+              oTarget._models[sKey] = Media;
+              break;
             default:
               oTarget._models[sKey] = class extends Data {
                 static apiIdentifier = sKey;
               };
               break;
           }
-
-          oTarget.registerModel(oTarget._models[sKey]);
         }
+
+        oTarget.registerModel(oTarget._models[sKey]);
 
         return oTarget._models[sKey];
       },
@@ -203,6 +239,8 @@ class Client {
       return;
     }
 
+    const _name = name || Model.name;
+
     this.load(Model);
     Model.setClient(this);
 
@@ -210,8 +248,8 @@ class Client {
       Model.sync();
     }
 
-    if (options.name) {
-      this._models[options.name] = Model;
+    if (_name) {
+      this._models[_name] = Model;
     }
 
     await Model.init();

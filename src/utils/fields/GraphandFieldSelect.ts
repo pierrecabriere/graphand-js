@@ -1,11 +1,11 @@
 import GraphandField from "../GraphandField";
 
-class GraphandFieldJSON extends GraphandField {
-  nested;
+class GraphandFieldSelect extends GraphandField {
+  type;
 
   constructor(data) {
     super(data);
   }
 }
 
-export default GraphandFieldJSON;
+export default GraphandFieldSelect;

@@ -9,19 +9,17 @@ class DataModel extends GraphandModel {
 
   static defaultField = "name";
 
-  static get baseFields() {
-    return {
-      name: new GraphandFieldText({
-        name: "Nom",
-      }),
-      slug: new GraphandFieldText({
-        name: "Identifiant",
-      }),
-      multiple: new GraphandFieldBoolean({
-        name: "Multiple",
-      }),
-    };
-  }
+  static baseFields = {
+    name: new GraphandFieldText({
+      name: "Nom",
+    }),
+    slug: new GraphandFieldText({
+      name: "Identifiant",
+    }),
+    multiple: new GraphandFieldBoolean({
+      name: "Multiple",
+    }),
+  };
 }
 
 export default DataModel;
