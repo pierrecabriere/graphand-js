@@ -174,31 +174,37 @@ class Client {
           switch (sKey) {
             case "Data":
               oTarget._models[sKey] = Data;
+              oTarget.registerModel(oTarget._models[sKey], { name: "Data" });
               break;
             case "Account":
               oTarget._models[sKey] = Account;
+              oTarget.registerModel(oTarget._models[sKey], { name: "Account" });
               break;
             case "Role":
               oTarget._models[sKey] = Role;
+              oTarget.registerModel(oTarget._models[sKey], { name: "Role" });
               break;
             case "DataField":
               oTarget._models[sKey] = DataField;
+              oTarget.registerModel(oTarget._models[sKey], { name: "DataField" });
               break;
             case "DataModel":
               oTarget._models[sKey] = DataModel;
+              oTarget.registerModel(oTarget._models[sKey], { name: "DataModel" });
               break;
             case "Media":
               oTarget._models[sKey] = Media;
+              oTarget.registerModel(oTarget._models[sKey], { name: "Media" });
               break;
             default:
-              oTarget._models[sKey] = class extends Data {
+              const Model = class extends Data {
                 static apiIdentifier = sKey;
               };
+              oTarget.registerModel(Model);
+              oTarget._models[sKey] = Model;
               break;
           }
         }
-
-        oTarget.registerModel(oTarget._models[sKey]);
 
         return oTarget._models[sKey];
       },
@@ -239,17 +245,17 @@ class Client {
       return;
     }
 
-    const _name = name || Model.name;
+    const _name = options.name || Model.name;
+
+    if (_name) {
+      this._models[_name] = Model;
+    }
 
     this.load(Model);
     Model.setClient(this);
 
     if (options.sync) {
       Model.sync();
-    }
-
-    if (_name) {
-      this._models[_name] = Model;
     }
 
     await Model.init();
