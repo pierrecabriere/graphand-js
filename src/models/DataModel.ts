@@ -7,8 +7,6 @@ class DataModel extends GraphandModel {
 
   static baseUrl = "/data-models";
 
-  static defaultField = "name";
-
   static baseFields = {
     name: new GraphandFieldText({
       name: "Nom",

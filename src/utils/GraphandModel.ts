@@ -26,7 +26,6 @@ class GraphandModel {
   private static _fieldsSubscription;
   static baseFields = {};
   static queryFields;
-  static defaultField;
   static _fieldsObserver;
   static __registered = false;
   static __initialized = false;
@@ -604,7 +603,9 @@ class GraphandModel {
     }
 
     if (hooks) {
-      await this.beforeUpdate?.call(this, payload);
+      if ((await this.beforeUpdate?.call(this, payload)) === false) {
+        return;
+      }
     }
 
     try {
@@ -639,7 +640,9 @@ class GraphandModel {
     const constructor = this.constructor as any;
 
     if (hooks) {
-      await constructor.beforeUpdate?.call(constructor, payload);
+      if ((await constructor.beforeUpdate?.call(constructor, payload, this)) === false) {
+        return;
+      }
     }
 
     const _id = payload._id || this._id;

@@ -6,8 +6,6 @@ class Role extends GraphandModel {
 
   static baseUrl = "/roles";
 
-  static defaultField = "name";
-
   static baseFields = {
     name: new GraphandFieldText({
       name: "Nom",

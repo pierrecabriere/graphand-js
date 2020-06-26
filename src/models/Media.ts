@@ -9,8 +9,6 @@ class Media extends GraphandModel {
 
   static baseUrl = "/medias";
 
-  static defaultField = "name";
-
   static baseFields = {
     name: new GraphandFieldText({ name: "Nom" }),
     description: new GraphandFieldText({ name: "Description" }),

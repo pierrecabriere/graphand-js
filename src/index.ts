@@ -7,6 +7,7 @@ import Role from "./models/Role";
 import GraphandFieldBoolean from "./utils/fields/GraphandFieldBoolean";
 import GraphandFieldDate from "./utils/fields/GraphandFieldDate";
 import GraphandFieldJSON from "./utils/fields/GraphandFieldJSON";
+import GraphandFieldNumber from "./utils/fields/GraphandFieldNumber";
 import GraphandFieldRelation from "./utils/fields/GraphandFieldRelation";
 import GraphandFieldSelect from "./utils/fields/GraphandFieldSelect";
 import GraphandFieldText from "./utils/fields/GraphandFieldText";
@@ -25,6 +26,7 @@ export {
   GraphandModel,
   GraphandField,
   GraphandFieldText,
+  GraphandFieldNumber,
   GraphandFieldRelation,
   GraphandFieldDate,
   GraphandFieldBoolean,

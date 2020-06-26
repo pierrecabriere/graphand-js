@@ -8,8 +8,6 @@ class Account extends GraphandModel {
 
   static baseUrl = "/accounts";
 
-  static defaultField = "fullname";
-
   firstname;
   lastname;
 

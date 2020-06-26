@@ -1,6 +1,7 @@
 import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
 import GraphandFieldDate from "../utils/fields/GraphandFieldDate";
 import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
+import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
 import GraphandFieldRelation from "../utils/fields/GraphandFieldRelation";
 import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
@@ -11,8 +12,6 @@ class DataField extends GraphandModel {
   static apiIdentifier = "data-fields";
 
   static baseUrl = "/data-fields";
-
-  static defaultField = "name";
 
   private _configurationFields = {};
 
@@ -79,6 +78,13 @@ class DataField extends GraphandModel {
             name: "Requête",
           }),
         };
+      case "Date":
+        return {
+          time: new GraphandFieldBoolean({
+            name: "Afficher le temps",
+            defaultValue: true,
+          }),
+        };
       default:
         return {};
     }
@@ -132,9 +138,11 @@ class DataField extends GraphandModel {
           query: configuration.initialQuery,
         });
       case "Date":
-        return new GraphandFieldDate({ name });
+        return new GraphandFieldDate({ name, time: configuration.time });
       case "Boolean":
         return new GraphandFieldBoolean({ name });
+      case "Number":
+        return new GraphandFieldNumber({ name });
     }
   }
 }

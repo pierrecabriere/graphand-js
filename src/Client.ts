@@ -80,7 +80,7 @@ class Client {
         }
 
         if (reconnect) {
-          this._socket = io.connect(`${options.ssl ? "https" : "http"}://${this._options.host}`, {
+          this._socket = io.connect(`${this._options.ssl ? "https" : "http"}://${this._options.host}`, {
             query: { token: this.accessToken, projectId: this._options.project },
           });
 
