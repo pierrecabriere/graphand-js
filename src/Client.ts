@@ -290,6 +290,9 @@ class Client {
 
   logout() {
     this.accessToken = undefined;
+    Object.values(this._models).forEach((model: any) => {
+      model.clearCache();
+    });
   }
 
   async login(credentials) {
