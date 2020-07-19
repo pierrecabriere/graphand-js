@@ -46,9 +46,13 @@ class ModelObserver {
 
       const refresh = async () => {
         subscriber.next({ loading: true });
-        const { data } = await model.query(this.current, true, true);
-        ids = data.data.rows.map((item) => item._id);
-        triggerSubscription({ loading: false, count: data.data.count });
+        try {
+          const { data } = await model.query(this.current, true, true);
+          ids = data.data.rows.map((item) => item._id);
+          triggerSubscription({ loading: false, count: data.data.count });
+        } catch (e) {
+          triggerSubscription({ loading: false });
+        }
       };
 
       const triggerSubscription = (payload = {}) => {

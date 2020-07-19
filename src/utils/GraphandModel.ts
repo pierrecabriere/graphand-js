@@ -67,7 +67,7 @@ class GraphandModel {
     return value;
   }
 
-  set(slug, value, fields) {
+  set(slug, value, fields?) {
     const { constructor } = Object.getPrototypeOf(this);
     fields = fields || constructor.fields;
     const field = fields[slug];
@@ -77,6 +77,16 @@ class GraphandModel {
     }
 
     this._data[slug] = value;
+
+    return this;
+  }
+
+  assign(values) {
+    const { constructor } = Object.getPrototypeOf(this);
+    const fields = constructor.fields;
+    Object.keys(values).forEach((key) => {
+      this.set(key, values[key], fields);
+    });
 
     return this;
   }
@@ -115,7 +125,7 @@ class GraphandModel {
     return this._fieldsObserver;
   }
 
-  static get fields() {
+  static getFields(item?) {
     if (this.queryFields && !this._fieldsSubscription) {
       this._fieldsSubscription = this.fieldsObserver.list.subscribe(async (list) => {
         const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
@@ -127,13 +137,15 @@ class GraphandModel {
       });
     }
 
+    const baseFields = typeof this.baseFields === "function" ? this.baseFields(item) : this.baseFields;
+
     return {
       _id: new GraphandFieldId(),
       ...this._fields,
-      ...this.baseFields,
+      ...baseFields,
       createdBy: new GraphandFieldRelation({
         name: "Créé par",
-        model: Account,
+        model: this._client.models.Account,
         multiple: false,
       }),
       createdAt: new GraphandFieldDate({
@@ -141,13 +153,17 @@ class GraphandModel {
       }),
       updatedBy: new GraphandFieldRelation({
         name: "Modifié par",
-        model: Account,
+        model: this._client.models.Account,
         multiple: false,
       }),
       updatedAt: new GraphandFieldDate({
         name: "Modifié à",
       }),
     };
+  }
+
+  static get fields() {
+    return this.getFields();
   }
 
   static setPrototypeFields() {
@@ -366,7 +382,7 @@ class GraphandModel {
     });
   }
 
-  static getList(query?: any): GraphandModelList {
+  static getList(query?: any, ...params): GraphandModelList {
     if (query) {
       const parent = this;
       // @ts-ignore
@@ -376,7 +392,7 @@ class GraphandModel {
             data: {
               data: { rows },
             },
-          } = await parent.query(query);
+          } = await parent.query(query, ...params);
           const storeList = parent.store.getState().list;
           const list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r);
           resolve(new GraphandModelList(parent, ...list));
@@ -391,7 +407,14 @@ class GraphandModel {
 
   static get(_id, fetch = true) {
     if (!_id) {
-      return null;
+      return new GraphandModelPromise(async (resolve, reject) => {
+        try {
+          const res = await this.query(null, undefined, true);
+          resolve(this.get((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id, false));
+        } catch (e) {
+          reject(e);
+        }
+      });
     }
 
     const item = this.getList().find((item) => item._id === _id);
@@ -625,11 +648,11 @@ class GraphandModel {
       }
 
       if (hooks) {
-        await this.afterUpdate?.call(this, items);
+        await this.afterUpdate?.call(this, items, null, payload);
       }
     } catch (e) {
       if (hooks) {
-        await this.afterUpdate?.call(this, null, e);
+        await this.afterUpdate?.call(this, null, e, payload);
       }
 
       throw e;
@@ -656,7 +679,7 @@ class GraphandModel {
       await constructor.update({ _id }, payload, false, clearCache);
 
       if (hooks) {
-        await constructor.afterUpdate?.call(this, constructor.get(_id));
+        await constructor.afterUpdate?.call(this, constructor.get(_id), null, payload);
       }
     } catch (e) {
       if (preStore) {
@@ -664,7 +687,7 @@ class GraphandModel {
       }
 
       if (hooks) {
-        await constructor.afterUpdate?.call(this, null, e);
+        await constructor.afterUpdate?.call(this, null, e, payload);
       }
 
       throw e;

@@ -28,7 +28,9 @@ class Media extends GraphandModel {
 
     const formData = new FormData();
     Object.keys(args.payload).forEach((key) => {
-      formData.append(key, args.payload[key]);
+      if (args.payload[key] !== undefined) {
+        formData.append(key, args.payload[key]);
+      }
     });
 
     args.config.headers = {

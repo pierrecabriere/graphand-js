@@ -6,7 +6,12 @@ import Data from "./models/Data";
 import DataField from "./models/DataField";
 import DataModel from "./models/DataModel";
 import Media from "./models/Media";
+import Module from "./models/Module";
+import Project from "./models/Project";
 import Role from "./models/Role";
+import Token from "./models/Token";
+import User from "./models/User";
+import Webhook from "./models/Webhook";
 import GraphandError from "./utils/GraphandError";
 import GraphandModel from "./utils/GraphandModel";
 
@@ -17,6 +22,7 @@ interface ClientOptions {
   host?: string;
   socket: boolean;
   ssl: boolean;
+  unloadTimeout: number;
 }
 
 class Client {
@@ -43,6 +49,7 @@ class Client {
       {
         host: "api.graphand.io",
         ssl: true,
+        unloadTimeout: 100,
       },
       options,
     );
@@ -128,6 +135,10 @@ class Client {
   }
 
   private load(key) {
+    if (this._loadStack.includes(key)) {
+      return null;
+    }
+
     this._loadStack.push(key);
     this.loadTimeout && clearTimeout(this.loadTimeout);
     this.loadTimeout = setTimeout(() => {
@@ -135,7 +146,7 @@ class Client {
         this.prevLoading = this.loading;
         this.worker.next(this.loading);
       }
-    }, 100);
+    });
   }
 
   private unload(key) {
@@ -146,17 +157,15 @@ class Client {
         this.prevLoading = this.loading;
         this.worker.next(this.loading);
       }
-    }, 100);
+    }, this._options.unloadTimeout);
   }
 
-  private async _initProject() {
+  async _initProject() {
+    Object.values(this._models).forEach((model: any) => model.clearCache());
+
     this.load("project");
     try {
-      const { data } = await axios.get(`${this._options.ssl ? "https" : "http"}://${this._options.host}/projects/${this._options.project}`, {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-      });
+      const { data } = await this._axios.get(`/projects/${this._options.project}`);
       this._project = data.data;
       if (!this.locale) {
         this.locale = this._project.defaultLocale;
@@ -172,6 +181,18 @@ class Client {
       get: function (oTarget, sKey) {
         if (!oTarget._models[sKey]) {
           switch (sKey) {
+            case "Module":
+              oTarget._models[sKey] = Module;
+              oTarget.registerModel(oTarget._models[sKey], { name: "Module" });
+              break;
+            case "User":
+              oTarget._models[sKey] = User;
+              oTarget.registerModel(oTarget._models[sKey], { name: "User" });
+              break;
+            case "Project":
+              oTarget._models[sKey] = Project;
+              oTarget.registerModel(oTarget._models[sKey], { name: "Project" });
+              break;
             case "Data":
               oTarget._models[sKey] = Data;
               oTarget.registerModel(oTarget._models[sKey], { name: "Data" });
@@ -196,11 +217,20 @@ class Client {
               oTarget._models[sKey] = Media;
               oTarget.registerModel(oTarget._models[sKey], { name: "Media" });
               break;
+            case "Token":
+              oTarget._models[sKey] = Token;
+              oTarget.registerModel(oTarget._models[sKey], { name: "Token" });
+              break;
+            case "Webhook":
+              oTarget._models[sKey] = Webhook;
+              oTarget.registerModel(oTarget._models[sKey], { name: "Webhook" });
+              break;
             default:
               const Model = class extends Data {
                 static apiIdentifier = sKey;
               };
-              oTarget.registerModel(Model);
+              Object.defineProperty(Model, "name", { value: sKey });
+              oTarget.registerModel(Model, { name: sKey.toString() });
               oTarget._models[sKey] = Model;
               break;
           }
@@ -240,7 +270,11 @@ class Client {
     return this._socket;
   }
 
-  async registerModel(Model: any, options: { sync?: boolean; name?: string } = {}) {
+  async registerModel(Model: any, options: { sync?: boolean; name?: string; force?: boolean } = {}) {
+    if (options.force) {
+      Model.__registered = false;
+    }
+
     if (Model.__registered) {
       return;
     }
@@ -252,15 +286,17 @@ class Client {
     }
 
     this.load(Model);
-    Model.setClient(this);
+    try {
+      Model.setClient(this);
 
-    if (options.sync) {
-      Model.sync();
-    }
+      if (options.sync) {
+        Model.sync();
+      }
 
-    await Model.init();
+      await Model.init();
+      Model.__registered = true;
+    } catch (e) {}
     this.unload(Model);
-    Model.__registered = true;
     return Model;
   }
 

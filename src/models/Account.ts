@@ -25,6 +25,11 @@ class Account extends GraphandModel {
       password: new GraphandFieldText({
         name: "Mot de passe",
       }),
+      user: new GraphandFieldRelation({
+        name: "Utilisateur graphand",
+        model: this._client.models.User,
+        multiple: false,
+      }),
       role: new GraphandFieldRelation({
         name: "Role",
         model: this._client.models.Role,
@@ -41,11 +46,6 @@ class Account extends GraphandModel {
 
   static async login(credentials) {
     return this._client.login(credentials);
-  }
-
-  static async getCurrent() {
-    const { data } = await this._client._axios.get(`/accounts/current`);
-    return data.data ? new this(data.data) : null;
   }
 }
 
