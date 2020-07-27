@@ -12,7 +12,7 @@ class Project extends GraphandModel {
   };
 
   static getCurrent() {
-    return this.get(this._client._options.project);
+    return this._client._options.project && this.get(this._client._options.project);
   }
 }
 

@@ -4,6 +4,7 @@ import GraphandModel from "../utils/GraphandModel";
 import Role from "./Role";
 
 class Account extends GraphandModel {
+  static _currentId = undefined;
   static apiIdentifier = "accounts";
 
   static baseUrl = "/accounts";
@@ -46,6 +47,23 @@ class Account extends GraphandModel {
 
   static async login(credentials) {
     return this._client.login(credentials);
+  }
+
+  static clearCache() {
+    GraphandModel.clearCache.apply(this, arguments);
+
+    this._currentId = undefined;
+
+    return this;
+  }
+
+  static async getCurrent() {
+    if (!this._currentId) {
+      const { data } = await this._client._axios.get(`/accounts/current`);
+      this._currentId = data?.data?._id || null;
+    }
+
+    return this._currentId && this.get(this._currentId);
   }
 }
 

@@ -7,6 +7,7 @@ import Media from "./models/Media";
 import Module from "./models/Module";
 import Project from "./models/Project";
 import Role from "./models/Role";
+import Rule from "./models/Rule";
 import Token from "./models/Token";
 import User from "./models/User";
 import Webhook from "./models/Webhook";
@@ -43,6 +44,7 @@ export {
   Account as GraphandModelAccount,
   Data as GraphandModelData,
   Role as GraphandModelRole,
+  Rule as GraphandModelRule,
   DataModel as GraphandModelDataModel,
   DataField as GraphandModelDataField,
   Media as GraphandModelMedia,

@@ -9,6 +9,7 @@ import Media from "./models/Media";
 import Module from "./models/Module";
 import Project from "./models/Project";
 import Role from "./models/Role";
+import Rule from "./models/Rule";
 import Token from "./models/Token";
 import User from "./models/User";
 import Webhook from "./models/Webhook";
@@ -165,7 +166,11 @@ class Client {
 
     this.load("project");
     try {
-      const { data } = await this._axios.get(`/projects/${this._options.project}`);
+      const { data } = await axios.get(`${this._options.ssl ? "https" : "http"}://${this._options.host}/projects/${this._options.project}`, {
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+      });
       this._project = data.data;
       if (!this.locale) {
         this.locale = this._project.defaultLocale;
@@ -204,6 +209,10 @@ class Client {
             case "Role":
               oTarget._models[sKey] = Role;
               oTarget.registerModel(oTarget._models[sKey], { name: "Role" });
+              break;
+            case "Rule":
+              oTarget._models[sKey] = Rule;
+              oTarget.registerModel(oTarget._models[sKey], { name: "Rule" });
               break;
             case "DataField":
               oTarget._models[sKey] = DataField;

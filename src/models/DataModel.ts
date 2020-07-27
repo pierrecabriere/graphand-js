@@ -22,7 +22,7 @@ class DataModel extends GraphandModel {
       defaultField: new GraphandFieldRelation({
         name: "Champ par défaut",
         model: this._client.models.DataField,
-        query: model ? { model: model._id } : { _id: { $exists: false } },
+        query: { model: model?._id },
       }),
     };
   }

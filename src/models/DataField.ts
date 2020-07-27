@@ -19,27 +19,36 @@ class DataField extends GraphandModel {
   slug;
   type;
 
-  static baseFields = {
-    name: new GraphandFieldText({
-      name: "Nom",
-    }),
-    slug: new GraphandFieldText({
-      name: "Identifiant",
-    }),
-    type: new GraphandFieldSelect({
-      name: "Type",
-      type: GraphandFieldText,
-      options: [
-        { value: "Text", label: "Texte" },
-        { value: "Number", label: "Nombre" },
-        { value: "Relation", label: "Relation" },
-      ],
-    }),
-    configuration: new GraphandFieldJSON({
-      name: "Configuration",
-      assign: false,
-    }),
-  };
+  static get baseFields() {
+    return {
+      name: new GraphandFieldText({
+        name: "Nom",
+      }),
+      slug: new GraphandFieldText({
+        name: "Identifiant",
+      }),
+      type: new GraphandFieldSelect({
+        name: "Type",
+        type: GraphandFieldText,
+        options: [
+          { value: "Text", label: "Texte" },
+          { value: "Number", label: "Nombre" },
+          { value: "Relation", label: "Relation" },
+        ],
+      }),
+      configuration: new GraphandFieldJSON({
+        name: "Configuration",
+        assign: false,
+      }),
+      model: new GraphandFieldRelation({
+        name: "Modèle",
+        model: this._client.models.DataModel,
+      }),
+      accountField: new GraphandFieldBoolean({
+        name: "Champ de compte",
+      }),
+    };
+  }
 
   async getConfigurationFields() {
     const { constructor } = Object.getPrototypeOf(this);
@@ -67,6 +76,7 @@ class DataField extends GraphandModel {
 
         return {
           ref: new GraphandFieldSelect({
+            name: "Réf",
             type: GraphandFieldText,
             options,
           }),
