@@ -700,7 +700,9 @@ class GraphandModel {
     const args = { payload };
 
     if (hooks) {
-      await this.beforeDelete?.call(this, args);
+      if ((await this.beforeDelete?.call(this, args)) === false) {
+        return;
+      }
     }
 
     if (payload instanceof GraphandModel) {
