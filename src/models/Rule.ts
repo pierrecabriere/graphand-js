@@ -1,3 +1,5 @@
+import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
+import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
 import GraphandFieldRelation from "../utils/fields/GraphandFieldRelation";
 import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
@@ -27,11 +29,13 @@ class Rule extends GraphandModel {
         model: this._client.models.Role,
         multiple: false,
       }),
-      ref: new GraphandFieldSelect({
-        name: "Réf",
+      scope: new GraphandFieldSelect({
+        name: "Scope",
         type: GraphandFieldText,
         options,
       }),
+      prohibition: new GraphandFieldBoolean({ name: "Interdiction", defaultValue: false }),
+      conditions: new GraphandFieldJSON({ name: "Conditions" }),
     };
   }
 }

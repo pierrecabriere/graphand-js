@@ -309,6 +309,16 @@ class Client {
     return Model;
   }
 
+  async getModelFromScope(scope: string) {
+    if (/^DataItem:/.test(scope)) {
+      const { 1: _id } = scope.match(/^DataItem:(.+?)$/);
+      const model = await this.models.DataModel.get(_id);
+      return this.getModelByIdentifier(model.slug);
+    }
+
+    return this.models[scope];
+  }
+
   connectSocket() {
     this.socketSubject.next();
   }

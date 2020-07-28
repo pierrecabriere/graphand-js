@@ -116,10 +116,7 @@ class DataField extends GraphandModel {
   async updateConfiguration() {
     try {
       this._configurationFields = await this.getConfigurationFields();
-    } catch (e) {
-      console.log(e);
-      console.error(e);
-    }
+    } catch (e) {}
   }
 
   async toGraphandField() {
