@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from "axios";
 import { Subject } from "rxjs";
 import io from "socket.io-client";
 import Account from "./models/Account";
+import Aggregation from "./models/Aggregation";
 import Data from "./models/Data";
 import DataField from "./models/DataField";
 import DataModel from "./models/DataModel";
@@ -186,6 +187,10 @@ class Client {
       get: function (oTarget, sKey) {
         if (!oTarget._models[sKey]) {
           switch (sKey) {
+            case "Aggregation":
+              oTarget._models[sKey] = Aggregation;
+              oTarget.registerModel(oTarget._models[sKey], { name: "Aggregation" });
+              break;
             case "Module":
               oTarget._models[sKey] = Module;
               oTarget.registerModel(oTarget._models[sKey], { name: "Module" });

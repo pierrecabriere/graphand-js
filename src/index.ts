@@ -1,5 +1,6 @@
 import Client from "./Client";
 import Account from "./models/Account";
+import Aggregation from "./models/Aggregation";
 import Data from "./models/Data";
 import DataField from "./models/DataField";
 import DataModel from "./models/DataModel";
@@ -53,6 +54,7 @@ export {
   Module as GraphandModelModule,
   Token as GraphandModelToken,
   Webhook as GraphandModelWebhook,
+  Aggregation as GraphandModelAggregation,
   GraphandError,
   GraphandValidationError,
   ModelObserver,
