@@ -13,6 +13,12 @@ class DataModel extends GraphandModel {
       name: new GraphandFieldText({
         name: "Nom",
       }),
+      nameSingle: new GraphandFieldText({
+        name: "Nom singulier",
+      }),
+      nameMultiple: new GraphandFieldText({
+        name: "Nom pluriel",
+      }),
       slug: new GraphandFieldText({
         name: "Identifiant",
       }),

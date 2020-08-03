@@ -19,15 +19,19 @@ class ModelObserver {
   mainSubscription: Subscription;
   model;
 
-  prevList = null;
-  prevLoading = null;
-  prevCount = null;
+  prevList;
+  prevLoading;
+  prevCount;
 
   subjects: any = {};
 
   private _current: { select?: any; populate?: any; sort?: any; pageSize?: any; page?: any; translations?: any; query?: any } = { page: 1 };
   get current() {
     return this._current;
+  }
+
+  get initialized() {
+    return this.prevList !== undefined;
   }
 
   constructor(options, model) {
