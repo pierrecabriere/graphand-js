@@ -430,7 +430,7 @@ class GraphandModel {
       }, _id);
     }
 
-    return item && new GraphandModelPromise((resolve) => resolve(item), item._id);
+    return fetch ? new GraphandModelPromise((resolve) => resolve(item), item._id) : item;
   }
 
   static async query(query: any, cache = true, waitRequest = false, callback?: Function, hooks = true) {
@@ -679,7 +679,7 @@ class GraphandModel {
       await constructor.update({ _id }, payload, false, clearCache);
 
       if (hooks) {
-        await constructor.afterUpdate?.call(this, constructor.get(_id), null, payload);
+        await constructor.afterUpdate?.call(constructor, constructor.get(_id), null, payload);
       }
     } catch (e) {
       if (preStore) {
@@ -687,7 +687,7 @@ class GraphandModel {
       }
 
       if (hooks) {
-        await constructor.afterUpdate?.call(this, null, e, payload);
+        await constructor.afterUpdate?.call(constructor, null, e, payload);
       }
 
       throw e;

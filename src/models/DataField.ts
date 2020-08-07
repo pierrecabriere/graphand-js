@@ -127,7 +127,7 @@ class DataField extends GraphandModel {
     switch (type) {
       case "Text":
       default:
-        return new GraphandFieldText({ name });
+        return new GraphandFieldText({ name, type, configuration });
       case "Relation":
         let model;
         if (configuration.ref === "Account") {
