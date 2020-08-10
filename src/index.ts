@@ -22,6 +22,7 @@ import GraphandFieldSelect from "./utils/fields/GraphandFieldSelect";
 import GraphandFieldText from "./utils/fields/GraphandFieldText";
 import GraphandError from "./utils/GraphandError";
 import GraphandField from "./utils/GraphandField";
+import GraphandHistoryModel from "./utils/GraphandHistoryModel";
 import GraphandModel from "./utils/GraphandModel";
 import GraphandModelList from "./utils/GraphandModelList";
 import GraphandModelListPromise from "./utils/GraphandModelListPromise";
@@ -61,4 +62,5 @@ export {
   GraphandModelPromise,
   GraphandModelList,
   GraphandModelListPromise,
+  GraphandHistoryModel,
 };

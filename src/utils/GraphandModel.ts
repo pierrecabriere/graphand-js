@@ -1,8 +1,8 @@
 import isEqual from "fast-deep-equal";
+import _ from "lodash/object";
 import { createStore, Store } from "redux";
 import { Observable } from "rxjs";
 import Client from "../Client";
-import Account from "../models/Account";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldId from "./fields/GraphandFieldId";
 import GraphandFieldRelation from "./fields/GraphandFieldRelation";
@@ -30,6 +30,7 @@ class GraphandModel {
   static __registered = false;
   static __initialized = false;
   private _data: any = {};
+  static defaultFields = true;
 
   constructor(data: any = {}) {
     this._id = data._id;
@@ -40,7 +41,7 @@ class GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     fields = fields || constructor.fields;
     const field = fields[slug];
-    let value = this._data[slug];
+    let value = _.get(this._data, slug);
 
     if (constructor.translatable) {
       let locale = constructor._client.locale;
@@ -48,13 +49,13 @@ class GraphandModel {
         locale = undefined;
       }
 
-      if (locale && this._data.translations && this._data.translations[locale] && this._data.translations[locale][slug] !== undefined) {
-        value = this._data.translations[locale][slug];
+      if (locale && this._data.translations && this._data.translations[locale] && _.get(this._data.translations[locale], slug) !== undefined) {
+        value = _.get(this._data.translations[locale], slug);
       }
     }
 
     if (value === undefined) {
-      value = field ? field.defaultValue : this[slug];
+      value = field ? field.defaultValue : _.get(this, slug);
     }
 
     if (field?.getter) {
@@ -139,27 +140,35 @@ class GraphandModel {
 
     const baseFields = typeof this.baseFields === "function" ? this.baseFields(item) : this.baseFields;
 
-    return {
+    let fields = {
       _id: new GraphandFieldId(),
       ...this._fields,
       ...baseFields,
-      createdBy: new GraphandFieldRelation({
-        name: "Créé par",
-        model: this._client.models.Account,
-        multiple: false,
-      }),
-      createdAt: new GraphandFieldDate({
-        name: "Créé à",
-      }),
-      updatedBy: new GraphandFieldRelation({
-        name: "Modifié par",
-        model: this._client.models.Account,
-        multiple: false,
-      }),
-      updatedAt: new GraphandFieldDate({
-        name: "Modifié à",
-      }),
     };
+
+    if (this.defaultFields) {
+      fields = {
+        ...fields,
+        createdBy: new GraphandFieldRelation({
+          name: "Créé par",
+          model: this._client.models.Account,
+          multiple: false,
+        }),
+        createdAt: new GraphandFieldDate({
+          name: "Créé à",
+        }),
+        updatedBy: new GraphandFieldRelation({
+          name: "Modifié par",
+          model: this._client.models.Account,
+          multiple: false,
+        }),
+        updatedAt: new GraphandFieldDate({
+          name: "Modifié à",
+        }),
+      };
+    }
+
+    return fields;
   }
 
   static get fields() {
@@ -572,7 +581,9 @@ class GraphandModel {
     const args = { payload, config };
 
     if (hooks) {
-      await this.beforeCreate?.call(this, args);
+      if ((await this.beforeCreate?.call(this, args)) === false) {
+        return;
+      }
     }
 
     let item;
@@ -647,6 +658,8 @@ class GraphandModel {
         this.upsertStore(items);
       }
 
+      items.forEach((item) => item.HistoryModel.clearCache());
+
       if (hooks) {
         await this.afterUpdate?.call(this, items, null, payload);
       }
@@ -677,6 +690,7 @@ class GraphandModel {
 
     try {
       await constructor.update({ _id }, payload, false, clearCache);
+      this.assign(constructor.get(_id, false).raw);
 
       if (hooks) {
         await constructor.afterUpdate?.call(constructor, constructor.get(_id), null, payload);
@@ -708,10 +722,12 @@ class GraphandModel {
     if (payload instanceof GraphandModel) {
       try {
         await this._client._axios.delete(this.baseUrl, { data: { query: { _id: payload._id } } });
+
         if (!this.socketSubscription) {
           this.clearCache();
           this.deleteFromStore(payload);
         }
+
         if (hooks) {
           await this.afterDelete?.call(this, args);
         }
@@ -729,9 +745,11 @@ class GraphandModel {
     } else {
       try {
         await this._client._axios.delete(this.baseUrl, { data: payload });
+
         if (hooks) {
           await this.afterDelete?.call(this, args);
         }
+
         this.clearCache();
       } catch (e) {
         if (hooks) {
@@ -753,6 +771,23 @@ class GraphandModel {
   static setClient(client) {
     this._client = client;
     return this;
+  }
+
+  get HistoryModel() {
+    const parent = this;
+    const { constructor } = Object.getPrototypeOf(this);
+    const modelName = `${this._id}_history`;
+    if (!constructor._client._models[modelName]) {
+      const GraphandHistoryModel = require("./GraphandHistoryModel").default;
+      const HistoryModel = class extends GraphandHistoryModel {
+        static baseUrl = `${constructor.baseUrl}/${parent._id}/history`;
+        static queryUrl = `${constructor.baseUrl}/${parent._id}/history`;
+      };
+
+      constructor._client.registerModel(HistoryModel, { name: modelName });
+    }
+
+    return constructor._client.models[modelName];
   }
 
   // hooks

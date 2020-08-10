@@ -24,6 +24,7 @@ class DataModel extends GraphandModel {
       }),
       multiple: new GraphandFieldBoolean({
         name: "Multiple",
+        defaultValue: true,
       }),
       defaultField: new GraphandFieldRelation({
         name: "Champ par défaut",

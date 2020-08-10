@@ -34,6 +34,17 @@ class Rule extends GraphandModel {
         type: GraphandFieldText,
         options,
       }),
+      actions: new GraphandFieldSelect({
+        name: "Actions",
+        type: GraphandFieldText,
+        multiple: true,
+        options: [
+          { value: "create", label: "Créer" },
+          { value: "read", label: "Lire" },
+          { value: "update", label: "Modifier" },
+          { value: "delete", label: "Supprimer" },
+        ],
+      }),
       prohibition: new GraphandFieldBoolean({ name: "Interdiction", defaultValue: false }),
       conditions: new GraphandFieldJSON({ name: "Conditions" }),
     };

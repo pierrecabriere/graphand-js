@@ -3,6 +3,7 @@ import GraphandModel from "./GraphandModel";
 class GraphandField {
   name;
   defaultValue;
+  configuration;
 
   constructor(data?: any) {
     Object.assign(this, data);
