@@ -32,6 +32,7 @@ class Aggregation extends GraphandModel {
         options,
       }),
       pipeline: new GraphandFieldJSON({ name: "Pipeline", defaultValue: [] }),
+      defaultVars: new GraphandFieldJSON({ name: "Variables par défaut" }),
     };
   }
 

@@ -13,6 +13,7 @@ import Token from "./models/Token";
 import User from "./models/User";
 import Webhook from "./models/Webhook";
 import GraphandFieldBoolean from "./utils/fields/GraphandFieldBoolean";
+import GraphandFieldColor from "./utils/fields/GraphandFieldColor";
 import GraphandFieldDate from "./utils/fields/GraphandFieldDate";
 import GraphandFieldId from "./utils/fields/GraphandFieldId";
 import GraphandFieldJSON from "./utils/fields/GraphandFieldJSON";
@@ -43,6 +44,7 @@ export {
   GraphandFieldBoolean,
   GraphandFieldSelect,
   GraphandFieldJSON,
+  GraphandFieldColor,
   Account as GraphandModelAccount,
   Data as GraphandModelData,
   Role as GraphandModelRole,

@@ -1,4 +1,5 @@
 import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
+import GraphandFieldColor from "../utils/fields/GraphandFieldColor";
 import GraphandFieldDate from "../utils/fields/GraphandFieldDate";
 import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
 import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
@@ -34,6 +35,7 @@ class DataField extends GraphandModel {
           { value: "Text", label: "Texte" },
           { value: "Number", label: "Nombre" },
           { value: "Relation", label: "Relation" },
+          { value: "Color", label: "Couleur" },
         ],
       }),
       configuration: new GraphandFieldJSON({
@@ -155,6 +157,8 @@ class DataField extends GraphandModel {
         return new GraphandFieldBoolean({ name });
       case "Number":
         return new GraphandFieldNumber({ name });
+      case "Color":
+        return new GraphandFieldColor({ name });
     }
   }
 }

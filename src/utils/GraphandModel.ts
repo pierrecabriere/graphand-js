@@ -156,6 +156,7 @@ class GraphandModel {
         }),
         createdAt: new GraphandFieldDate({
           name: "Créé à",
+          time: true,
         }),
         updatedBy: new GraphandFieldRelation({
           name: "Modifié par",
@@ -164,6 +165,7 @@ class GraphandModel {
         }),
         updatedAt: new GraphandFieldDate({
           name: "Modifié à",
+          time: true,
         }),
       };
     }
