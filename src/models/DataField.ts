@@ -36,6 +36,8 @@ class DataField extends GraphandModel {
           { value: "Number", label: "Nombre" },
           { value: "Relation", label: "Relation" },
           { value: "Color", label: "Couleur" },
+          { value: "Date", label: "Date" },
+          { value: "JSON", label: "JSON" },
         ],
       }),
       configuration: new GraphandFieldJSON({

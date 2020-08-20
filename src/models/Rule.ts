@@ -4,6 +4,7 @@ import GraphandFieldRelation from "../utils/fields/GraphandFieldRelation";
 import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
 import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 
 class Rule extends GraphandModel {
   static apiIdentifier = "rules";
@@ -11,28 +12,14 @@ class Rule extends GraphandModel {
   static baseUrl = "/rules";
 
   static get baseFields() {
-    const models = this._client.models.DataModel.getList();
-    const options = models.reduce(
-      (scopes, model) => {
-        scopes.push({ value: `DataItem:${model._id}`, label: model.name });
-        return scopes;
-      },
-      [
-        { value: "Role", label: "Role" },
-        { value: "Account", label: "Comptes" },
-      ],
-    );
-
     return {
       role: new GraphandFieldRelation({
         name: "Rôle",
         model: this._client.models.Role,
         multiple: false,
       }),
-      scope: new GraphandFieldSelect({
+      scope: new GraphandFieldScope({
         name: "Scope",
-        type: GraphandFieldText,
-        options,
       }),
       actions: new GraphandFieldSelect({
         name: "Actions",

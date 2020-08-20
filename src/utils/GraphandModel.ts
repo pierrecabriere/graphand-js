@@ -30,17 +30,20 @@ class GraphandModel {
   static __registered = false;
   static __initialized = false;
   private _data: any = {};
+  _fields = {};
   static defaultFields = true;
 
   constructor(data: any = {}) {
+    data = data instanceof GraphandModel ? data.raw : data;
     this._id = data._id;
     this._data = data;
+    this.reloadFields();
   }
 
   get(slug, decode = false, fields) {
     const { constructor } = Object.getPrototypeOf(this);
-    fields = fields || constructor.fields;
-    const field = fields[slug];
+
+    const field = (fields || this._fields)[slug];
     let value = _.get(this._data, slug);
 
     if (constructor.translatable) {
@@ -79,6 +82,7 @@ class GraphandModel {
 
     this._data[slug] = value;
 
+    this._fields = constructor.getFields(this);
     return this;
   }
 
@@ -124,6 +128,12 @@ class GraphandModel {
     }
 
     return this._fieldsObserver;
+  }
+
+  reloadFields() {
+    const { constructor } = Object.getPrototypeOf(this);
+    this._fields = constructor.getFields();
+    this._fields = constructor.getFields(this);
   }
 
   static getFields(item?) {
@@ -188,7 +198,7 @@ class GraphandModel {
       Object.defineProperty(this.prototype, slug, {
         configurable: true,
         get: function () {
-          return this.get(slug, false, fields);
+          return this.get(slug);
         },
         set(v) {
           this._data[slug] = v;
@@ -441,7 +451,7 @@ class GraphandModel {
       }, _id);
     }
 
-    return fetch ? new GraphandModelPromise((resolve) => resolve(item), item._id) : item;
+    return fetch ? new GraphandModelPromise((resolve) => resolve(item), item._id, true) : item;
   }
 
   static async query(query: any, cache = true, waitRequest = false, callback?: Function, hooks = true) {

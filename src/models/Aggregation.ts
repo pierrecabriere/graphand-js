@@ -1,5 +1,5 @@
 import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
-import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
+import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
 import GraphandModel from "../utils/GraphandModel";
 
@@ -11,26 +11,10 @@ class Aggregation extends GraphandModel {
   static queryFields = false;
 
   static get baseFields() {
-    const models = this._client.models.DataModel.getList();
-    const options = models.reduce(
-      (scopes, model) => {
-        scopes.push({ value: `DataItem:${model._id}`, label: model.name });
-        return scopes;
-      },
-      [
-        { value: "Role", label: "Role" },
-        { value: "Account", label: "Comptes" },
-      ],
-    );
-
     return {
       name: new GraphandFieldText({ name: "Nom" }),
       description: new GraphandFieldText({ name: "Description" }),
-      scope: new GraphandFieldSelect({
-        name: "Scope",
-        type: GraphandFieldText,
-        options,
-      }),
+      scope: new GraphandFieldScope({ name: "Scope" }),
       pipeline: new GraphandFieldJSON({ name: "Pipeline", defaultValue: [] }),
       defaultVars: new GraphandFieldJSON({ name: "Variables par défaut" }),
     };

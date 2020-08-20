@@ -3,6 +3,7 @@ import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
 import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
 import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 
 class Webhook extends GraphandModel {
   static apiIdentifier = "webhooks";
@@ -39,10 +40,8 @@ class Webhook extends GraphandModel {
           { value: "delete", label: "delete" },
         ],
       }),
-      scope: new GraphandFieldSelect({
+      scope: new GraphandFieldScope({
         name: "Scope",
-        type: GraphandFieldText,
-        options,
       }),
       actions: new GraphandFieldSelect({
         name: "Actions",
