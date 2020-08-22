@@ -43,7 +43,6 @@ class GraphandModel {
   get(slug, decode = false, fields) {
     const { constructor } = Object.getPrototypeOf(this);
 
-    const field = (fields || this._fields)[slug];
     let value = _.get(this._data, slug);
 
     if (constructor.translatable) {
@@ -57,8 +56,14 @@ class GraphandModel {
       }
     }
 
+    const field = (fields && fields[slug]) || (this._fields && this._fields[slug]);
+    if (!field) {
+      return undefined;
+    }
+
     if (value === undefined) {
-      value = field ? field.defaultValue : _.get(this, slug);
+      // value = field ? field.defaultValue : _.get(this._data, slug);
+      value = field && field.defaultValue;
     }
 
     if (field?.getter) {
