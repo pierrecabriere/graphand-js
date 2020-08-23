@@ -4,6 +4,10 @@ class GraphandFieldJSON extends GraphandField {
   fields;
 
   getter(value) {
+    if (Array.isArray(value)) {
+      return value;
+    }
+
     const defaultValues = this.fields
       ? Object.keys(this.fields).reduce((payload, key) => {
           if (this.fields[key].defaultValue !== undefined) {
