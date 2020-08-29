@@ -128,7 +128,7 @@ class GraphandModel {
       return;
     }
 
-    if (!this._fieldsObserver) {
+    if (!this._fieldsObserver && this._client._options.project) {
       this._fieldsObserver = this._client.models.DataField.observe({ query: this.queryFields });
     }
 
@@ -213,7 +213,7 @@ class GraphandModel {
   }
 
   static async init() {
-    if (this.queryFields) {
+    if (this.queryFields && this._client._options.project) {
       const list = await this._client.models.DataField.getList({ page: 1, query: this.queryFields });
       const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
       this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});

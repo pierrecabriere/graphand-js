@@ -309,7 +309,7 @@ class Client {
 
       await Model.init();
       Model.__registered = true;
-      Model.clearCache();
+      // Model.clearCache();
     } catch (e) {}
     this.unload(Model);
     return Model;

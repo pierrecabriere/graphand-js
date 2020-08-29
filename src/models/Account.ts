@@ -59,11 +59,11 @@ class Account extends GraphandModel {
 
   static async getCurrent() {
     if (!this._currentId) {
-      const { data } = await this._client._axios.get(`/accounts/current`);
-      this._currentId = data?.data?._id || null;
+      this._currentId = this._client._axios.get(`/accounts/current`).then((res) => res.data?.data?._id || null);
     }
 
-    return this._currentId && this.get(this._currentId);
+    const id = await this._currentId;
+    return id && this.get(id);
   }
 }
 

@@ -34,59 +34,6 @@ class Role extends GraphandModel {
         model: this._client.models.Module,
         multiple: true,
       }),
-
-      // description: String,
-      // admin: { type: Boolean, default: false },
-      // accessBackoffice: { type: Boolean, default: true },
-      // modules: [
-      //   {
-      //     type: mongoose.Schema.Types.ObjectId,
-      //     ref: "Module",
-      //   },
-      // ],
-      // sidebarModules: [
-      //   {
-      //     type: mongoose.Schema.Types.ObjectId,
-      //     ref: "Module",
-      //   },
-      // ],
-      // menuModules: [
-      //   {
-      //     type: mongoose.Schema.Types.ObjectId,
-      //     ref: "Module",
-      //   },
-      // ],
-      // modulesConfigurations: [
-      //   new mongoose.Schema(
-      //     {
-      //       module: {
-      //         type: mongoose.Schema.Types.ObjectId,
-      //         ref: "Module",
-      //       },
-      //       configuration: {
-      //         type: String,
-      //         set: (v) => {
-      //           try {
-      //             return JSON.stringify(v);
-      //           } catch {
-      //             return "";
-      //           }
-      //         },
-      //         get: (v) => {
-      //           try {
-      //             return JSON.parse(v);
-      //           } catch {
-      //             return {};
-      //           }
-      //         },
-      //       },
-      //     },
-      //     {
-      //       toJSON: { getters: true },
-      //       toObject: { getters: true },
-      //     },
-      //   ),
-      // ],
     };
   }
 }
