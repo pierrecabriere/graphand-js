@@ -1,9 +1,9 @@
 import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
+import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
 import GraphandModel from "../utils/GraphandModel";
-import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 
 class Webhook extends GraphandModel {
   static apiIdentifier = "webhooks";
@@ -33,11 +33,11 @@ class Webhook extends GraphandModel {
         name: "Méthode",
         type: GraphandFieldText,
         options: [
-          { value: "get", label: "get" },
-          { value: "post", label: "post" },
-          { value: "put", label: "put" },
-          { value: "patch", label: "patch" },
-          { value: "delete", label: "delete" },
+          { value: "get", label: "GET" },
+          { value: "post", label: "POST" },
+          { value: "put", label: "PUT" },
+          { value: "patch", label: "PATCH" },
+          { value: "delete", label: "DELETE" },
         ],
       }),
       scope: new GraphandFieldScope({
@@ -58,7 +58,7 @@ class Webhook extends GraphandModel {
           { value: "after_execute", label: "after_execute" },
         ],
       }),
-      await: new GraphandFieldBoolean({ name: "Attendre", defaultValue: false }),
+      await: new GraphandFieldBoolean({ name: "Attendre le retour", defaultValue: false }),
       timeout: new GraphandFieldNumber({ name: "Timeout", defaultValue: 10000 }),
       priority: new GraphandFieldNumber({ name: "Priorité" }),
     };
