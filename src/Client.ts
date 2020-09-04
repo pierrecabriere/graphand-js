@@ -9,6 +9,7 @@ import DataModel from "./models/DataModel";
 import Media from "./models/Media";
 import Module from "./models/Module";
 import Project from "./models/Project";
+import Restriction from "./models/Restriction";
 import Role from "./models/Role";
 import Rule from "./models/Rule";
 import Token from "./models/Token";
@@ -219,6 +220,10 @@ class Client {
               oTarget._models[sKey] = Rule;
               oTarget.registerModel(oTarget._models[sKey], { name: "Rule" });
               break;
+            case "Restriction":
+              oTarget._models[sKey] = Restriction;
+              oTarget.registerModel(oTarget._models[sKey], { name: "Restriction" });
+              break;
             case "DataField":
               oTarget._models[sKey] = DataField;
               oTarget.registerModel(oTarget._models[sKey], { name: "DataField" });
@@ -315,11 +320,11 @@ class Client {
     return Model;
   }
 
-  async getModelFromScope(scope: string) {
+  getModelFromScope(scope: string, wait = false) {
     if (/^DataItem:/.test(scope)) {
       const { 1: _id } = scope.match(/^DataItem:(.+?)$/);
-      const model = await this.models.DataModel.get(_id);
-      return this.getModelByIdentifier(model.slug);
+      const model = this.models.DataModel.get(_id, wait);
+      return model && this.getModelByIdentifier(model.slug);
     }
 
     return this.models[scope];

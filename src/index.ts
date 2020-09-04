@@ -7,6 +7,7 @@ import DataModel from "./models/DataModel";
 import Media from "./models/Media";
 import Module from "./models/Module";
 import Project from "./models/Project";
+import Restriction from "./models/Restriction";
 import Role from "./models/Role";
 import Rule from "./models/Rule";
 import Token from "./models/Token";
@@ -50,6 +51,7 @@ export {
   Data as GraphandModelData,
   Role as GraphandModelRole,
   Rule as GraphandModelRule,
+  Restriction as GraphandModelRestriction,
   DataModel as GraphandModelDataModel,
   DataField as GraphandModelDataField,
   Media as GraphandModelMedia,
