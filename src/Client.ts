@@ -58,15 +58,22 @@ class Client {
     );
 
     this._axios = axios.create({
+      // baseURL: `${this._options.ssl ? "https" : "http"}://${this._options.host}`,
       baseURL: `${this._options.ssl ? "https" : "http"}://${this._options.project ? `${this._options.project}.` : ""}${this._options.host}`,
-      transformRequest: [
-        (data, headers) => {
-          const token = this.accessToken || this._options.accessToken;
-          headers.Authorization = `Bearer ${token}`;
+      // transformRequest: [
+      //   (data, headers) => {
+      //   },
+      // ].concat(axios.defaults.transformRequest),
+    });
 
-          return data;
-        },
-      ].concat(axios.defaults.transformRequest),
+    this._axios.interceptors.request.use((config) => {
+      config.headers = config.headers || {};
+      if (!config.headers.Authorization) {
+        const token = this.accessToken || this._options.accessToken;
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+
+      return config;
     });
 
     this._axios.interceptors.response.use(
@@ -164,15 +171,15 @@ class Client {
   }
 
   async _initProject() {
+    // @ts-ignore
+    // this._axios.setBaseURL(
+    //   `${this._options.ssl ? "https" : "http"}://${this._options.project ? `${this._options.project}.` : ""}${this._options.host}`,
+    // );
     Object.values(this._models).forEach((model: any) => model.clearCache());
 
     this.load("project");
     try {
-      const { data } = await axios.get(`${this._options.ssl ? "https" : "http"}://${this._options.host}/projects/${this._options.project}`, {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-      });
+      const { data } = await this._axios.get(`${this._options.ssl ? "https" : "http"}://${this._options.host}/projects/${this._options.project}`);
       this._project = data.data;
       if (!this.locale) {
         this.locale = this._project.defaultLocale;
@@ -388,8 +395,9 @@ class Client {
 
     return new Promise((resolve, reject) => {
       const callback = ({ data }) => {
-        loginWindow && loginWindow.close();
         window.removeEventListener("message", callback, false);
+        timer && clearInterval(timer);
+        loginWindow && loginWindow.close();
         if (!data) {
           reject();
         } else {
@@ -405,6 +413,13 @@ class Client {
         "_blank",
         `fullscreen=no,height=${height},width=${width},top=${top},left=${left}`,
       );
+
+      const timer = setInterval(function () {
+        if (loginWindow.closed) {
+          reject();
+          clearInterval(timer);
+        }
+      }, 100);
     });
   };
 

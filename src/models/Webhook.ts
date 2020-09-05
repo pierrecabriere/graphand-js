@@ -69,6 +69,23 @@ class Webhook extends GraphandModel {
       }),
     };
   }
+
+  get LogsModel() {
+    const parent = this;
+    const { constructor } = Object.getPrototypeOf(this);
+    const modelName = `${this._id}_logs`;
+    if (!constructor._client._models[modelName]) {
+      const GraphandWebhookLogsModel = require("../utils/GraphandWebhookLogsModel").default;
+      const LogsModel = class extends GraphandWebhookLogsModel {
+        static baseUrl = `${constructor.baseUrl}/${parent._id}/logs`;
+        static queryUrl = `${constructor.baseUrl}/${parent._id}/logs`;
+      };
+
+      constructor._client.registerModel(LogsModel, { name: modelName });
+    }
+
+    return constructor._client.models[modelName];
+  }
 }
 
 export default Webhook;

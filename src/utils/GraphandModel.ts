@@ -37,6 +37,12 @@ class GraphandModel {
     data = data instanceof GraphandModel ? data.raw : data;
     this._id = data._id;
     this._data = data;
+
+    // @ts-ignore
+    this.constructor.fieldsObserver?.list.subscribe(() => {
+      this.reloadFields();
+    });
+
     this.reloadFields();
   }
 
@@ -449,7 +455,12 @@ class GraphandModel {
       return new GraphandModelPromise(async (resolve, reject) => {
         try {
           const res = await this.query(_id, undefined, true);
-          resolve(this.get((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id, false));
+          const id = (res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id;
+          if (id) {
+            resolve(this.get(id, false));
+          } else {
+            resolve(null);
+          }
         } catch (e) {
           reject(e);
         }

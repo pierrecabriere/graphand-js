@@ -161,6 +161,8 @@ class DataField extends GraphandModel {
         return new GraphandFieldNumber({ name });
       case "Color":
         return new GraphandFieldColor({ name });
+      case "JSON":
+        return new GraphandFieldJSON({ name });
     }
   }
 }

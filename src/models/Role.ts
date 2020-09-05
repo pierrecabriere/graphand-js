@@ -1,4 +1,5 @@
 import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
+import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
 import GraphandFieldRelation from "../utils/fields/GraphandFieldRelation";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
 import GraphandModel from "../utils/GraphandModel";
@@ -18,6 +19,13 @@ class Role extends GraphandModel {
       }),
       admin: new GraphandFieldBoolean({
         name: "Administrateur",
+      }),
+      level: new GraphandFieldNumber({
+        name: "Niveau",
+        options: {
+          helper:
+            "Les utilisateurs ne pourront pas créer ou modifier des utilisateurs dont le niveau de rôle est inférieur au leur. Le rôle administrateur est de niveau 0",
+        },
       }),
       modules: new GraphandFieldRelation({
         name: "Applications",
