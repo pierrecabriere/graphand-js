@@ -12,6 +12,14 @@ class GraphandModelPromise extends Promise {
     }
   }
 
+  translate(locale) {
+    if (locale) {
+      return this.then((res) => res?.translate?.call(res, locale));
+    }
+
+    return this;
+  }
+
   toString() {
     return this._id;
   }

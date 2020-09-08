@@ -57,9 +57,65 @@ class Account extends GraphandModel {
     return this;
   }
 
+  static async register(payload, hooks = true) {
+    const config = { params: {} };
+
+    if (payload.locale && this._client._project && payload.locale === this._client._project.defaultLocale) {
+      delete payload.locale;
+    }
+
+    const args = { payload, config };
+
+    if (hooks) {
+      if ((await this.beforeCreate?.call(this, args)) === false) {
+        return;
+      }
+    }
+
+    let item;
+    try {
+      const req = this._client._axios
+        .post(`auth/register`, args.payload, args.config)
+        .then(async (res) => {
+          item = new this(res.data.data);
+          if (!this.socketSubscription) {
+            this.clearCache();
+            this.upsertStore(item);
+          }
+
+          if (hooks) {
+            await this.afterCreate?.call(this, item, null, args);
+          }
+
+          return item;
+        })
+        .catch(async (e) => {
+          if (hooks) {
+            await this.afterCreate?.call(this, null, e, args);
+          }
+
+          throw e;
+        });
+
+      const middlewareData = await this.middlewareCreate?.call(this, args, req);
+      if (middlewareData !== undefined) {
+        return middlewareData;
+      }
+      item = await req;
+    } catch (e) {
+      if (hooks) {
+        await this.afterCreate?.call(this, null, e, args);
+      }
+
+      throw e;
+    }
+
+    return item;
+  }
+
   static async getCurrent() {
     if (!this._currentId) {
-      this._currentId = this._client._axios.get(`/accounts/current`).then((res) => res.data?.data?._id || null);
+      this._currentId = this.get("current").then((account) => account?._id || null);
     }
 
     const id = await this._currentId;

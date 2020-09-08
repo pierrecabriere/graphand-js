@@ -13,14 +13,14 @@ class GraphandFieldRelation extends GraphandField {
 
   getter(value, from: GraphandModel) {
     if (!value) {
-      return value;
+      return null;
     }
 
     if (this.multiple) {
-      const ids = value?.map((v) => v._id || v) || [];
+      const ids = typeof value === "string" ? [value] : value.map((v) => v._id || v) || [];
       return this.model.getList({ query: { _id: { $in: ids } } });
     } else {
-      const id = value?._id || value;
+      const id = typeof value === "string" ? value : value._id;
       return this.model.get(id);
     }
   }

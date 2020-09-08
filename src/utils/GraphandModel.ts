@@ -24,19 +24,22 @@ class GraphandModel {
   static socketSubscription = null;
   private static _fields = {};
   private static _fieldsSubscription;
+  private static initialized = false;
   static baseFields = {};
   static queryFields;
   static _fieldsObserver;
   static __registered = false;
   static __initialized = false;
   private _data: any = {};
+  private _locale;
   _fields = {};
   static defaultFields = true;
 
-  constructor(data: any = {}) {
+  constructor(data: any = {}, locale?: string) {
     data = data instanceof GraphandModel ? data.raw : data;
     this._id = data._id;
     this._data = data;
+    this._locale = locale;
 
     // @ts-ignore
     this.constructor.fieldsObserver?.list.subscribe(() => {
@@ -46,14 +49,40 @@ class GraphandModel {
     this.reloadFields();
   }
 
+  translate(locale) {
+    const { constructor } = Object.getPrototypeOf(this);
+
+    if (constructor.translatable) {
+      this._locale = locale;
+    }
+
+    return this;
+  }
+
+  get _translations() {
+    const { constructor } = Object.getPrototypeOf(this);
+
+    const translations = this._data.translations ? Object.keys(this._data.translations) : [];
+    return translations.concat(constructor._client._project?.defaultLocale);
+  }
+
+  clone(locale) {
+    const { constructor } = Object.getPrototypeOf(this);
+
+    return new constructor(this._data, locale || this._locale);
+  }
+
   get(slug, decode = false, fields) {
     const { constructor } = Object.getPrototypeOf(this);
 
     let value = _.get(this._data, slug);
 
     if (constructor.translatable) {
-      let locale = constructor._client.locale;
-      if (locale && constructor._client._project?.locales && !constructor._client._project.locales.includes(locale)) {
+      let locale = this._locale || constructor._client.locale;
+      if (
+        (locale && constructor._client._project?.locales && !constructor._client._project.locales.includes(locale)) ||
+        constructor._client._project?.defaultLocale === locale
+      ) {
         locale = undefined;
       }
 
@@ -145,6 +174,7 @@ class GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     this._fields = constructor.getFields();
     this._fields = constructor.getFields(this);
+    return this._fields;
   }
 
   static getFields(item?) {
@@ -219,6 +249,12 @@ class GraphandModel {
   }
 
   static async init() {
+    if (this.initialized) {
+      return;
+    }
+
+    await this._client.init();
+
     if (this.queryFields && this._client._options.project) {
       const list = await this._client.models.DataField.getList({ page: 1, query: this.queryFields });
       const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
@@ -226,6 +262,7 @@ class GraphandModel {
     }
 
     this.setPrototypeFields();
+    this.initialized = true;
   }
 
   private static setupSocket() {
@@ -234,6 +271,10 @@ class GraphandModel {
     }
 
     this._client.socket.on(this.baseUrl, ({ action, payload }) => {
+      if (!payload) {
+        return;
+      }
+
       switch (action) {
         case "create":
           this.clearCache();
@@ -270,15 +311,27 @@ class GraphandModel {
     return this.reinitStore();
   }
 
-  static clearCache(query?) {
+  static clearCache(query?, clean = false) {
     if (query) {
       const cacheKey = `${this.name}:${JSON.stringify(query)}`;
-      this.cache[cacheKey] && delete this.cache[cacheKey].request;
+      if (this.cache[cacheKey]) {
+        if (clean) {
+          delete this.cache[cacheKey];
+        } else {
+          delete this.cache[cacheKey].request;
+        }
+      }
     } else {
-      Object.values(this.cache).forEach((cacheItem: any) => {
-        delete cacheItem.request;
+      Object.keys(this.cache).forEach((cacheKey: any) => {
+        if (clean) {
+          delete this.cache[cacheKey];
+        } else {
+          delete this.cache[cacheKey].request;
+        }
       });
     }
+
+    this.reinitStore();
 
     return this;
   }
@@ -471,7 +524,7 @@ class GraphandModel {
   }
 
   static async query(query: any, cache = true, waitRequest = false, callback?: Function, hooks = true) {
-    await this._client._project;
+    await this.init();
 
     if (typeof query === "string") {
       query = { query: { _id: query } };
@@ -479,71 +532,98 @@ class GraphandModel {
       query = {};
     }
 
-    // return from cache if request id
-    // if (query.query && query.query._id && typeof query.query._id === "string") {
-    //   const item = this.getList().find((item) => item._id === query.query._id);
-    //   if (item) {
-    //     return { data: { data: { rows: [item], count: 1 } } };
-    //   }
-    // }
-
-    // if (this.translatable && this._client._project?.locales?.length) {
-    //   query.translations = this._client._project?.locales;
-    // }
+    if (this.translatable && !query.translations && this._client._project?.locales?.length) {
+      query.translations = this._client._project?.locales;
+    }
 
     if (hooks) {
       await this.beforeQuery?.call(this, query);
     }
 
-    const request = (cacheKey?: string) =>
-      this._client._axios
-        .post(this.queryUrl || `${this.baseUrl}/query`, query)
-        .then(async (res) => {
-          if (res.data?.data?.rows) {
-            res.data.data.rows = res.data.data.rows.map((item) => new this(item));
+    let request;
+    if (query?.query?._id && typeof query.query._id === "string" && Object.keys(query.query).length === 1) {
+      request = (cacheKey?: string) =>
+        this._client._axios
+          .get(`${this.baseUrl}/${query.query._id}`)
+          .then(async (res) => {
+            if (res.data?.data) {
+              res.data.data = new this(res.data.data);
 
-            const rows = res.data.data.rows || [res.data.data];
-
-            const list = this.getList();
-            const modified =
-              list.length !== rows.length ||
-              !!rows.find((item) => {
-                return !list.find((_item) => isEqual(_item, item));
-              });
-
-            if (modified) {
-              this.upsertStore(rows);
+              const item = this.get(res.data.data._id, false);
+              this.upsertStore(item || res.data?.data);
             }
-          } else {
-            res.data.data = new this(res.data.data);
-            const list = this.getList();
-            const modified = !isEqual(list[0], res.data.data);
 
-            if (modified) {
-              this.upsertStore(res.data.data);
+            if (cacheKey) {
+              this.cache[cacheKey] = this.cache[cacheKey] || {};
+              this.cache[cacheKey].previous = res;
             }
-          }
 
-          if (cacheKey) {
-            this.cache[cacheKey] = this.cache[cacheKey] || {};
-            this.cache[cacheKey].previous = res;
-          }
+            if (hooks) {
+              await this.afterQuery?.call(this, query, res);
+            }
 
-          if (hooks) {
-            await this.afterQuery?.call(this, query, res);
-          }
+            return res;
+          })
+          .catch(async (e) => {
+            delete this.cache[cacheKey];
 
-          return res;
-        })
-        .catch(async (e) => {
-          delete this.cache[cacheKey];
+            if (hooks) {
+              await this.afterQuery?.call(this, query, null, e);
+            }
 
-          if (hooks) {
-            await this.afterQuery?.call(this, query, null, e);
-          }
+            throw e;
+          });
+    } else {
+      request = (cacheKey?: string) =>
+        this._client._axios
+          .post(this.queryUrl || `${this.baseUrl}/query`, query)
+          .then(async (res) => {
+            if (res.data?.data?.rows) {
+              res.data.data.rows = res.data.data.rows.map((item) => new this(item));
 
-          throw e;
-        });
+              const rows = res.data.data.rows || [res.data.data];
+
+              const list = this.getList();
+              const modified =
+                list.length !== rows.length ||
+                !!rows.find((item) => {
+                  return !list.find((_item) => isEqual(_item, item));
+                });
+
+              if (modified) {
+                this.upsertStore(rows);
+              }
+            } else {
+              res.data.data = new this(res.data.data);
+              const list = this.getList();
+              const modified = !isEqual(list[0], res.data.data);
+
+              if (modified) {
+                this.upsertStore(res.data.data);
+              }
+            }
+
+            if (cacheKey) {
+              this.cache[cacheKey] = this.cache[cacheKey] || {};
+              this.cache[cacheKey].previous = res;
+            }
+
+            if (hooks) {
+              await this.afterQuery?.call(this, query, res);
+            }
+
+            return res;
+          })
+          .catch(async (e) => {
+            delete this.cache[cacheKey];
+
+            if (hooks) {
+              await this.afterQuery?.call(this, query, null, e);
+            }
+
+            throw e;
+          });
+    }
 
     let res;
     if (cache) {
@@ -656,11 +736,11 @@ class GraphandModel {
   }
 
   static async update(query, payload, hooks = true, clearCache = false) {
-    if (this.translatable && this._client._project) {
-      payload.translations = this._client._project.locales;
+    if (this.translatable && !payload.translations && this._client._project?.locales?.length) {
+      payload.translations = this._client._project?.locales;
     }
 
-    if (payload.locale && this._client._project && payload.locale === this._client._project.defaultLocale) {
+    if (payload.locale && payload.locale === this._client._project?.defaultLocale) {
       delete payload.locale;
     }
 
@@ -703,6 +783,14 @@ class GraphandModel {
   async update(payload: any, preStore = false, hooks = true, clearCache = false) {
     const constructor = this.constructor as any;
 
+    if (constructor.translatable && !payload.translations && constructor._client._project?.locales?.length) {
+      payload.translations = constructor._client._project?.locales;
+    }
+
+    if (constructor.translatable && payload.locale === undefined && this._locale) {
+      payload.locale = this._locale;
+    }
+
     if (hooks) {
       if ((await constructor.beforeUpdate?.call(constructor, payload, this)) === false) {
         return;
@@ -712,7 +800,7 @@ class GraphandModel {
     const _id = payload._id || this._id;
 
     if (preStore) {
-      const _item = new constructor({ ...this, ...payload });
+      const _item = new constructor({ ...this, ...payload.set }, payload.locale);
       constructor.upsertStore(_item);
     }
 

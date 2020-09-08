@@ -74,15 +74,17 @@ class ModelObserver {
           return;
         }
 
-        setTimeout(() => {
-          const list = model.getList();
-          const prevListLength = prevList.length;
-          const listLength = list.length;
-          if (prevListLength !== listLength || !isEqual(prevList, list)) {
-            prevList = list;
+        const list = model.getList();
+        const prevListLength = prevList.length;
+        const listLength = list.length;
+        if (prevListLength !== listLength || !isEqual(prevList, list)) {
+          prevList = list;
+          if (prevListLength !== listLength) {
             refresh();
+          } else {
+            triggerSubscription();
           }
-        });
+        }
       };
 
       Object.keys(this.subjects).forEach((key) => {

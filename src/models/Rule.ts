@@ -1,10 +1,10 @@
 import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
 import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
 import GraphandFieldRelation from "../utils/fields/GraphandFieldRelation";
+import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
 import GraphandModel from "../utils/GraphandModel";
-import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 
 class Rule extends GraphandModel {
   static apiIdentifier = "rules";
@@ -30,6 +30,9 @@ class Rule extends GraphandModel {
           { value: "read", label: "Lire" },
           { value: "update", label: "Modifier" },
           { value: "delete", label: "Supprimer" },
+          { value: "login", label: "Se connecter" },
+          { value: "register", label: "S'inscrire" },
+          { value: "execute", label: "Exécuter" },
         ],
       }),
       prohibition: new GraphandFieldBoolean({ name: "Interdiction", defaultValue: false }),

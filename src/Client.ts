@@ -21,12 +21,19 @@ import GraphandModel from "./utils/GraphandModel";
 interface ClientOptions {
   project: string;
   accessToken?: string;
-  locales: string[];
+  locale: string;
+  translations: string[];
   host?: string;
   socket: boolean;
   ssl: boolean;
   unloadTimeout: number;
 }
+
+const defaultOptions = {
+  host: "api.graphand.io",
+  ssl: true,
+  unloadTimeout: 100,
+};
 
 class Client {
   _options: ClientOptions;
@@ -43,27 +50,15 @@ class Client {
   mediasQueueSubject = new Subject();
   loadTimeout;
   prevLoading;
+  initialized = false;
 
   GraphandModel = GraphandModel.setClient(this);
 
   constructor(options: ClientOptions) {
-    this._options = Object.assign(
-      {},
-      {
-        host: "api.graphand.io",
-        ssl: true,
-        unloadTimeout: 100,
-      },
-      options,
-    );
+    this._options = Object.assign({}, defaultOptions, options);
 
     this._axios = axios.create({
-      // baseURL: `${this._options.ssl ? "https" : "http"}://${this._options.host}`,
       baseURL: `${this._options.ssl ? "https" : "http"}://${this._options.project ? `${this._options.project}.` : ""}${this._options.host}`,
-      // transformRequest: [
-      //   (data, headers) => {
-      //   },
-      // ].concat(axios.defaults.transformRequest),
     });
 
     this._axios.interceptors.request.use((config) => {
@@ -71,6 +66,10 @@ class Client {
       if (!config.headers.Authorization) {
         const token = this.accessToken || this._options.accessToken;
         config.headers.Authorization = `Bearer ${token}`;
+      }
+
+      if (/\/users/.test(config.url)) {
+        config.baseURL = `${this._options.ssl ? "https" : "http"}://${this._options.host}`;
       }
 
       return config;
@@ -128,7 +127,7 @@ class Client {
     }
 
     if (this._options.project) {
-      this._initProject();
+      this.init();
     }
 
     if (this._options.socket) {
@@ -136,8 +135,8 @@ class Client {
     }
   }
 
-  isLoading() {
-    return !!this._loadStack.length;
+  isLoading(key?) {
+    return key ? this._loadStack.includes(key) : !!this._loadStack.length;
   }
 
   get loading() {
@@ -170,24 +169,37 @@ class Client {
     }, this._options.unloadTimeout);
   }
 
-  async _initProject() {
-    // @ts-ignore
-    // this._axios.setBaseURL(
-    //   `${this._options.ssl ? "https" : "http"}://${this._options.project ? `${this._options.project}.` : ""}${this._options.host}`,
-    // );
-    Object.values(this._models).forEach((model: any) => model.clearCache());
+  async init() {
+    if (this.initialized) {
+      return;
+    }
 
     this.load("project");
-    try {
-      const { data } = await this._axios.get(`${this._options.ssl ? "https" : "http"}://${this._options.host}/projects/${this._options.project}`);
-      this._project = data.data;
-      if (!this.locale) {
-        this.locale = this._project.defaultLocale;
+
+    if (this._options.project) {
+      try {
+        const { data } = await this._axios.get("/projects/current");
+        this._project = data.data;
+        this.models.Project.upsertStore(new this.models.Project(this._project));
+        if (!this.locale) {
+          this.locale = this._options.locale || this._project.defaultLocale;
+        }
+      } catch (e) {
+        console.error(e);
+        throw new Error("Impossible to init project");
       }
-    } catch (e) {
-      throw new Error("Invalid project ID");
+    } else {
+      this._project = null;
     }
     this.unload("project");
+
+    this.initialized = true;
+  }
+
+  reinit() {
+    this.initialized = false;
+
+    return this.init();
   }
 
   get models(): any {
@@ -299,6 +311,7 @@ class Client {
   async registerModel(Model: any, options: { sync?: boolean; name?: string; force?: boolean } = {}) {
     if (options.force) {
       Model.__registered = false;
+      Model.clearCache();
     }
 
     if (Model.__registered) {
