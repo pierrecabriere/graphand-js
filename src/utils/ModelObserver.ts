@@ -126,12 +126,12 @@ class ModelObserver {
         this.list.next(list);
       }
 
-      if (loading !== undefined && !isEqual(this.prevLoading, loading)) {
+      if (loading !== undefined && this.prevLoading !== loading) {
         this.prevLoading = list;
         this.loading.next(loading);
       }
 
-      if (count !== undefined && !isEqual(this.prevCount, count)) {
+      if (count !== undefined && this.prevCount !== count) {
         this.prevCount = count;
         this.count.next(count);
       }
@@ -143,11 +143,11 @@ class ModelObserver {
       }
     });
 
-    setTimeout(() => {
-      if (!this.current.query) {
-        this.reload();
-      }
-    }, 100);
+    // setTimeout(() => {
+    //   if (!this.current.query) {
+    //     this.reload();
+    //   }
+    // }, 100);
   }
 
   unobserve() {

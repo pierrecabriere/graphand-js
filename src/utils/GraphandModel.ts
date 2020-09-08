@@ -313,7 +313,7 @@ class GraphandModel {
 
   static clearCache(query?, clean = false) {
     if (query) {
-      const cacheKey = `${this.name}:${JSON.stringify(query)}`;
+      const cacheKey = `${this.baseUrl}:${JSON.stringify(query)}`;
       if (this.cache[cacheKey]) {
         if (clean) {
           delete this.cache[cacheKey];
@@ -627,7 +627,7 @@ class GraphandModel {
 
     let res;
     if (cache) {
-      const cacheKey = `${this.name}:${JSON.stringify(query)}`;
+      const cacheKey = `${this.baseUrl}:${JSON.stringify(query)}`;
 
       if (!this.cache[cacheKey]) {
         this.cache[cacheKey] = {
