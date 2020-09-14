@@ -10,8 +10,8 @@ const locales = [
 
 class Project extends GraphandModel {
   static apiIdentifier = "projects";
-
   static baseUrl = "/projects";
+  static scope = "Project";
 
   static baseFields(project) {
     return {

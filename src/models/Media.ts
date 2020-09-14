@@ -6,8 +6,8 @@ import GraphandModel from "../utils/GraphandModel";
 
 class Media extends GraphandModel {
   static apiIdentifier = "medias";
-
   static baseUrl = "/medias";
+  static scope = "Media";
 
   static baseFields = {
     name: new GraphandFieldText({ name: "Nom" }),

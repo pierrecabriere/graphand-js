@@ -5,8 +5,26 @@ import GraphandModel from "../utils/GraphandModel";
 
 class DataModel extends GraphandModel {
   static apiIdentifier = "data-models";
-
   static baseUrl = "/data-models";
+  static scope = "DataModel";
+
+  static afterCreate(item, err) {
+    if (!err) {
+      this._client.models.Module.clearCache();
+    }
+  }
+
+  static afterUpdate(res, err) {
+    if (!err) {
+      this._client.models.Module.clearCache();
+    }
+  }
+
+  static afterDelete(args, err) {
+    if (!err) {
+      this._client.models.Module.clearCache();
+    }
+  }
 
   static baseFields(model) {
     return {

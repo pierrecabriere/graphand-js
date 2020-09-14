@@ -143,11 +143,9 @@ class ModelObserver {
       }
     });
 
-    // setTimeout(() => {
-    //   if (!this.current.query) {
-    //     this.reload();
-    //   }
-    // }, 100);
+    setTimeout(() => {
+      this.reload();
+    }, 100);
   }
 
   unobserve() {

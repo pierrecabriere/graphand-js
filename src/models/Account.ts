@@ -6,8 +6,8 @@ import Role from "./Role";
 class Account extends GraphandModel {
   static _currentId = undefined;
   static apiIdentifier = "accounts";
-
   static baseUrl = "/accounts";
+  static scope = "Account";
 
   firstname;
   lastname;

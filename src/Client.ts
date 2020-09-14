@@ -17,6 +17,7 @@ import User from "./models/User";
 import Webhook from "./models/Webhook";
 import GraphandError from "./utils/GraphandError";
 import GraphandModel from "./utils/GraphandModel";
+import GraphandSocketHook from "./utils/GraphandSocketHook";
 
 interface ClientOptions {
   project: string;
@@ -88,40 +89,6 @@ class Client {
       },
     );
 
-    this.socketSubject.subscribe({
-      next: (reconnect = true) => {
-        if (this._socket) {
-          this._socket?.disconnect();
-          delete this._socket;
-        }
-
-        if (reconnect) {
-          this._socket = io.connect(`${this._options.ssl ? "https" : "http"}://${this._options.host}`, {
-            query: { token: this.accessToken, projectId: this._options.project },
-          });
-
-          this.socket.on("/uploads", ({ action, payload }) => {
-            const queueItem = this.mediasQueue.find((item) => (payload.socket ? item.socket === payload.socket : item.name === payload.name));
-            payload.status = action;
-            switch (action) {
-              case "start":
-                this.mediasQueue.push(payload);
-                break;
-              case "progress":
-              case "end":
-              case "aborted":
-                if (queueItem) {
-                  Object.assign(queueItem, payload);
-                } else {
-                  this.mediasQueue.push(payload);
-                }
-            }
-            this.mediasQueueSubject.next({ action, payload });
-          });
-        }
-      },
-    });
-
     if (this._options.accessToken) {
       this.accessToken = this._options.accessToken;
     }
@@ -167,6 +134,48 @@ class Client {
         this.worker.next(this.loading);
       }
     }, this._options.unloadTimeout);
+  }
+
+  connectSocket() {
+    if (this._socket) {
+      this.disconnectSocket(false);
+    }
+
+    this._socket = io.connect(`${this._options.ssl ? "https" : "http"}://${this._options.host}`, {
+      query: { token: this.accessToken, projectId: this._options.project },
+    });
+
+    this.socket.on("connect", () => {
+      this.socketSubject.next(this.socket);
+    });
+
+    this.socket.on("/uploads", ({ action, payload }) => {
+      const queueItem = this.mediasQueue.find((item) => (payload.socket ? item.socket === payload.socket : item.name === payload.name));
+      payload.status = action;
+      switch (action) {
+        case "start":
+          this.mediasQueue.push(payload);
+          break;
+        case "progress":
+        case "end":
+        case "aborted":
+          if (queueItem) {
+            Object.assign(queueItem, payload);
+          } else {
+            this.mediasQueue.push(payload);
+          }
+      }
+      this.mediasQueueSubject.next({ action, payload });
+    });
+  }
+
+  disconnectSocket(triggerSubject = true) {
+    this._socket?.disconnect();
+    delete this._socket;
+
+    if (triggerSubject) {
+      this.socketSubject.next(null);
+    }
   }
 
   async init() {
@@ -340,6 +349,64 @@ class Client {
     return Model;
   }
 
+  registerHook({ model, action, trigger, _await, timeout, priority }) {
+    let _hook;
+    _await = _await === undefined ? trigger.constructor.name === "AsyncFunction" : _await;
+
+    const _trigger = async (payload) => {
+      if (_hook.await) {
+        let res;
+        try {
+          if (trigger.constructor.name === "AsyncFunction") {
+            // @ts-ignore
+            res = await trigger(payload);
+          } else {
+            res = await new Promise((resolve) => trigger(payload, resolve));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+
+        this.socket.emit(`/hooks/${_hook.id}`, res ?? payload);
+      } else {
+        trigger(payload);
+      }
+    };
+
+    const _register = async (unregister = true) => {
+      if (!this.socket) {
+        return;
+      }
+
+      if (unregister) {
+        _unregister();
+      }
+
+      const {
+        data: { data: hook },
+      } = await this._axios.post("/sockethooks", { socket: this.socket.id, on: model.baseUrl, await: _await, action, timeout, priority });
+      _hook = hook;
+
+      this.socket.on(`/hooks/${_hook.id}`, _trigger);
+    };
+
+    const _unregister = () => {
+      if (!_hook) {
+        return;
+      }
+
+      this.socket.off(`/hooks/${_hook.id}`);
+    };
+
+    this.socketSubject.asObservable().subscribe(() => _register());
+
+    if (!this.socket) {
+      this.connectSocket();
+    } else {
+      _register(false);
+    }
+  }
+
   getModelFromScope(scope: string, wait = false) {
     if (/^DataItem:/.test(scope)) {
       const { 1: _id } = scope.match(/^DataItem:(.+?)$/);
@@ -348,14 +415,6 @@ class Client {
     }
 
     return this.models[scope];
-  }
-
-  connectSocket() {
-    this.socketSubject.next();
-  }
-
-  disconnectSocket() {
-    this.socketSubject.next(false);
   }
 
   get locale() {

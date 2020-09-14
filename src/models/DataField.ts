@@ -11,8 +11,8 @@ import GraphandModel from "../utils/GraphandModel";
 
 class DataField extends GraphandModel {
   static apiIdentifier = "data-fields";
-
   static baseUrl = "/data-fields";
+  static scope = "DataField";
 
   private _configurationFields = {};
 

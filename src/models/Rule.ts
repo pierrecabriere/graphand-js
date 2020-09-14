@@ -8,8 +8,8 @@ import GraphandModel from "../utils/GraphandModel";
 
 class Rule extends GraphandModel {
   static apiIdentifier = "rules";
-
   static baseUrl = "/rules";
+  static scope = "Rule";
 
   static get baseFields() {
     return {

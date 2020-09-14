@@ -7,10 +7,9 @@ import GraphandModel from "../utils/GraphandModel";
 
 class Webhook extends GraphandModel {
   static apiIdentifier = "webhooks";
-
   static baseUrl = "/webhooks";
-
   static queryFields = false;
+  static scope = "Webhook";
 
   static get baseFields() {
     const models = this._client.models.DataModel.getList();
@@ -61,6 +60,7 @@ class Webhook extends GraphandModel {
       await: new GraphandFieldBoolean({ name: "Attendre le retour", defaultValue: false }),
       timeout: new GraphandFieldNumber({ name: "Timeout", defaultValue: 10000 }),
       priority: new GraphandFieldNumber({ name: "Priorité" }),
+      active: new GraphandFieldBoolean({ name: "Actif", defaultValue: true }),
     };
 
     return {

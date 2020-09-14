@@ -1,7 +1,7 @@
 import isEqual from "fast-deep-equal";
 import _ from "lodash/object";
 import { createStore, Store } from "redux";
-import { Observable } from "rxjs";
+import { Observable, Subject } from "rxjs";
 import Client from "../Client";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldId from "./fields/GraphandFieldId";
@@ -34,6 +34,9 @@ class GraphandModel {
   private _locale;
   _fields = {};
   static defaultFields = true;
+  static queryPromises = {};
+  static scope;
+  static socketTriggerSubject = new Subject();
 
   constructor(data: any = {}, locale?: string) {
     data = data instanceof GraphandModel ? data.raw : data;
@@ -270,10 +273,12 @@ class GraphandModel {
       return;
     }
 
-    this._client.socket.on(this.baseUrl, ({ action, payload }) => {
+    this._client.socket.on(this.baseUrl, async ({ action, payload }) => {
       if (!payload) {
         return;
       }
+
+      this.socketTriggerSubject.next({ action, payload });
 
       switch (action) {
         case "create":
@@ -289,6 +294,10 @@ class GraphandModel {
           break;
       }
     });
+  }
+
+  static on(event, trigger, options) {
+    this._client.registerHook({ model: this, action: event, trigger, ...options });
   }
 
   static sync() {
@@ -539,6 +548,32 @@ class GraphandModel {
     if (hooks) {
       await this.beforeQuery?.call(this, query);
     }
+
+    // if (query?.query?._id && typeof query.query._id === "string" && Object.keys(query.query).length === 1) {
+    //   if (!this.queryPromises[this.baseUrl]) {
+    //     this.queryPromises[this.baseUrl] = Promise.resolve([]);
+    //   }
+    //
+    //   this.queryPromises[this.baseUrl] = this.queryPromises[this.baseUrl].then((ids) => {
+    //     if (ids.includes(query.query._id)) {
+    //       return ids;
+    //     }
+    //
+    //     return ids.concat(query.query._id);
+    //   });
+    //
+    //   const ids: [] = await new Promise((resolve) => {
+    //     setTimeout(async () => {
+    //       const ids = await this.queryPromises[this.baseUrl];
+    //       delete this.queryPromises[this.baseUrl];
+    //       resolve(ids);
+    //     });
+    //   });
+    //
+    //   if (ids?.length > 1) {
+    //     query.query = { _id: { $in: ids } };
+    //   }
+    // }
 
     let request;
     if (query?.query?._id && typeof query.query._id === "string" && Object.keys(query.query).length === 1) {

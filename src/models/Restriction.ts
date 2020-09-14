@@ -7,8 +7,8 @@ import GraphandModel from "../utils/GraphandModel";
 
 class Restriction extends GraphandModel {
   static apiIdentifier = "restrictions";
-
   static baseUrl = "/restrictions";
+  static scope = "Restriction";
 
   static baseFields(values) {
     const model = values && this._client.getModelFromScope(values.scope);
