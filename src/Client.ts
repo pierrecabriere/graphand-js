@@ -64,6 +64,8 @@ class Client {
 
     this._axios.interceptors.request.use((config) => {
       config.headers = config.headers || {};
+      // @ts-ignore
+      config.data = config.data || config._data;
       if (!config.headers.Authorization) {
         const token = this.accessToken || this._options.accessToken;
         config.headers.Authorization = `Bearer ${token}`;

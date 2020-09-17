@@ -872,7 +872,7 @@ class GraphandModel {
 
     if (payload instanceof GraphandModel) {
       try {
-        await this._client._axios.delete(this.baseUrl, { data: { query: { _id: payload._id } } });
+        await this._client._axios.delete(`${this.baseUrl}/${payload._id}`);
 
         if (!this.socketSubscription) {
           this.clearCache();
@@ -895,13 +895,16 @@ class GraphandModel {
       }
     } else {
       try {
-        await this._client._axios.delete(this.baseUrl, { data: payload });
+        // @ts-ignore
+        await this._client._axios.delete(this.baseUrl, { _data: payload });
 
         if (hooks) {
           await this.afterDelete?.call(this, args);
         }
 
-        this.clearCache();
+        if (!this.socketSubscription) {
+          this.clearCache();
+        }
       } catch (e) {
         if (hooks) {
           await this.afterDelete?.call(this, args, e);
