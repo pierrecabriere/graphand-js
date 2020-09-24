@@ -364,13 +364,12 @@ class Client {
             // @ts-ignore
             res = await trigger(payload);
           } else {
-            res = await new Promise((resolve) => trigger(payload, resolve));
+            res = await new Promise((resolve, reject) => trigger(payload, resolve, reject));
           }
+          this.socket.emit(`/hooks/${_hook.id}/end`, res ?? payload);
         } catch (e) {
-          console.error(e);
+          this.socket.emit(`/hooks/${_hook.id}/error`, e);
         }
-
-        this.socket.emit(`/hooks/${_hook.id}`, res ?? payload);
       } else {
         trigger(payload);
       }
