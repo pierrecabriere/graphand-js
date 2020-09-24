@@ -7,8 +7,8 @@ class GraphandModelListPromise extends GraphandModelPromise {
 
   private _observer;
 
-  constructor(executor, query) {
-    super(executor);
+  constructor(executor, model, query) {
+    super(executor, model);
     this.query = query;
   }
 

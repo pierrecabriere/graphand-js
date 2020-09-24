@@ -15,7 +15,7 @@ class Webhook extends GraphandModel {
     const models = this._client.models.DataModel.getList();
     const options = models.reduce(
       (scopes, model) => {
-        scopes.push({ value: `DataItem:${model._id}`, label: model.name });
+        scopes.push({ value: `Data:${model.slug}`, label: model.name });
         return scopes;
       },
       [

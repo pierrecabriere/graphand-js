@@ -3,6 +3,7 @@ import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
 import GraphandModel from "../utils/GraphandModel";
+import GraphandModelPromise from "../utils/GraphandModelPromise";
 
 class Media extends GraphandModel {
   static apiIdentifier = "medias";
@@ -38,6 +39,20 @@ class Media extends GraphandModel {
     };
 
     args.payload = formData;
+  }
+
+  static modelPromise(promise: GraphandModelPromise) {
+    const self = this;
+    Object.defineProperty(promise, "url", {
+      get() {
+        if (promise._id) {
+          const cdnUri = `${self._client._options.ssl ? "https" : "http"}://${self._client._options.cdn}`;
+          return `${cdnUri}/public/${self._client._options.project}/${promise._id}`;
+        }
+
+        return null;
+      },
+    });
   }
 }
 

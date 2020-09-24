@@ -61,7 +61,7 @@ class DataField extends GraphandModel {
         const models = await constructor._client.models.DataModel.getList();
         const options = models.reduce(
           (scopes, model) => {
-            scopes.push({ value: `DataItem:${model._id}`, label: model.name });
+            scopes.push({ value: `Data:${model.slug}`, label: model.name });
             return scopes;
           },
           [
@@ -74,8 +74,8 @@ class DataField extends GraphandModel {
         if (this.raw.configuration.ref === "Account") {
         } else if (this.raw.configuration.ref === "Media") {
         } else {
-          const { 1: _id } = this.raw.configuration.ref.match(/^DataItem:(.+?)$/);
-          defaultMultiple = (await constructor._client.models.DataModel.get(_id))?.multiple;
+          const { 1: slug } = this.raw.configuration.ref.match(/^Data:(.+?)$/);
+          defaultMultiple = (await constructor._client.models.DataModel.get({ query: { slug } }))?.multiple;
         }
 
         return {
@@ -140,8 +140,8 @@ class DataField extends GraphandModel {
           model = constructor._client.models.Media;
         } else {
           try {
-            const { 1: _id } = configuration.ref.match(/^DataItem:(.+?)$/);
-            model = constructor._client.getModelByIdentifier((await constructor._client.models.DataModel.get(_id)).slug);
+            const { 1: slug } = configuration.ref.match(/^Data:(.+?)$/);
+            model = constructor._client.getModelByIdentifier(slug);
           } catch (e) {
             throw new GraphandError(`Field ${this.slug} has an invalid ref`);
           }

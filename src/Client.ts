@@ -17,7 +17,6 @@ import User from "./models/User";
 import Webhook from "./models/Webhook";
 import GraphandError from "./utils/GraphandError";
 import GraphandModel from "./utils/GraphandModel";
-import GraphandSocketHook from "./utils/GraphandSocketHook";
 
 interface ClientOptions {
   project: string;
@@ -25,6 +24,7 @@ interface ClientOptions {
   locale: string;
   translations: string[];
   host?: string;
+  cdn?: string;
   socket: boolean;
   ssl: boolean;
   unloadTimeout: number;
@@ -32,6 +32,7 @@ interface ClientOptions {
 
 const defaultOptions = {
   host: "api.graphand.io",
+  cdn: "cdn.graphand.io",
   ssl: true,
   unloadTimeout: 100,
 };
@@ -410,10 +411,9 @@ class Client {
   }
 
   getModelFromScope(scope: string, wait = false) {
-    if (/^DataItem:/.test(scope)) {
-      const { 1: _id } = scope.match(/^DataItem:(.+?)$/);
-      const model = this.models.DataModel.get(_id, wait);
-      return model && this.getModelByIdentifier(model.slug);
+    if (/^Data:/.test(scope)) {
+      const { 1: slug } = scope.match(/^Data:(.+?)$/);
+      return this.getModelByIdentifier(slug);
     }
 
     return this.models[scope];

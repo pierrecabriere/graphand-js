@@ -38,6 +38,8 @@ class GraphandModel {
   static scope;
   static socketTriggerSubject = new Subject();
 
+  static modelPromise(promise: GraphandModelPromise) {}
+
   constructor(data: any = {}, locale?: string) {
     data = data instanceof GraphandModel ? data.raw : data;
     this._id = data._id;
@@ -480,23 +482,27 @@ class GraphandModel {
     if (query) {
       const parent = this;
       // @ts-ignore
-      return new GraphandModelListPromise(async (resolve, reject) => {
-        try {
-          const {
-            data: {
-              data: { rows },
-            },
-          } = await parent.query(query, ...params);
-          const storeList = parent.store.getState().list;
-          const list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r);
-          resolve(new GraphandModelList(parent, ...list));
-        } catch (e) {
-          reject(e);
-        }
-      }, query);
+      return new GraphandModelListPromise(
+        async (resolve, reject) => {
+          try {
+            const {
+              data: {
+                data: { rows, count },
+              },
+            } = await parent.query(query, ...params);
+            const storeList = parent.store.getState().list;
+            const list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r);
+            resolve(new GraphandModelList({ model: parent, count }, ...list));
+          } catch (e) {
+            reject(e);
+          }
+        },
+        this,
+        query,
+      );
     }
 
-    return new GraphandModelList(this, ...(this.store.getState().list || []));
+    return new GraphandModelList({ model: this }, ...(this.store.getState().list || []));
   }
 
   static get(_id, fetch = true) {
@@ -508,28 +514,33 @@ class GraphandModel {
         } catch (e) {
           reject(e);
         }
-      });
+      }, this);
     }
 
     const item = this.getList().find((item) => item._id === _id);
 
     if (!item && fetch) {
-      return new GraphandModelPromise(async (resolve, reject) => {
-        try {
-          const res = await this.query(_id, undefined, true);
-          const id = (res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id;
-          if (id) {
-            resolve(this.get(id, false));
-          } else {
-            resolve(null);
+      return new GraphandModelPromise(
+        async (resolve, reject) => {
+          let res;
+          try {
+            res = await this.query(_id, undefined, true);
+            const id = res.data.data && ((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id);
+            if (id) {
+              resolve(this.get(id, false));
+            } else {
+              resolve(null);
+            }
+          } catch (e) {
+            reject(e);
           }
-        } catch (e) {
-          reject(e);
-        }
-      }, _id);
+        },
+        this,
+        _id,
+      );
     }
 
-    return fetch ? new GraphandModelPromise((resolve) => resolve(item), item._id, true) : item;
+    return fetch ? new GraphandModelPromise((resolve) => resolve(item), this, item._id, true) : item;
   }
 
   static async query(query: any, cache = true, waitRequest = false, callback?: Function, hooks = true) {

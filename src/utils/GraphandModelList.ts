@@ -3,10 +3,12 @@ import { Observable } from "rxjs";
 
 class GraphandModelList extends Array implements Array<any> {
   model;
+  count;
 
-  constructor(model, ...elements) {
+  constructor({ model, count }: { model?; count? }, ...elements) {
     super(...elements);
     this.model = model;
+    this.count = count || 0;
   }
 
   get _ids() {
