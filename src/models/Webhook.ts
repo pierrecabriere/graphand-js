@@ -8,7 +8,6 @@ import GraphandModel from "../utils/GraphandModel";
 class Webhook extends GraphandModel {
   static apiIdentifier = "webhooks";
   static baseUrl = "/webhooks";
-  static queryFields = false;
   static scope = "Webhook";
 
   static get baseFields() {

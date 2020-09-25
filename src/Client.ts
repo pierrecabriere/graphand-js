@@ -203,6 +203,7 @@ class Client {
     } else {
       this._project = null;
     }
+
     this.unload("project");
 
     this.initialized = true;
@@ -336,7 +337,7 @@ class Client {
       this._models[_name] = Model;
     }
 
-    this.load(Model);
+    this.load(_name);
     try {
       Model.setClient(this);
 
@@ -348,7 +349,7 @@ class Client {
       Model.__registered = true;
       // Model.clearCache();
     } catch (e) {}
-    this.unload(Model);
+    this.unload(_name);
     return Model;
   }
 

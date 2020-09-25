@@ -17,6 +17,7 @@ class GraphandModel {
   static _client: Client;
   static cache = {};
   static translatable = true;
+  static queryFields = false;
   static _store?: Store;
   static baseUrl;
   static queryUrl;
@@ -26,7 +27,6 @@ class GraphandModel {
   private static _fieldsSubscription;
   private static initialized = false;
   static baseFields = {};
-  static queryFields;
   static _fieldsObserver;
   static __registered = false;
   static __initialized = false;
@@ -46,10 +46,12 @@ class GraphandModel {
     this._data = data;
     this._locale = locale;
 
-    // @ts-ignore
-    this.constructor.fieldsObserver?.list.subscribe(() => {
-      this.reloadFields();
-    });
+    const { constructor } = Object.getPrototypeOf(this);
+    if (constructor.queryFields) {
+      constructor.fieldsObserver?.list.subscribe(() => {
+        this.reloadFields();
+      });
+    }
 
     this.reloadFields();
   }
@@ -169,7 +171,7 @@ class GraphandModel {
     }
 
     if (!this._fieldsObserver && this._client._options.project) {
-      this._fieldsObserver = this._client.models.DataField.observe({ query: this.queryFields });
+      this._fieldsObserver = this._client.models.DataField.observe().query({ scope: this.scope });
     }
 
     return this._fieldsObserver;
@@ -184,7 +186,7 @@ class GraphandModel {
 
   static getFields(item?) {
     if (this.queryFields && !this._fieldsSubscription) {
-      this._fieldsSubscription = this.fieldsObserver.list.subscribe(async (list) => {
+      this._fieldsSubscription = this.fieldsObserver?.list.subscribe(async (list) => {
         const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
         const fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
         if (!isEqual(this._fields, fields)) {
@@ -257,17 +259,17 @@ class GraphandModel {
     if (this.initialized) {
       return;
     }
+    this.initialized = true;
 
     await this._client.init();
 
     if (this.queryFields && this._client._options.project) {
-      const list = await this._client.models.DataField.getList({ page: 1, query: this.queryFields });
+      const list = await this._client.models.DataField.getList({ page: 1, query: { scope: this.scope } });
       const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
       this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
     }
 
     this.setPrototypeFields();
-    this.initialized = true;
   }
 
   private static setupSocket() {

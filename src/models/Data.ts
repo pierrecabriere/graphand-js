@@ -1,14 +1,15 @@
 import GraphandModel from "../utils/GraphandModel";
 
 class Data extends GraphandModel {
+  static queryFields = true;
   static apiIdentifier;
+
+  static get scope() {
+    return `Data:${this.apiIdentifier}`;
+  }
 
   static get baseUrl() {
     return `/data/${this.apiIdentifier}`;
-  }
-
-  static get queryFields() {
-    return { model: { $subquery: { slug: this.apiIdentifier } } };
   }
 }
 

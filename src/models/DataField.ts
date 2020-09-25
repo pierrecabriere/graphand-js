@@ -8,6 +8,7 @@ import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
 import GraphandError from "../utils/GraphandError";
 import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 
 class DataField extends GraphandModel {
   static apiIdentifier = "data-fields";
@@ -44,12 +45,8 @@ class DataField extends GraphandModel {
         name: "Configuration",
         assign: false,
       }),
-      model: new GraphandFieldRelation({
-        name: "Modèle",
-        model: this._client.models.DataModel,
-      }),
-      accountField: new GraphandFieldBoolean({
-        name: "Champ de compte",
+      scope: new GraphandFieldScope({
+        name: "Scope",
       }),
     };
   }

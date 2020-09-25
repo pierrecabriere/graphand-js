@@ -4,6 +4,7 @@ import GraphandModel from "../utils/GraphandModel";
 import Role from "./Role";
 
 class Account extends GraphandModel {
+  static queryFields = true;
   static _currentId = undefined;
   static apiIdentifier = "accounts";
   static baseUrl = "/accounts";
@@ -42,8 +43,6 @@ class Account extends GraphandModel {
   get fullname() {
     return `${this.firstname} ${this.lastname}`;
   }
-
-  static queryFields = { accountField: true };
 
   static async login(credentials) {
     return this._client.login(credentials);

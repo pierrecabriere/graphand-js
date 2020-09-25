@@ -6,7 +6,6 @@ import GraphandModel from "../utils/GraphandModel";
 class Token extends GraphandModel {
   static apiIdentifier = "tokens";
   static baseUrl = "/tokens";
-  static queryFields = false;
   static scope = "Token";
 
   static get baseFields() {

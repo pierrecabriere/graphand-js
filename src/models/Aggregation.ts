@@ -7,7 +7,6 @@ import GraphandModelPromise from "../utils/GraphandModelPromise";
 class Aggregation extends GraphandModel {
   static apiIdentifier = "aggregations";
   static baseUrl = "/aggregations";
-  static queryFields = false;
   static scope = "Aggregation";
 
   static get baseFields() {

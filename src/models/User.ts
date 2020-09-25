@@ -4,7 +4,6 @@ import GraphandModel from "../utils/GraphandModel";
 class User extends GraphandModel {
   static apiIdentifier = "users";
   static baseUrl = "/users";
-  static queryFields = false;
   static scope = "User";
 
   firstname;

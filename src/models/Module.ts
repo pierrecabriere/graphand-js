@@ -6,7 +6,6 @@ import GraphandModel from "../utils/GraphandModel";
 class Module extends GraphandModel {
   static apiIdentifier = "modules";
   static baseUrl = "/modules";
-  static queryFields = false;
   static scope = "Module";
 
   static get baseFields() {
