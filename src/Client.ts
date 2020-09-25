@@ -64,9 +64,9 @@ class Client {
     });
 
     this._axios.interceptors.request.use((config) => {
-      config.headers = config.headers || {};
       // @ts-ignore
       config.data = config.data || config._data;
+      config.headers = config.headers || {};
       if (!config.headers.Authorization) {
         const token = this.accessToken || this._options.accessToken;
         config.headers.Authorization = `Bearer ${token}`;
@@ -337,7 +337,7 @@ class Client {
       this._models[_name] = Model;
     }
 
-    this.load(_name);
+    this.load(Model);
     try {
       Model.setClient(this);
 
@@ -349,7 +349,7 @@ class Client {
       Model.__registered = true;
       // Model.clearCache();
     } catch (e) {}
-    this.unload(_name);
+    this.unload(Model);
     return Model;
   }
 

@@ -37,6 +37,7 @@ class GraphandModel {
   static queryPromises = {};
   static scope;
   static socketTriggerSubject = new Subject();
+  static _initPromise;
 
   static modelPromise(promise: GraphandModelPromise) {}
 
@@ -259,17 +260,25 @@ class GraphandModel {
     if (this.initialized) {
       return;
     }
-    this.initialized = true;
 
-    await this._client.init();
+    if (!this._initPromise) {
+      this._initPromise = new Promise(async (resolve) => {
+        await this._client.init();
 
-    if (this.queryFields && this._client._options.project) {
-      const list = await this._client.models.DataField.getList({ page: 1, query: { scope: this.scope } });
-      const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
-      this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
+        if (this.queryFields && this._client._options.project) {
+          const list = await this._client.models.DataField.getList({ query: { scope: this.scope } });
+          const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
+          this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
+        }
+
+        this.setPrototypeFields();
+
+        this.initialized = true;
+        resolve();
+      });
     }
 
-    this.setPrototypeFields();
+    return this._initPromise;
   }
 
   private static setupSocket() {
