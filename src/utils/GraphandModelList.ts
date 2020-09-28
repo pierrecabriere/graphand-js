@@ -4,11 +4,13 @@ import { Observable } from "rxjs";
 class GraphandModelList extends Array implements Array<any> {
   model;
   count;
+  query;
 
-  constructor({ model, count }: { model?; count? }, ...elements) {
+  constructor({ model, count, query }: { model?; count?; query? }, ...elements) {
     super(...elements);
     this.model = model;
     this.count = count || 0;
+    this.query = query;
   }
 
   get _ids() {
@@ -20,11 +22,12 @@ class GraphandModelList extends Array implements Array<any> {
       return;
     }
 
-    const parent = this;
+    const _this = this;
     const observable = new Observable((subscriber) => {
-      let prevRaw = parent.map((item) => item.raw);
-      parent.model.store.subscribe(async () => {
-        const list = await parent.model.getList({ query: { _id: { $in: parent._ids } } });
+      let prevRaw = _this.map((item) => item.raw);
+      _this.model.store.subscribe(async () => {
+        const query = _this.query || { query: { _id: { $in: _this._ids } } };
+        const list = await _this.model.getList(query);
         const raw = list.map((item) => item?.raw);
         if (!isEqual(raw, prevRaw)) {
           prevRaw = raw;

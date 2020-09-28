@@ -322,6 +322,8 @@ class Client {
   }
 
   async registerModel(Model: any, options: { sync?: boolean; name?: string; force?: boolean } = {}) {
+    options.sync = options.sync ?? this._options.socket;
+
     if (options.force) {
       Model.__registered = false;
       Model.clearCache();

@@ -353,7 +353,9 @@ class GraphandModel {
       });
     }
 
-    this.reinitStore();
+    if (clean) {
+      this.reinitStore();
+    }
 
     return this;
   }
@@ -503,7 +505,7 @@ class GraphandModel {
             } = await parent.query(query, ...params);
             const storeList = parent.store.getState().list;
             const list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r);
-            resolve(new GraphandModelList({ model: parent, count }, ...list));
+            resolve(new GraphandModelList({ model: parent, count, query }, ...list));
           } catch (e) {
             reject(e);
           }

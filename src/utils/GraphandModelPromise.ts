@@ -38,6 +38,10 @@ class GraphandModelPromise extends Promise {
     return this;
   }
 
+  subscribe() {
+    return this.then((res) => res?.subscribe?.apply(res, arguments));
+  }
+
   toString() {
     return this._id;
   }
