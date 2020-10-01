@@ -32,7 +32,7 @@ class GraphandModelListPromise extends GraphandModelPromise {
     const _this = this;
     const observable = new Observable((subscriber) => {
       let prevRaw = null;
-      _this.model.store.subscribe(async () => {
+      _this.model.listSubject.subscribe(async () => {
         const query = _this.query || { query: { _id: { $in: _this._ids } } };
         const list = await _this.model.getList(query);
         const raw = list.map((item) => item?.raw);

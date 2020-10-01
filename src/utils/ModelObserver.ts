@@ -25,7 +25,7 @@ class ModelObserver {
 
   subjects: any = {};
 
-  private _current: { select?: any; populate?: any; sort?: any; pageSize?: any; page?: any; translations?: any; query?: any } = { page: 1 };
+  private _current: { select?: any; populate?: any; sort?: any; pageSize?: any; page?: any; translations?: any; query?: any } = { select: undefined, populate: undefined, sort: undefined, pageSize: undefined, page: 1, translations: undefined, query: undefined };
   get current() {
     return this._current;
   }
@@ -35,10 +35,9 @@ class ModelObserver {
   }
 
   constructor(options, model) {
-    const observeKeys = ["select", "populate", "sort", "pageSize", "page", "translations", "query"];
     this.model = model;
 
-    this.subjects = observeKeys.reduce((result: object, key: string) => {
+    this.subjects = Object.keys(this._current).reduce((result: any, key: string) => {
       Object.assign(result, { [key]: new Subject() });
       return result;
     }, {});
@@ -106,7 +105,7 @@ class ModelObserver {
       });
 
       prevList = model.getList();
-      model.store.subscribe(subscriptionHandler);
+      model.listSubject.subscribe(subscriptionHandler);
     });
 
     Object.keys(this.subjects).forEach((key) => {

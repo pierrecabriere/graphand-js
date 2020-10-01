@@ -1,7 +1,6 @@
 import isEqual from "fast-deep-equal";
 import _ from "lodash/object";
-import { createStore, Store } from "redux";
-import { Observable, Subject } from "rxjs";
+import { BehaviorSubject, Observable, Subject } from "rxjs";
 import Client from "../Client";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldId from "./fields/GraphandFieldId";
@@ -18,7 +17,6 @@ class GraphandModel {
   static cache = {};
   static translatable = true;
   static queryFields = false;
-  static _store?: Store;
   static baseUrl;
   static queryUrl;
   static prevListLength?: number;
@@ -38,6 +36,7 @@ class GraphandModel {
   static scope;
   static socketTriggerSubject = new Subject();
   static _initPromise;
+  static listSubject = new BehaviorSubject([]);
 
   static modelPromise(promise: GraphandModelPromise) {}
 
@@ -149,7 +148,7 @@ class GraphandModel {
     const parent = this;
     const observable = new Observable((subscriber) => {
       let prevRaw = parent.raw;
-      constructor.store.subscribe(async () => {
+      constructor.listSubject.subscribe(async () => {
         const item = await constructor.get(parent._id);
         if (item && !isEqual(item.raw, prevRaw)) {
           prevRaw = item.raw;
@@ -360,140 +359,70 @@ class GraphandModel {
     return this;
   }
 
-  static get store() {
-    if (!this._store) {
-      const _upsert = (state, item) => {
-        const _upsertObject = (input, found) => {
-          Object.keys(input.constructor.fields).forEach((key) => {
-            if (typeof input.raw[key] === "string" && found.raw[key] && typeof found.raw[key] === "object" && found.raw[key]._id === input.raw[key]) {
-              item[key] = found.raw[key];
-            } else if (item[key] && typeof item[key] === "object" && found.raw[key] && typeof found.raw[key] === "object") {
-              _upsertObject(item[key], found.raw[key]);
-            } else if (
-              (typeof input.raw[key] === "string" &&
-                found.raw[key] &&
-                typeof found.raw[key] === "object" &&
-                found.raw[key]._id &&
-                found.raw[key]._id !== input.raw[key]) ||
-              (input.raw[key] &&
-                typeof input.raw[key] === "object" &&
-                input.raw[key]._id &&
-                found.raw[key] &&
-                typeof found.raw[key] === "object" &&
-                found.raw[key]._id &&
-                found.raw[key]._id !== input.raw[key]._id)
-            ) {
-              this.clearCache();
-              state.list = [];
-            }
-          });
-        };
-
-        state.list = state.list || [];
-        const found = state.list.find((i) => i._id === item._id);
-        if (found) {
-          // _upsertObject(item, found);
-
-          return {
-            ...state,
-            list: state.list.map((i) => (i === found ? item : i)),
-          };
-        }
-
-        return { ...state, list: [...state.list, item] };
-      };
-      const _update = (state, item, payload) => {
-        state.list = state.list || [];
-        const found = state.list.find((i) => i._id === item._id);
-        if (found) {
-          return {
-            ...state,
-            list: state.list.map((i) => {
-              if (i === found) {
-                Object.assign(i, payload);
-              }
-
-              return i;
-            }),
-          };
-        }
-
-        return state;
-      };
-      const _delete = (state, item) => {
-        state.list = state.list || [];
-        const found = state.list.find((i) => i._id === item._id);
-        return { ...state, list: [...state.list.filter((i) => i !== found)] };
-      };
-
-      this._store = createStore((state: { list: GraphandModel[] } = { list: null }, { type, target, payload }) => {
-        switch (type) {
-          case "UPSERT":
-            if (Array.isArray(payload)) {
-              payload.forEach((item) => (state = _upsert(state, item)));
-            } else {
-              state = _upsert(state, payload);
-            }
-            break;
-          case "UPDATE":
-            if (target) {
-              state = _update(state, target, payload);
-            }
-            break;
-          case "DELETE":
-            if (Array.isArray(payload)) {
-              payload.forEach((item) => (state = _delete(state, item)));
-            } else {
-              state = _delete(state, payload);
-            }
-            break;
-          case "REINIT":
-            state = { list: [] };
-            break;
-          default:
-            break;
-        }
-
-        return state;
-      });
-    }
-
-    return this._store;
-  }
-
   static reinitStore() {
-    this.store.dispatch({
-      type: "REINIT",
-    });
+    this.listSubject.next([]);
 
     return this;
   }
 
   static deleteFromStore(payload) {
-    this.store.dispatch({
-      type: "DELETE",
-      payload,
-    });
+    const _delete = (list, item) => {
+      const found = list.find((i) => i._id === item._id);
+      return [...list.filter((i) => i !== found)];
+    };
+
+    let _list = this.getList();
+    if (Array.isArray(payload)) {
+      payload.forEach((item) => (_list = _delete(_list, item)));
+    } else {
+      _list = _delete(_list, payload);
+    }
   }
 
   static upsertStore(payload) {
-    this.store.dispatch({
-      type: "UPSERT",
-      payload,
-    });
+    const _upsert = (list, item) => {
+      const found = list.find((i) => i._id === item._id);
+      if (found) {
+        return list.map((i) => (i === found ? item : i));
+      }
+
+      return list.concat(item);
+    };
+
+    let _list = this.getList();
+    if (Array.isArray(payload)) {
+      payload.forEach((item) => (_list = _upsert(_list, item)));
+    } else {
+      _list = _upsert(_list, payload);
+    }
+
+    this.listSubject.next(_list);
   }
 
   static updateStore(target, payload) {
-    this.store.dispatch({
-      type: "UPDATE",
-      target,
-      payload,
-    });
+    const _update = (_list, item, payload) => {
+      const found = _list.find((i) => i._id === item._id);
+      if (found) {
+        return _list.map((i) => {
+          if (i === found) {
+            Object.assign(i, payload);
+          }
+
+          return i;
+        });
+      }
+
+      return _list;
+    };
+
+    let list = _update(this.getList(), target, payload);
+
+    this.listSubject.next(list);
   }
 
   static getList(query?: any, ...params): GraphandModelList {
     if (query) {
-      const parent = this;
+      const _this = this;
       // @ts-ignore
       return new GraphandModelListPromise(
         async (resolve, reject) => {
@@ -502,10 +431,10 @@ class GraphandModel {
               data: {
                 data: { rows, count },
               },
-            } = await parent.query(query, ...params);
-            const storeList = parent.store.getState().list;
+            } = await _this.query(query, ...params);
+            const storeList = _this.listSubject.getValue();
             const list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r);
-            resolve(new GraphandModelList({ model: parent, count, query }, ...list));
+            resolve(new GraphandModelList({ model: _this, count, query }, ...list));
           } catch (e) {
             reject(e);
           }
@@ -515,7 +444,7 @@ class GraphandModel {
       );
     }
 
-    return new GraphandModelList({ model: this }, ...(this.store.getState().list || []));
+    return new GraphandModelList({ model: this }, ...this.listSubject.getValue());
   }
 
   static get(_id, fetch = true) {
