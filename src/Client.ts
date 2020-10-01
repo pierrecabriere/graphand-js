@@ -215,79 +215,91 @@ class Client {
     return this.init();
   }
 
+  extendsModel(Class) {
+    return class extends Class {
+      static cache = {};
+      static _store;
+    };
+  }
+
+  getModel(sKey) {
+    if (!this._models[sKey]) {
+      switch (sKey) {
+        case "Aggregation":
+          this._models[sKey] = this.extendsModel(Aggregation);
+          this.registerModel(this._models[sKey], { name: "Aggregation" });
+          break;
+        case "Module":
+          this._models[sKey] = this.extendsModel(Module);
+          this.registerModel(this._models[sKey], { name: "Module" });
+          break;
+        case "User":
+          this._models[sKey] = this.extendsModel(User);
+          this.registerModel(this._models[sKey], { name: "User" });
+          break;
+        case "Project":
+          this._models[sKey] = this.extendsModel(Project);
+          this.registerModel(this._models[sKey], { name: "Project" });
+          break;
+        case "Data":
+          this._models[sKey] = this.extendsModel(Data);
+          this.registerModel(this._models[sKey], { name: "Data" });
+          break;
+        case "Account":
+          this._models[sKey] = this.extendsModel(Account);
+          this.registerModel(this._models[sKey], { name: "Account" });
+          break;
+        case "Role":
+          this._models[sKey] = this.extendsModel(Role);
+          this.registerModel(this._models[sKey], { name: "Role" });
+          break;
+        case "Rule":
+          this._models[sKey] = this.extendsModel(Rule);
+          this.registerModel(this._models[sKey], { name: "Rule" });
+          break;
+        case "Restriction":
+          this._models[sKey] = this.extendsModel(Restriction);
+          this.registerModel(this._models[sKey], { name: "Restriction" });
+          break;
+        case "DataField":
+          this._models[sKey] = this.extendsModel(DataField);
+          this.registerModel(this._models[sKey], { name: "DataField" });
+          break;
+        case "DataModel":
+          this._models[sKey] = this.extendsModel(DataModel);
+          this.registerModel(this._models[sKey], { name: "DataModel" });
+          break;
+        case "Media":
+          this._models[sKey] = this.extendsModel(Media);
+          this.registerModel(this._models[sKey], { name: "Media" });
+          break;
+        case "Token":
+          this._models[sKey] = this.extendsModel(Token);
+          this.registerModel(this._models[sKey], { name: "Token" });
+          break;
+        case "Webhook":
+          this._models[sKey] = this.extendsModel(Webhook);
+          this.registerModel(this._models[sKey], { name: "Webhook" });
+          break;
+        default:
+          const DataClass = this.extendsModel(Data);
+          const Model = class extends DataClass {
+            static apiIdentifier = sKey;
+          };
+          Object.defineProperty(Model, "name", { value: sKey });
+          this.registerModel(Model, { name: sKey.toString() });
+          this._models[sKey] = Model;
+          break;
+      }
+    }
+
+    return this._models[sKey];
+  }
+
   get models(): any {
     return new Proxy(this, {
       get: function (oTarget, sKey) {
-        if (!oTarget._models[sKey]) {
-          switch (sKey) {
-            case "Aggregation":
-              oTarget._models[sKey] = Aggregation;
-              oTarget.registerModel(oTarget._models[sKey], { name: "Aggregation" });
-              break;
-            case "Module":
-              oTarget._models[sKey] = Module;
-              oTarget.registerModel(oTarget._models[sKey], { name: "Module" });
-              break;
-            case "User":
-              oTarget._models[sKey] = User;
-              oTarget.registerModel(oTarget._models[sKey], { name: "User" });
-              break;
-            case "Project":
-              oTarget._models[sKey] = Project;
-              oTarget.registerModel(oTarget._models[sKey], { name: "Project" });
-              break;
-            case "Data":
-              oTarget._models[sKey] = Data;
-              oTarget.registerModel(oTarget._models[sKey], { name: "Data" });
-              break;
-            case "Account":
-              oTarget._models[sKey] = Account;
-              oTarget.registerModel(oTarget._models[sKey], { name: "Account" });
-              break;
-            case "Role":
-              oTarget._models[sKey] = Role;
-              oTarget.registerModel(oTarget._models[sKey], { name: "Role" });
-              break;
-            case "Rule":
-              oTarget._models[sKey] = Rule;
-              oTarget.registerModel(oTarget._models[sKey], { name: "Rule" });
-              break;
-            case "Restriction":
-              oTarget._models[sKey] = Restriction;
-              oTarget.registerModel(oTarget._models[sKey], { name: "Restriction" });
-              break;
-            case "DataField":
-              oTarget._models[sKey] = DataField;
-              oTarget.registerModel(oTarget._models[sKey], { name: "DataField" });
-              break;
-            case "DataModel":
-              oTarget._models[sKey] = DataModel;
-              oTarget.registerModel(oTarget._models[sKey], { name: "DataModel" });
-              break;
-            case "Media":
-              oTarget._models[sKey] = Media;
-              oTarget.registerModel(oTarget._models[sKey], { name: "Media" });
-              break;
-            case "Token":
-              oTarget._models[sKey] = Token;
-              oTarget.registerModel(oTarget._models[sKey], { name: "Token" });
-              break;
-            case "Webhook":
-              oTarget._models[sKey] = Webhook;
-              oTarget.registerModel(oTarget._models[sKey], { name: "Webhook" });
-              break;
-            default:
-              const Model = class extends Data {
-                static apiIdentifier = sKey;
-              };
-              Object.defineProperty(Model, "name", { value: sKey });
-              oTarget.registerModel(Model, { name: sKey.toString() });
-              oTarget._models[sKey] = Model;
-              break;
-          }
-        }
-
-        return oTarget._models[sKey];
+        return oTarget.getModel(sKey);
       },
     });
   }
@@ -364,7 +376,6 @@ class Client {
         let res;
         try {
           if (trigger.constructor.name === "AsyncFunction") {
-            // @ts-ignore
             res = await trigger(payload);
           } else {
             res = await new Promise((resolve, reject) => trigger(payload, resolve, reject));

@@ -485,82 +485,96 @@ class GraphandModel {
     return fetch ? new GraphandModelPromise((resolve) => resolve(item), this, item._id, true) : item;
   }
 
-  static async query(query: any, cache = true, waitRequest = false, callback?: Function, hooks = true) {
-    await this.init();
-
-    if (typeof query === "string") {
-      query = { query: { _id: query } };
-    } else if (!query) {
-      query = {};
-    }
-
-    if (this.translatable && !query.translations && this._client._project?.locales?.length) {
-      query.translations = this._client._project?.locales;
-    }
-
-    if (hooks) {
-      await this.beforeQuery?.call(this, query);
-    }
-
-    // if (query?.query?._id && typeof query.query._id === "string" && Object.keys(query.query).length === 1) {
-    //   if (!this.queryPromises[this.baseUrl]) {
-    //     this.queryPromises[this.baseUrl] = Promise.resolve([]);
-    //   }
-    //
-    //   this.queryPromises[this.baseUrl] = this.queryPromises[this.baseUrl].then((ids) => {
-    //     if (ids.includes(query.query._id)) {
-    //       return ids;
-    //     }
-    //
-    //     return ids.concat(query.query._id);
-    //   });
-    //
-    //   const ids: [] = await new Promise((resolve) => {
-    //     setTimeout(async () => {
-    //       const ids = await this.queryPromises[this.baseUrl];
-    //       delete this.queryPromises[this.baseUrl];
-    //       resolve(ids);
-    //     });
-    //   });
-    //
-    //   if (ids?.length > 1) {
-    //     query.query = { _id: { $in: ids } };
-    //   }
-    // }
-
+  static getRequest(query, hooks, cacheKey?) {
     let request;
     if (query?.query?._id && typeof query.query._id === "string" && Object.keys(query.query).length === 1) {
-      request = (cacheKey?: string) =>
-        this._client._axios
-          .get(`${this.baseUrl}/${query.query._id}`)
-          .then(async (res) => {
-            if (res.data?.data) {
-              res.data.data = new this(res.data.data);
+      if (0 && /^(?=[a-f\d]{24}$)(\d+[a-f]|[a-f]+\d)/i.test(query.query._id)) {
+        this.queryPromises[this.baseUrl] = this.queryPromises[this.baseUrl] || Promise.resolve([]);
 
-              const item = this.get(res.data.data._id, false);
-              this.upsertStore(item || res.data?.data);
-            }
+        this.queryPromises[this.baseUrl] = this.queryPromises[this.baseUrl].then((ids) => {
+          if (ids.includes(query.query._id)) {
+            return ids;
+          }
 
-            if (cacheKey) {
-              this.cache[cacheKey] = this.cache[cacheKey] || {};
-              this.cache[cacheKey].previous = res;
-            }
+          return ids.concat(query.query._id);
+        });
 
-            if (hooks) {
-              await this.afterQuery?.call(this, query, res);
-            }
-
-            return res;
+        request = (cacheKey) =>
+          new Promise(async (resolve) => {
+            const ids = await new Promise((_resolve) => {
+              setTimeout(async () => {
+                const ids = await this.queryPromises[this.baseUrl];
+                _resolve(ids);
+              }, 100);
+            });
+            const res = await this.query({ query: { _id: { $in: ids } } });
+            resolve(res);
           })
-          .catch(async (e) => {
-            delete this.cache[cacheKey];
+            .then(async (res: any) => {
+              delete this.queryPromises[this.baseUrl];
+              const row = res.data.data?.rows.find((r) => r._id === query.query._id);
+              res = { data: { data: row } };
 
-            if (hooks) {
-              await this.afterQuery?.call(this, query, null, e);
-            }
+              if (res.data?.data) {
+                res.data.data = new this(res.data.data);
 
-            throw e;
-          });
+                const item = this.get(res.data.data._id, false);
+                this.upsertStore(item || res.data?.data);
+              }
+
+              if (cacheKey) {
+                this.cache[cacheKey] = this.cache[cacheKey] || {};
+                this.cache[cacheKey].previous = res;
+              }
+
+              if (hooks) {
+                await this.afterQuery?.call(this, query, res);
+              }
+
+              return res;
+            })
+            .catch(async (e) => {
+              delete this.cache[cacheKey];
+
+              if (hooks) {
+                await this.afterQuery?.call(this, query, null, e);
+              }
+
+              throw e;
+            });
+      } else {
+        request = (cacheKey?: string) =>
+          this._client._axios
+            .get(`${this.baseUrl}/${query.query._id}`)
+            .then(async (res) => {
+              if (res.data?.data) {
+                res.data.data = new this(res.data.data);
+
+                const item = this.get(res.data.data._id, false);
+                this.upsertStore(item || res.data?.data);
+              }
+
+              if (cacheKey) {
+                this.cache[cacheKey] = this.cache[cacheKey] || {};
+                this.cache[cacheKey].previous = res;
+              }
+
+              if (hooks) {
+                await this.afterQuery?.call(this, query, res);
+              }
+
+              return res;
+            })
+            .catch(async (e) => {
+              delete this.cache[cacheKey];
+
+              if (hooks) {
+                await this.afterQuery?.call(this, query, null, e);
+              }
+
+              throw e;
+            });
+      }
     } else {
       request = (cacheKey?: string) =>
         this._client._axios
@@ -613,9 +627,66 @@ class GraphandModel {
           });
     }
 
+    return request;
+  }
+
+  static async query(query: any, cache = true, waitRequest = false, callback?: Function, hooks = true) {
+    await this.init();
+
+    let _id;
+
+    if (typeof query === "string") {
+      query = { query: { _id: query } };
+    } else if (!query) {
+      query = {};
+    }
+
+    if (this.translatable && !query.translations && this._client._project?.locales?.length) {
+      query.translations = this._client._project?.locales;
+    }
+
+    if (hooks) {
+      await this.beforeQuery?.call(this, query);
+    }
+
+    // if (query?.query?._id && typeof query.query._id === "string" && Object.keys(query.query).length === 1) {
+    //   _id = query.query._id;
+    //
+    //   if (_id && this.get(_id, false)) {
+    //     return { data: { data: this.get(_id, false).raw } };
+    //   }
+    //
+    //   this.queryPromises[this.baseUrl] = this.queryPromises[this.baseUrl] || Promise.resolve([]);
+    //
+    //   this.queryPromises[this.baseUrl] = this.queryPromises[this.baseUrl].then((ids) => {
+    //     if (ids.includes(query.query._id)) {
+    //       return ids;
+    //     }
+    //
+    //     return ids.concat(query.query._id);
+    //   });
+    //
+    //   const ids: [] = await new Promise((resolve) => {
+    //     setTimeout(async () => {
+    //       const ids = await this.queryPromises[this.baseUrl];
+    //       delete this.queryPromises[this.baseUrl];
+    //       resolve(ids);
+    //     }, 100);
+    //   });
+    //
+    //   if (ids?.length > 1) {
+    //     query.query = { _id: { $in: ids } };
+    //   }
+    // }
+
+    if (_id && this.get(_id, false)) {
+      return { data: { data: this.get(_id, false).raw } };
+    }
+
     let res;
     if (cache) {
       const cacheKey = `${this.baseUrl}:${JSON.stringify(query)}`;
+      const request = this.getRequest(query, hooks, cacheKey);
 
       if (!this.cache[cacheKey]) {
         this.cache[cacheKey] = {
@@ -656,8 +727,14 @@ class GraphandModel {
         callback && callback(res);
       }
     } else {
+      const request = this.getRequest(query, hooks);
       res = await request();
       callback && callback(res);
+    }
+
+    if (_id && res.data.data?.rows) {
+      const row = res.data.data?.rows.find((r) => r._id === _id);
+      return { data: { data: row } };
     }
 
     return res;

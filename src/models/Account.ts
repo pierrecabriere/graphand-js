@@ -112,13 +112,17 @@ class Account extends GraphandModel {
     return item;
   }
 
-  static async getCurrent() {
+  static async getCurrent(populate = true) {
     if (!this._currentId) {
       this._currentId = this.get("current").then((account) => account?._id || null);
     }
 
     const id = await this._currentId;
-    return id && this.get(id);
+    if (populate) {
+      return id && this.get(id);
+    }
+
+    return id;
   }
 }
 
