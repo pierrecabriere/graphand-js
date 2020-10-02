@@ -25,7 +25,15 @@ class ModelObserver {
 
   subjects: any = {};
 
-  private _current: { select?: any; populate?: any; sort?: any; pageSize?: any; page?: any; translations?: any; query?: any } = { select: undefined, populate: undefined, sort: undefined, pageSize: undefined, page: 1, translations: undefined, query: undefined };
+  private _current: { select?: any; populate?: any; sort?: any; pageSize?: any; page?: any; translations?: any; query?: any } = {
+    select: undefined,
+    populate: undefined,
+    sort: undefined,
+    pageSize: undefined,
+    page: 1,
+    translations: undefined,
+    query: undefined,
+  };
   get current() {
     return this._current;
   }

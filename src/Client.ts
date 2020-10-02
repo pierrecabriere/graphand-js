@@ -212,6 +212,8 @@ class Client {
   reinit() {
     this.initialized = false;
 
+    Object.values(this._models).forEach((model: any) => model.clearCache(undefined, true));
+
     return this.init();
   }
 
@@ -227,67 +229,52 @@ class Client {
       switch (sKey) {
         case "Aggregation":
           this._models[sKey] = this.extendsModel(Aggregation);
-          this.registerModel(this._models[sKey], { name: "Aggregation" });
           break;
         case "Module":
           this._models[sKey] = this.extendsModel(Module);
-          this.registerModel(this._models[sKey], { name: "Module" });
           break;
         case "User":
           this._models[sKey] = this.extendsModel(User);
-          this.registerModel(this._models[sKey], { name: "User" });
           break;
         case "Project":
           this._models[sKey] = this.extendsModel(Project);
-          this.registerModel(this._models[sKey], { name: "Project" });
           break;
         case "Data":
           this._models[sKey] = this.extendsModel(Data);
-          this.registerModel(this._models[sKey], { name: "Data" });
           break;
         case "Account":
           this._models[sKey] = this.extendsModel(Account);
-          this.registerModel(this._models[sKey], { name: "Account" });
           break;
         case "Role":
           this._models[sKey] = this.extendsModel(Role);
-          this.registerModel(this._models[sKey], { name: "Role" });
           break;
         case "Rule":
           this._models[sKey] = this.extendsModel(Rule);
-          this.registerModel(this._models[sKey], { name: "Rule" });
           break;
         case "Restriction":
           this._models[sKey] = this.extendsModel(Restriction);
-          this.registerModel(this._models[sKey], { name: "Restriction" });
           break;
         case "DataField":
           this._models[sKey] = this.extendsModel(DataField);
-          this.registerModel(this._models[sKey], { name: "DataField" });
           break;
         case "DataModel":
           this._models[sKey] = this.extendsModel(DataModel);
-          this.registerModel(this._models[sKey], { name: "DataModel" });
           break;
         case "Media":
           this._models[sKey] = this.extendsModel(Media);
-          this.registerModel(this._models[sKey], { name: "Media" });
           break;
         case "Token":
           this._models[sKey] = this.extendsModel(Token);
-          this.registerModel(this._models[sKey], { name: "Token" });
           break;
         case "Webhook":
           this._models[sKey] = this.extendsModel(Webhook);
-          this.registerModel(this._models[sKey], { name: "Webhook" });
           break;
         default:
           const DataClass = this.extendsModel(Data);
           const Model = class extends DataClass {
             static apiIdentifier = sKey;
           };
-          Object.defineProperty(Model, "name", { value: sKey });
-          this.registerModel(Model, { name: sKey.toString() });
+          this.registerModel(Model);
           this._models[sKey] = Model;
           break;
       }
@@ -345,7 +332,7 @@ class Client {
       return;
     }
 
-    const _name = options.name || Model.name;
+    const _name = options.name || Model.scope;
 
     if (_name) {
       this._models[_name] = Model;
