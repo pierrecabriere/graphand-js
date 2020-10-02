@@ -1,6 +1,7 @@
 import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
 import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
 
 const locales = [
   { value: "fr", label: "Français" },
@@ -26,6 +27,7 @@ class Project extends GraphandModel {
         name: "Langue par défaut",
         options: locales.filter((locale) => project?.locales && project.locales.includes(locale.value)),
       }),
+      settings: new GraphandFieldJSON({ name: "Paramètres" }),
     };
   }
 
