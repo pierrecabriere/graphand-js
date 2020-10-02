@@ -218,7 +218,7 @@ class Client {
   extendsModel(Class) {
     return class extends Class {
       static cache = {};
-      static _store;
+      static _listSubject;
     };
   }
 

@@ -36,9 +36,17 @@ class GraphandModel {
   static scope;
   static socketTriggerSubject = new Subject();
   static _initPromise;
-  static listSubject = new BehaviorSubject([]);
+  static _listSubject;
 
   static modelPromise(promise: GraphandModelPromise) {}
+
+  static get listSubject() {
+    if (!this._listSubject) {
+      this._listSubject = new BehaviorSubject([]);
+    }
+
+    return this._listSubject;
+  }
 
   constructor(data: any = {}, locale?: string) {
     data = data instanceof GraphandModel ? data.raw : data;
@@ -371,7 +379,7 @@ class GraphandModel {
       return [...list.filter((i) => i !== found)];
     };
 
-    let _list = this.getList();
+    let _list: any = this.getList();
     if (Array.isArray(payload)) {
       payload.forEach((item) => (_list = _delete(_list, item)));
     } else {
