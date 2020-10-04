@@ -298,18 +298,20 @@ class GraphandModel {
         return;
       }
 
+      this.clearCache();
       this.socketTriggerSubject.next({ action, payload });
 
       switch (action) {
         case "create":
-          this.clearCache();
+          // this.clearCache();
           this.upsertStore(payload.map((item) => new this(item)));
           break;
         case "update":
+          // this.clearCache();
           this.upsertStore(payload.map((item) => new this(item)));
           break;
         case "delete":
-          this.clearCache();
+          // this.clearCache();
           this.deleteFromStore(payload);
           break;
       }
@@ -808,7 +810,7 @@ class GraphandModel {
     return item;
   }
 
-  static async update(query, payload, hooks = true, clearCache = false) {
+  static async update(payload, hooks = true, clearCache = false) {
     if (this.translatable && !payload.translations && this._client._project?.locales?.length) {
       payload.translations = this._client._project?.locales;
     }
@@ -824,7 +826,8 @@ class GraphandModel {
     }
 
     try {
-      const { data } = await this._client._axios.patch(this.baseUrl, { query, ...payload });
+      const { data } = await this._client._axios.patch(this.baseUrl, payload);
+
       if (!data) {
         return;
       }
@@ -878,7 +881,7 @@ class GraphandModel {
     }
 
     try {
-      await constructor.update({ _id }, payload, false, clearCache);
+      await constructor.update({ ...payload, query: { _id } }, false, clearCache);
       this.assign(constructor.get(_id, false).raw);
 
       if (hooks) {
