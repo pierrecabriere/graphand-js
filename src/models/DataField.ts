@@ -35,6 +35,7 @@ class DataField extends GraphandModel {
         options: [
           { value: "Text", label: "Texte" },
           { value: "Number", label: "Nombre" },
+          { value: "Boolean", label: "Booléen" },
           { value: "Relation", label: "Relation" },
           { value: "Color", label: "Couleur" },
           { value: "Date", label: "Date" },
