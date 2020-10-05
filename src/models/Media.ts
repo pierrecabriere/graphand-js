@@ -40,20 +40,6 @@ class Media extends GraphandModel {
 
     args.payload = formData;
   }
-
-  static modelPromise(promise: GraphandModelPromise) {
-    const self = this;
-    Object.defineProperty(promise, "url", {
-      get() {
-        if (promise._id) {
-          const cdnUri = `${self._client._options.ssl ? "https" : "http"}://${self._client._options.cdn}`;
-          return `${cdnUri}/public/${self._client._options.project}/${promise._id}`;
-        }
-
-        return null;
-      },
-    });
-  }
 }
 
 export default Media;

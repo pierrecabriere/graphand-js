@@ -87,7 +87,7 @@ class GraphandModel {
     return new constructor(this._data, locale || this._locale);
   }
 
-  get(slug, decode = false, fields) {
+  get(slug, decode = false, fields?) {
     const { constructor } = Object.getPrototypeOf(this);
 
     let value = _.get(this._data, slug);
@@ -446,6 +446,18 @@ class GraphandModel {
   static getList(query?: any, ...params): GraphandModelList {
     if (query) {
       const _this = this;
+
+      if (query.query?._id?.$in && Object.keys(query.query).length === 1 && Object.keys(query.query._id).length === 1) {
+        const list = query.query._id.$in.map((_id) => this.get(_id, false));
+        if (list.every((i) => i)) {
+          // @ts-ignore
+          return new GraphandModelListPromise((resolve) => {
+            const modelList = new GraphandModelList({ model: _this, count: list.length, query }, ...list);
+            resolve(modelList);
+          }, this, query);
+        }
+      }
+
       // @ts-ignore
       return new GraphandModelListPromise(
         async (resolve, reject) => {
@@ -482,6 +494,7 @@ class GraphandModel {
       }, this);
     }
 
+    _id = typeof _id === "object" && _id.query?._id ? _id.query._id : _id;
     const item = this.getList().find((item) => item._id === _id);
 
     if (!item && fetch) {
@@ -572,7 +585,6 @@ class GraphandModel {
             .then(async (res) => {
               if (res.data?.data) {
                 res.data.data = new this(res.data.data);
-
                 const item = this.get(res.data.data._id, false);
                 this.upsertStore(item || res.data?.data);
               }
@@ -988,6 +1000,20 @@ class GraphandModel {
     }
 
     return constructor._client.models[modelName];
+  }
+
+  get publicUrls() {
+    return new Proxy(this, {
+      get: function (oTarget, sKey) {
+        const { constructor } = Object.getPrototypeOf(oTarget);
+        if (!constructor._client) {
+          return null;
+        }
+
+        const cdnUri = `${constructor._client._options.ssl ? "https" : "http"}://${constructor._client._options.cdn}`;
+        return `${cdnUri}/public/${constructor._client._options.project}/${oTarget.raw[sKey]}`;
+      },
+    });
   }
 
   // hooks
