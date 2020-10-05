@@ -839,6 +839,10 @@ class GraphandModel {
       }
 
       if (!this.socketSubscription) {
+        if (!clearCache) {
+          this.clearCache();
+        }
+
         this.upsertStore(items);
       }
 

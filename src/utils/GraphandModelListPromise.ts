@@ -24,6 +24,10 @@ class GraphandModelListPromise extends GraphandModelPromise {
     return [];
   }
 
+  get length() {
+    return this._ids?.length || null;
+  }
+
   subscribe() {
     if (!this.model) {
       return;
