@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios";
+import md5 from "md5";
 import { Subject } from "rxjs";
 import io from "socket.io-client";
 import Account from "./models/Account";
@@ -354,9 +355,13 @@ class Client {
     return Model;
   }
 
-  registerHook({ model, action, trigger, _await, timeout, priority }) {
+  registerHook({ identifier, model, action, trigger, _await, timeout, priority }) {
     let _hook;
     _await = _await === undefined ? trigger.constructor.name === "AsyncFunction" : _await;
+
+    if (!identifier) {
+      identifier = md5(trigger.toString());
+    }
 
     const _trigger = async (payload) => {
       if (_hook.await) {
@@ -387,7 +392,7 @@ class Client {
 
       const {
         data: { data: hook },
-      } = await this._axios.post("/sockethooks", { socket: this.socket.id, on: model.baseUrl, await: _await, action, timeout, priority });
+      } = await this._axios.post("/sockethooks", { socket: this.socket.id, on: model.baseUrl, await: _await, identifier, action, timeout, priority });
       _hook = hook;
 
       this.socket.on(`/hooks/${_hook.id}`, _trigger);
