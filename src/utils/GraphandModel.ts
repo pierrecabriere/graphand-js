@@ -37,6 +37,7 @@ class GraphandModel {
   static socketTriggerSubject = new Subject();
   static _initPromise;
   static _listSubject;
+  private _version = 1;
 
   static modelPromise(promise: GraphandModelPromise) {}
 
@@ -126,7 +127,7 @@ class GraphandModel {
     return value;
   }
 
-  set(slug, value, fields?) {
+  set(slug, value, fields?, upgradeVersion = true) {
     const { constructor } = Object.getPrototypeOf(this);
     fields = fields || constructor.fields;
     const field = fields[slug];
@@ -138,6 +139,12 @@ class GraphandModel {
     this._data[slug] = value;
 
     this._fields = constructor.getFields(this);
+
+    if (upgradeVersion) {
+      this._version++;
+      constructor.refreshList();
+    }
+
     return this;
   }
 
@@ -145,8 +152,11 @@ class GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     const fields = constructor.fields;
     Object.keys(values).forEach((key) => {
-      this.set(key, values[key], fields);
+      this.set(key, values[key], fields, false);
     });
+
+    this._version++;
+    constructor.refreshList();
 
     return this;
   }
@@ -156,9 +166,10 @@ class GraphandModel {
     const parent = this;
     const observable = new Observable((subscriber) => {
       let prevRaw = parent.raw;
+      let prevVersion = parent._version;
       constructor.listSubject.subscribe(async () => {
         const item = await constructor.get(parent._id);
-        if (item && !isEqual(item.raw, prevRaw)) {
+        if (item && (!isEqual(item.raw, prevRaw) || item._version !== prevVersion)) {
           prevRaw = item.raw;
           subscriber.next(item);
         } else if (!item) {
@@ -257,7 +268,7 @@ class GraphandModel {
           return this.get(slug);
         },
         set(v) {
-          this._data[slug] = v;
+          return this.set(slug, v);
         },
       });
     });
@@ -451,27 +462,33 @@ class GraphandModel {
         const list = query.query._id.$in.map((_id) => this.get(_id, false));
         if (list.every((i) => i)) {
           // @ts-ignore
-          return new GraphandModelListPromise((resolve) => {
-            const modelList = new GraphandModelList({ model: _this, count: list.length, query }, ...list);
-            resolve(modelList);
-          }, this, query);
+          return new GraphandModelListPromise(
+            (resolve) => {
+              const modelList = new GraphandModelList({ model: _this, count: list.length, query }, ...list);
+              resolve(modelList);
+            },
+            this,
+            query,
+          );
         }
       }
 
       // @ts-ignore
       return new GraphandModelListPromise(
-        async (resolve, reject) => {
+        async (resolve) => {
           try {
+            const res = await _this.query(query, ...params);
             const {
               data: {
                 data: { rows, count },
               },
-            } = await _this.query(query, ...params);
+            } = res;
             const storeList = _this.listSubject.getValue();
             const list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r);
             resolve(new GraphandModelList({ model: _this, count, query }, ...list));
           } catch (e) {
-            reject(e);
+            console.error(e);
+            resolve([]);
           }
         },
         this,
@@ -630,7 +647,7 @@ class GraphandModel {
               if (modified) {
                 this.upsertStore(rows);
               }
-            } else {
+            } else if (res.data.data && typeof res.data.data === "object") {
               res.data.data = new this(res.data.data);
               const list = this.getList();
               const modified = !isEqual(list[0], res.data.data);
@@ -875,6 +892,10 @@ class GraphandModel {
     }
   }
 
+  static refreshList() {
+    this.listSubject.next(this.getList());
+  }
+
   async update(payload: any, preStore = false, hooks = true, clearCache = false) {
     const constructor = this.constructor as any;
 
@@ -895,8 +916,7 @@ class GraphandModel {
     const _id = payload._id || this._id;
 
     if (preStore) {
-      const _item = new constructor({ ...this, ...payload.set }, payload.locale);
-      constructor.upsertStore(_item);
+      this.assign(payload.set);
     }
 
     try {
