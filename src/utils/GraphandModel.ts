@@ -390,9 +390,13 @@ class GraphandModel {
     return this;
   }
 
-  static deleteFromStore(payload) {
+  static deleteFromStore(payload, force = false) {
+    let refresh = false;
     const _delete = (list, item) => {
       const found = list.find((i) => i._id === item._id);
+      if (found) {
+        refresh = true;
+      }
       return [...list.filter((i) => i !== found)];
     };
 
@@ -403,7 +407,7 @@ class GraphandModel {
       _list = _delete(_list, payload);
     }
 
-    if (!isEqual(this.getList(), _list)) {
+    if (force || refresh) {
       this.listSubject.next(_list);
       return true;
     }
@@ -867,7 +871,7 @@ class GraphandModel {
     return item;
   }
 
-  static async update(payload, hooks = true) {
+  static async update(payload, hooks = true, clearCache = true) {
     if (this.translatable && !payload.translations && this._client._project?.locales?.length) {
       payload.translations = this._client._project?.locales;
     }
@@ -891,10 +895,13 @@ class GraphandModel {
 
       const items = data.data.rows.map((item) => new this(item));
 
-      this.clearCache();
-      this.upsertStore(items);
+      const upserted = this.upsertStore(items);
 
-      items.forEach((item) => item.HistoryModel.clearCache());
+      if (upserted) {
+        this.clearCache();
+
+        items.forEach((item) => item.HistoryModel.clearCache());
+      }
 
       if (hooks) {
         await this.afterUpdate?.call(this, items, null, payload);
