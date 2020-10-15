@@ -27,6 +27,11 @@ class Role extends GraphandModel {
             "Les utilisateurs ne pourront pas créer ou modifier des utilisateurs dont le niveau de rôle est inférieur au leur. Le rôle administrateur est de niveau 0",
         },
       }),
+      inherits: new GraphandFieldRelation({
+        name: "Rôles parents",
+        model: this._client.models.Role,
+        multiple: true,
+      }),
       modules: new GraphandFieldRelation({
         name: "Applications",
         model: this._client.models.Module,

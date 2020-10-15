@@ -8,6 +8,10 @@ class GraphandFieldDate extends GraphandField {
   getter(value) {
     return value && new Date(value);
   }
+
+  setter(value) {
+    return value && (typeof value === "string" ? value : value.toISOString());
+  }
 }
 
 export default GraphandFieldDate;

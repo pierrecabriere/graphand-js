@@ -12,6 +12,8 @@ import ModelObserver from "./ModelObserver";
 
 class GraphandModel {
   _id: string;
+  createdAt: Date;
+  updatedAt: Date;
 
   static _client: Client;
   static cache = {};
@@ -82,10 +84,12 @@ class GraphandModel {
     return translations.concat(constructor._client._project?.defaultLocale);
   }
 
-  clone(locale) {
+  clone(locale?) {
     const { constructor } = Object.getPrototypeOf(this);
 
-    return new constructor(this._data, locale || this._locale);
+    const clone = new constructor({ ...this._data }, locale || this._locale);
+    clone._version = this._version + 1;
+    return clone;
   }
 
   get(slug, decode = false, fields?) {
@@ -127,7 +131,7 @@ class GraphandModel {
     return value;
   }
 
-  set(slug, value, fields?, upgradeVersion = true) {
+  set(slug, value, fields?) {
     const { constructor } = Object.getPrototypeOf(this);
     fields = fields || constructor.fields;
     const field = fields[slug];
@@ -140,23 +144,25 @@ class GraphandModel {
 
     this._fields = constructor.getFields(this);
 
-    if (upgradeVersion) {
-      this._version++;
-      constructor.refreshList();
-    }
-
     return this;
   }
 
   assign(values) {
     const { constructor } = Object.getPrototypeOf(this);
     const fields = constructor.fields;
+    const _this = this.clone();
     Object.keys(values).forEach((key) => {
-      this.set(key, values[key], fields, false);
+      _this.set(key, values[key], fields);
     });
 
-    this._version++;
-    constructor.refreshList();
+    _this.updatedAt = new Date();
+    constructor.upsertStore(_this);
+
+    Object.keys(values).forEach((key) => {
+      this.set(key, values[key], fields);
+    });
+
+    this.updatedAt = _this.updatedAt;
 
     return this;
   }
@@ -311,17 +317,19 @@ class GraphandModel {
 
       this.socketTriggerSubject.next({ action, payload });
 
-      switch (action) {
-        case "create":
-          this.upsertStore(payload.map((item) => new this(item))) && this.clearCache();
-          break;
-        case "update":
-          this.upsertStore(payload.map((item) => new this(item))) && this.clearCache();
-          break;
-        case "delete":
-          this.deleteFromStore(payload) && this.clearCache();
-          break;
-      }
+      setTimeout(() => {
+        switch (action) {
+          case "create":
+            this.upsertStore(payload.map((item) => new this(item))) && this.clearCache();
+            break;
+          case "update":
+            this.upsertStore(payload.map((item) => new this(item))) && this.clearCache();
+            break;
+          case "delete":
+            this.deleteFromStore(payload) && this.clearCache();
+            break;
+        }
+      });
     });
   }
 
@@ -403,14 +411,22 @@ class GraphandModel {
     return false;
   }
 
-  static upsertStore(payload) {
+  static upsertStore(payload, force = false) {
+    let refresh = false;
     const _upsert = (list, item) => {
       const found = list.find((i) => i._id === item._id);
-      if (found) {
+
+      if (!found) {
+        refresh = true;
+        return list.concat(item);
+      }
+
+      if (force || !isEqual({ ...found._data, updatedAt: undefined }, { ...item._data, updatedAt: undefined })) {
+        refresh = true;
         return list.map((i) => (i === found ? item : i));
       }
 
-      return list.concat(item);
+      return list;
     };
 
     let _list = this.getList();
@@ -420,7 +436,7 @@ class GraphandModel {
       _list = _upsert(_list, payload);
     }
 
-    if (!isEqual(this.getList(), _list)) {
+    if (refresh) {
       this.listSubject.next(_list);
       return true;
     }
@@ -896,7 +912,7 @@ class GraphandModel {
     this.listSubject.next(this.getList());
   }
 
-  async update(payload: any, preStore = false, hooks = true, clearCache = false) {
+  async update(payload: any, preStore = true, hooks = true, clearCache = false) {
     const constructor = this.constructor as any;
 
     if (constructor.translatable && !payload.translations && constructor._client._project?.locales?.length) {
@@ -914,6 +930,7 @@ class GraphandModel {
     }
 
     const _id = payload._id || this._id;
+    let backup = this.clone();
 
     if (preStore) {
       this.assign(payload.set);
@@ -928,7 +945,7 @@ class GraphandModel {
       }
     } catch (e) {
       if (preStore) {
-        constructor.upsertStore(this);
+        constructor.upsertStore(backup);
       }
 
       if (hooks) {
