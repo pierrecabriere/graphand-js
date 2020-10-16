@@ -1,5 +1,5 @@
 import isEqual from "fast-deep-equal";
-import _ from "lodash/object";
+import _ from "lodash";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
 import Client from "../Client";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
@@ -85,9 +85,7 @@ class GraphandModel {
   }
 
   clone(locale?) {
-    const { constructor } = Object.getPrototypeOf(this);
-
-    const clone = new constructor({ ...this._data }, locale || this._locale);
+    const clone = _.cloneDeep(this);
     clone._version = this._version + 1;
     return clone;
   }
@@ -147,7 +145,7 @@ class GraphandModel {
     return this;
   }
 
-  assign(values) {
+  assign(values, upsert = true) {
     const { constructor } = Object.getPrototypeOf(this);
     const fields = constructor.fields;
     const _this = this.clone();
@@ -156,7 +154,10 @@ class GraphandModel {
     });
 
     _this.updatedAt = new Date();
-    constructor.upsertStore(_this);
+
+    if (upsert) {
+      constructor.upsertStore(_this);
+    }
 
     Object.keys(values).forEach((key) => {
       this.set(key, values[key], fields);
