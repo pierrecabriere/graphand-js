@@ -1,3 +1,4 @@
+import isEqual from "fast-deep-equal";
 import GraphandField from "../GraphandField";
 
 class GraphandFieldJSON extends GraphandField {
@@ -23,6 +24,21 @@ class GraphandFieldJSON extends GraphandField {
     }
 
     return { ...defaultValues, ...value };
+  }
+
+  setter(value) {
+    return this.fields
+      ? Object.keys(this.fields).reduce(
+          (payload, key) => {
+            if (isEqual(this.fields[key].defaultValue, value[key])) {
+              delete payload[key];
+            }
+
+            return payload;
+          },
+          { ...value },
+        )
+      : value;
   }
 }
 
