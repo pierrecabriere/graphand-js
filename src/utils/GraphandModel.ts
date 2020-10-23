@@ -479,7 +479,13 @@ class GraphandModel {
     if (query) {
       const _this = this;
 
-      if (query.query?._id?.$in && Object.keys(query.query).length === 1 && Object.keys(query.query._id).length === 1) {
+      if (
+        query.query?._id?.$in &&
+        Object.keys(query).length === 1 &&
+        Object.keys(query.query).length === 1 &&
+        Object.keys(query.query._id).length === 1
+      ) {
+        console.log(query);
         const list = query.query._id.$in.map((_id) => this.get(_id, false));
         if (list.every((i) => i)) {
           // @ts-ignore
