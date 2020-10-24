@@ -9,7 +9,17 @@ class Role extends GraphandModel {
   static baseUrl = "/roles";
   static scope = "Role";
 
-  static get baseFields() {
+  static baseFields(item) {
+    const inherits = new GraphandFieldRelation({
+      name: "Rôles parents",
+      model: this._client.models.Role,
+      multiple: true,
+    });
+
+    if (item?._id) {
+      inherits.query = { _id: { $ne: item._id } };
+    }
+
     return {
       name: new GraphandFieldText({
         name: "Nom",
@@ -27,11 +37,7 @@ class Role extends GraphandModel {
             "Les utilisateurs ne pourront pas créer ou modifier des utilisateurs dont le niveau de rôle est inférieur au leur. Le rôle administrateur est de niveau 0",
         },
       }),
-      inherits: new GraphandFieldRelation({
-        name: "Rôles parents",
-        model: this._client.models.Role,
-        multiple: true,
-      }),
+      inherits,
       modules: new GraphandFieldRelation({
         name: "Applications",
         model: this._client.models.Module,

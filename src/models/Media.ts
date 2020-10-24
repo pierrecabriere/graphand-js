@@ -3,7 +3,6 @@ import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
 import GraphandModel from "../utils/GraphandModel";
-import GraphandModelPromise from "../utils/GraphandModelPromise";
 
 class Media extends GraphandModel {
   static apiIdentifier = "medias";

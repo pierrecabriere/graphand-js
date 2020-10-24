@@ -10,7 +10,7 @@ class GraphandFieldDate extends GraphandField {
   }
 
   setter(value) {
-    return value && (typeof value === "string" ? value : value.toISOString());
+    return value;
   }
 }
 

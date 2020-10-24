@@ -13,6 +13,7 @@ class Token extends GraphandModel {
       name: new GraphandFieldText({
         name: "Nom",
       }),
+      description: new GraphandFieldText({ name: "Description" }),
       accessToken: new GraphandFieldText({
         name: "Clé d'accès",
       }),
