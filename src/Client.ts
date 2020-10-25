@@ -86,7 +86,7 @@ class Client {
         try {
           const { errors } = error.response.data;
           error.graphandErrors = error.graphandErrors || [];
-          error.graphandErrors = error.graphandErrors.concat(errors.map((e) => GraphandError.fromJSON(e)));
+          error.graphandErrors = error.graphandErrors.concat(errors.map((e) => GraphandError.fromJSON(e, error.response.status)));
         } catch (e) {}
 
         return Promise.reject(error.graphandErrors || [new GraphandError(error.message)]);

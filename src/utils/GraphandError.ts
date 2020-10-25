@@ -42,14 +42,14 @@ class GraphandError extends Error {
     }
   }
 
-  static fromJSON(input) {
+  static fromJSON(input, status?: number) {
     switch (input.type) {
       case "GraphandValidationError":
         const GraphandValidationError = require("./GraphandValidationError").default;
         return new GraphandValidationError(input.message, input.field, input.code);
       case "GraphandError":
       default:
-        return new GraphandError(input.message, input.code, input.status, input.target);
+        return new GraphandError(input.message, input.code, status, input.target);
     }
   }
 
