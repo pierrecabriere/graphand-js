@@ -4,11 +4,10 @@ import GraphandFieldDate from "../utils/fields/GraphandFieldDate";
 import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
 import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
 import GraphandFieldRelation from "../utils/fields/GraphandFieldRelation";
+import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
-import GraphandError from "../utils/GraphandError";
 import GraphandModel from "../utils/GraphandModel";
-import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 
 class DataField extends GraphandModel {
   static apiIdentifier = "data-fields";
@@ -37,6 +36,7 @@ class DataField extends GraphandModel {
           { value: "Number", label: "Nombre" },
           { value: "Boolean", label: "Booléen" },
           { value: "Relation", label: "Relation" },
+          { value: "RelationReverse", label: "Relation inverse" },
           { value: "Color", label: "Couleur" },
           { value: "Date", label: "Date" },
           { value: "JSON", label: "JSON" },
@@ -131,25 +131,20 @@ class DataField extends GraphandModel {
       default:
         return new GraphandFieldText({ name, type, configuration });
       case "Relation":
-        let model;
-        if (configuration.ref === "Account") {
-          model = constructor._client.models.Account;
-        } else if (configuration.ref === "Media") {
-          model = constructor._client.models.Media;
-        } else {
-          try {
-            const { 1: slug } = configuration.ref.match(/^Data:(.+?)$/);
-            model = constructor._client.getModelByIdentifier(slug);
-          } catch (e) {
-            throw new GraphandError(`Field ${this.slug} has an invalid ref`);
-          }
-        }
-
         return new GraphandFieldRelation({
           name,
           multiple: configuration.multiple,
-          model,
+          model: constructor._client.getModelByScope(configuration.ref),
           query: configuration.initialQuery,
+        });
+      case "RelationReverse":
+        const field = await constructor._client.models.DataField.get(configuration.targetField);
+
+        return new GraphandFieldRelation({
+          name,
+          multiple: true,
+          model: constructor._client.getModelByScope(field.scope),
+          query: {},
         });
       case "Date":
         return new GraphandFieldDate({ name, time: configuration.time });

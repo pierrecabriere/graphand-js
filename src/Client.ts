@@ -297,6 +297,15 @@ class Client {
     return Model || this.models[identifier];
   }
 
+  getModelByScope(scope: string) {
+    try {
+      const { 1: slug } = scope.match(/^Data:(.+?)$/);
+      return this.getModelByIdentifier(slug);
+    } catch (e) {
+      return this.getModel(scope);
+    }
+  }
+
   get accessToken() {
     return this._accessToken;
   }
