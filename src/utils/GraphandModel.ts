@@ -385,6 +385,15 @@ class GraphandModel {
     return this;
   }
 
+  static clearRelationsCache() {
+    Object.values(this.getFields())
+      .filter((field) => field instanceof GraphandFieldRelation)
+      .forEach((field) => {
+        // @ts-ignore
+        field.model.clearCache();
+      });
+  }
+
   static reinitStore() {
     this.listSubject.next([]);
 
@@ -409,6 +418,7 @@ class GraphandModel {
     }
 
     if (force || refresh) {
+      this.clearRelationsCache();
       this.listSubject.next(_list);
       return true;
     }
@@ -442,6 +452,7 @@ class GraphandModel {
     }
 
     if (refresh) {
+      this.clearRelationsCache();
       this.listSubject.next(_list);
       return true;
     }
@@ -468,6 +479,7 @@ class GraphandModel {
     let list = _update(this.getList(), target, payload);
 
     if (!isEqual(this.getList(), list)) {
+      this.clearRelationsCache();
       this.listSubject.next(list);
       return true;
     }
