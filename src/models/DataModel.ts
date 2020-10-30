@@ -27,6 +27,7 @@ class DataModel extends GraphandModel {
   }
 
   static baseFields(model) {
+    console.log(model);
     return {
       name: new GraphandFieldText({
         name: "Nom",
@@ -47,7 +48,7 @@ class DataModel extends GraphandModel {
       defaultField: new GraphandFieldRelation({
         name: "Champ par défaut",
         model: this._client.models.DataField,
-        query: { scope: model?.getScope() },
+        query: model && { scope: `Data:${model.slug}` },
       }),
     };
   }
