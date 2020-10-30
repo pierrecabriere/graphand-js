@@ -27,7 +27,6 @@ class DataModel extends GraphandModel {
   }
 
   static baseFields(model) {
-    console.log(model);
     return {
       name: new GraphandFieldText({
         name: "Nom",
