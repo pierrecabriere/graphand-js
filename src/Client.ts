@@ -399,12 +399,24 @@ class Client {
         _unregister();
       }
 
-      const {
-        data: { data: hook },
-      } = await this._axios.post("/sockethooks", { socket: this.socket.id, on: model.baseUrl, await: _await, identifier, action, timeout, priority });
-      _hook = hook;
+      try {
+        const {
+          data: { data: hook },
+        } = await this._axios.post("/sockethooks", {
+          socket: this.socket.id,
+          on: model.baseUrl,
+          await: _await,
+          identifier,
+          action,
+          timeout,
+          priority,
+        });
+        _hook = hook;
 
-      this.socket.on(`/hooks/${_hook.id}`, _trigger);
+        this.socket.on(`/hooks/${_hook.id}`, _trigger);
+      } catch (e) {
+        console.error(e);
+      }
     };
 
     const _unregister = () => {

@@ -47,7 +47,7 @@ class DataModel extends GraphandModel {
       defaultField: new GraphandFieldRelation({
         name: "Champ par défaut",
         model: this._client.models.DataField,
-        query: { model: model?._id },
+        query: { scope: model?.getScope() },
       }),
     };
   }
