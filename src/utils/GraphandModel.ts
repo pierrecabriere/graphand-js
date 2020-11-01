@@ -963,7 +963,7 @@ class GraphandModel {
 
     try {
       await constructor.update({ ...payload, query: { _id } }, false, clearCache);
-      this.assign(constructor.get(_id, false).raw);
+      this.assign(constructor.get(_id, false).raw, false);
 
       if (hooks) {
         await constructor.afterUpdate?.call(constructor, constructor.get(_id), null, payload);
