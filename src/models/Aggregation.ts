@@ -3,6 +3,7 @@ import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
 import GraphandModel from "../utils/GraphandModel";
 import GraphandModelPromise from "../utils/GraphandModelPromise";
+import AggregationExecutor from "../utils/AggregationExecutor";
 
 class Aggregation extends GraphandModel {
   static apiIdentifier = "aggregations";
@@ -19,16 +20,19 @@ class Aggregation extends GraphandModel {
     };
   }
 
-  async execute(vars) {
-    const { constructor } = Object.getPrototypeOf(this);
-    const { data } = await constructor._client._axios.post(`/aggregations/${this._id}/execute`, vars);
-    return data;
+  execute(vars) {
+    return new AggregationExecutor(this, { vars });
+  }
+
+  static execute(_id, vars) {
+    return new AggregationExecutor(undefined, { _id, vars, client: this._client });
   }
 
   static modelPromise(promise: GraphandModelPromise) {
+    const _this = this;
     // @ts-ignore
-    promise.execute = function () {
-      return promise.then((res) => res.execute(...arguments));
+    promise.execute = function (vars) {
+      return new AggregationExecutor(undefined, { _id: promise._id, vars, client: _this._client });
     };
   }
 }

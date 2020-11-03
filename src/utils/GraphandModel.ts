@@ -673,26 +673,13 @@ class GraphandModel {
             if (res.data?.data?.rows) {
               res.data.data.rows = res.data.data.rows.map((item) => new this(item));
 
-              const rows = res.data.data.rows || [res.data.data];
+              let rows = res.data.data.rows || [res.data.data];
+              rows = rows.map((item) => (item?._id && this.get(item._id, false)) || item)
 
-              const list = this.getList();
-              const modified =
-                list.length !== rows.length ||
-                !!rows.find((item) => {
-                  return !list.find((_item) => isEqual(_item, item));
-                });
-
-              if (modified) {
-                this.upsertStore(rows);
-              }
+              this.upsertStore(rows);
             } else if (res.data.data && typeof res.data.data === "object") {
-              res.data.data = new this(res.data.data);
-              const list = this.getList();
-              const modified = !isEqual(list[0], res.data.data);
-
-              if (modified) {
-                this.upsertStore(res.data.data);
-              }
+              const item = this.get(res.data.data._id, false) || new this(res.data.data);
+                this.upsertStore(item);
             }
 
             if (cacheKey) {
@@ -937,7 +924,7 @@ class GraphandModel {
     this.listSubject.next(this.getList());
   }
 
-  async update(payload: any, preStore = true, hooks = true, clearCache = false) {
+  async update(payload: any, preStore = false, hooks = true, clearCache = false) {
     const constructor = this.constructor as any;
 
     if (constructor.translatable && !payload.translations && constructor._client._project?.locales?.length) {

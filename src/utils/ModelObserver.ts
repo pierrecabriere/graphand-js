@@ -88,11 +88,6 @@ class ModelObserver {
         if (prevListLength !== listLength || !isEqual(prevList, list)) {
           prevList = list;
           refresh();
-          // if (prevListLength !== listLength) {
-          //   refresh();
-          // } else {
-          //   triggerSubscription();
-          // }
         }
       };
 

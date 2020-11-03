@@ -32,6 +32,7 @@ import GraphandModelListPromise from "./utils/GraphandModelListPromise";
 import GraphandModelPromise from "./utils/GraphandModelPromise";
 import GraphandValidationError from "./utils/GraphandValidationError";
 import ModelObserver from "./utils/ModelObserver";
+import AggregationExecutor from "./utils/AggregationExecutor";
 
 export default Client;
 export {
@@ -69,4 +70,5 @@ export {
   GraphandModelListPromise,
   GraphandHistoryModel,
   GraphandFieldScope,
+  AggregationExecutor,
 };
