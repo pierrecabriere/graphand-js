@@ -19,7 +19,7 @@ class GraphandValidationError extends GraphandError {
   argument: any;
 
   constructor(message = "Unknown validation error", field: string, code: string = GraphandValidationErrorCodes.UNKNOWN) {
-    super(message, code, 500);
+    super(message, code, 400);
 
     Object.assign(this, { field });
   }
