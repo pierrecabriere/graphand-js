@@ -1,9 +1,9 @@
+import AggregationExecutor from "../utils/AggregationExecutor";
 import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
 import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
 import GraphandModel from "../utils/GraphandModel";
 import GraphandModelPromise from "../utils/GraphandModelPromise";
-import AggregationExecutor from "../utils/AggregationExecutor";
 
 class Aggregation extends GraphandModel {
   static apiIdentifier = "aggregations";

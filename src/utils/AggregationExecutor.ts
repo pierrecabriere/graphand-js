@@ -13,6 +13,15 @@ class AggregationExecutor {
   reject;
 
   static cache = {};
+  static timeouts = {};
+
+  static clearCache(cacheKey) {
+    if (cacheKey) {
+      delete this.cache[cacheKey];
+    } else {
+      this.cache = {};
+    }
+  }
 
   constructor(aggregation: Aggregation, options: { _id?: string; vars?: any; client?: Client }) {
     this._id = options._id || aggregation._id;
@@ -21,14 +30,23 @@ class AggregationExecutor {
     this.run();
   }
 
-  cache() {
+  cache(timeout: number) {
+    const { constructor } = Object.getPrototypeOf(this);
+    const cacheKey = this.getCacheKey();
+
     if (this.res !== undefined) {
-      const cacheKey = this.getCacheKey();
-      const { constructor } = Object.getPrototypeOf(this);
       constructor.cache[cacheKey] = this.res;
     } else {
       this.cached = true;
       this.run();
+    }
+
+    if (timeout) {
+      if (constructor.timeouts[cacheKey]) {
+        constructor.timeouts[cacheKey].clearTimeout();
+      }
+
+      constructor.timeouts[cacheKey] = setTimeout(() => constructor.clearCache(cacheKey));
     }
 
     return this;
