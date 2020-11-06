@@ -5,12 +5,10 @@ class AggregationExecutor {
   _id: string;
   vars;
   timeout;
-  cached = false;
+  cacheKey;
   promise;
   client: Client;
   res;
-  resolve;
-  reject;
 
   static cache = {};
   static timeouts = {};
@@ -18,6 +16,10 @@ class AggregationExecutor {
   static clearCache(cacheKey) {
     if (cacheKey) {
       delete this.cache[cacheKey];
+      if (this.timeouts[cacheKey]) {
+        this.timeouts[cacheKey].clearTimeout();
+        delete this.timeouts[cacheKey];
+      }
     } else {
       this.cache = {};
     }
@@ -32,12 +34,11 @@ class AggregationExecutor {
 
   cache(cacheKey: string, timeout: number) {
     const { constructor } = Object.getPrototypeOf(this);
-    cacheKey = cacheKey || this.getCacheKey();
+    this.cacheKey = cacheKey || this.getCacheKey();
 
     if (this.res !== undefined) {
       constructor.cache[cacheKey] = this.res;
     } else {
-      this.cached = true;
       this.run();
     }
 
@@ -97,18 +98,16 @@ class AggregationExecutor {
 
   async execute() {
     const { constructor } = Object.getPrototypeOf(this);
-    let cacheKey;
-    if (this.cached) {
-      cacheKey = this.getCacheKey();
-      if (constructor.cache[cacheKey]) {
-        return constructor.cache[cacheKey] || {};
+    if (this.cacheKey) {
+      if (constructor.cache[this.cacheKey]) {
+        return constructor.cache[this.cacheKey] || {};
       }
     }
 
     const { data } = await this.client._axios.post(`/aggregations/${this._id}/execute`, this.vars);
     this.res = data;
-    if (cacheKey) {
-      constructor.cache[cacheKey] = data;
+    if (this.cacheKey) {
+      constructor.cache[this.cacheKey] = data;
     }
 
     return data || {};
