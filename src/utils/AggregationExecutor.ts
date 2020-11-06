@@ -30,9 +30,9 @@ class AggregationExecutor {
     this.run();
   }
 
-  cache(timeout: number) {
+  cache(cacheKey: string, timeout: number) {
     const { constructor } = Object.getPrototypeOf(this);
-    const cacheKey = this.getCacheKey();
+    cacheKey = cacheKey || this.getCacheKey();
 
     if (this.res !== undefined) {
       constructor.cache[cacheKey] = this.res;
