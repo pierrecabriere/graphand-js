@@ -497,7 +497,8 @@ class GraphandModel {
         Object.keys(query.query).length === 1 &&
         Object.keys(query.query._id).length === 1
       ) {
-        const list = query.query._id.$in.map((_id) => this.get(_id, false));
+        const ids = Array.isArray(query.query._id.$in) ? query.query._id.$in : [query.query._id.$in];
+        const list = ids.map((_id) => this.get(_id, false));
         if (list.every((i) => i)) {
           // @ts-ignore
           return new GraphandModelListPromise(
@@ -674,12 +675,12 @@ class GraphandModel {
               res.data.data.rows = res.data.data.rows.map((item) => new this(item));
 
               let rows = res.data.data.rows || [res.data.data];
-              rows = rows.map((item) => (item?._id && this.get(item._id, false)) || item)
+              rows = rows.map((item) => (item?._id && this.get(item._id, false)) || item);
 
               this.upsertStore(rows);
             } else if (res.data.data && typeof res.data.data === "object") {
               const item = this.get(res.data.data._id, false) || new this(res.data.data);
-                this.upsertStore(item);
+              this.upsertStore(item);
             }
 
             if (cacheKey) {
