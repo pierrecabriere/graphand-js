@@ -391,7 +391,7 @@ class Client {
     };
 
     const _register = async (unregister = true) => {
-      if (!this.socket) {
+      if (!this.socket || !this.socket.id) {
         return;
       }
 
