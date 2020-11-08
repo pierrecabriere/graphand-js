@@ -10,9 +10,11 @@ import Project from "./models/Project";
 import Restriction from "./models/Restriction";
 import Role from "./models/Role";
 import Rule from "./models/Rule";
+import Sockethook from "./models/Sockethook";
 import Token from "./models/Token";
 import User from "./models/User";
 import Webhook from "./models/Webhook";
+import AggregationExecutor from "./utils/AggregationExecutor";
 import GraphandFieldBoolean from "./utils/fields/GraphandFieldBoolean";
 import GraphandFieldColor from "./utils/fields/GraphandFieldColor";
 import GraphandFieldDate from "./utils/fields/GraphandFieldDate";
@@ -32,7 +34,6 @@ import GraphandModelListPromise from "./utils/GraphandModelListPromise";
 import GraphandModelPromise from "./utils/GraphandModelPromise";
 import GraphandValidationError from "./utils/GraphandValidationError";
 import ModelObserver from "./utils/ModelObserver";
-import AggregationExecutor from "./utils/AggregationExecutor";
 
 export default Client;
 export {
@@ -62,6 +63,7 @@ export {
   Token as GraphandModelToken,
   Webhook as GraphandModelWebhook,
   Aggregation as GraphandModelAggregation,
+  Sockethook as GraphandSockethook,
   GraphandError,
   GraphandValidationError,
   ModelObserver,
