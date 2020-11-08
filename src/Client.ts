@@ -13,6 +13,7 @@ import Project from "./models/Project";
 import Restriction from "./models/Restriction";
 import Role from "./models/Role";
 import Rule from "./models/Rule";
+import Sockethook from "./models/Sockethook";
 import Token from "./models/Token";
 import User from "./models/User";
 import Webhook from "./models/Webhook";
@@ -269,6 +270,9 @@ class Client {
           break;
         case "Webhook":
           this._models[sKey] = this.extendsModel(Webhook);
+          break;
+        case "Sockethook":
+          this._models[sKey] = this.extendsModel(Sockethook);
           break;
         default:
           const DataClass = this.extendsModel(Data);
