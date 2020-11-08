@@ -381,9 +381,9 @@ class Client {
           } else {
             res = await new Promise((resolve, reject) => trigger(payload, resolve, reject));
           }
-          this.socket.emit(`/hooks/${_hook.id}/end`, res ?? payload);
+          this.socket.emit(`/hooks/${_hook._id}/end`, res ?? payload);
         } catch (e) {
-          this.socket.emit(`/hooks/${_hook.id}/error`, e);
+          this.socket.emit(`/hooks/${_hook._id}/error`, e);
         }
       } else {
         trigger(payload);
@@ -404,7 +404,7 @@ class Client {
           data: { data: hook },
         } = await this._axios.post("/sockethooks", {
           socket: this.socket.id,
-          on: model.baseUrl,
+          path: model.baseUrl,
           await: _await,
           identifier,
           action,
@@ -413,7 +413,7 @@ class Client {
         });
         _hook = hook;
 
-        this.socket.on(`/hooks/${_hook.id}`, _trigger);
+        this.socket.on(`/hooks/${_hook._id}`, _trigger);
       } catch (e) {
         console.error(e);
       }
@@ -424,7 +424,7 @@ class Client {
         return;
       }
 
-      this.socket.off(`/hooks/${_hook.id}`);
+      this.socket.off(`/hooks/${_hook._id}`);
     };
 
     this.socketSubject.asObservable().subscribe(() => _register());
