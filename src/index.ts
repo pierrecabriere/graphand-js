@@ -63,7 +63,7 @@ export {
   Token as GraphandModelToken,
   Webhook as GraphandModelWebhook,
   Aggregation as GraphandModelAggregation,
-  Sockethook as GraphandSockethook,
+  Sockethook as GraphandModelSockethook,
   GraphandError,
   GraphandValidationError,
   ModelObserver,
