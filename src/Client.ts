@@ -373,7 +373,7 @@ class Client {
     _await = _await === undefined ? trigger.constructor.name === "AsyncFunction" : _await;
 
     if (!identifier) {
-      identifier = md5(trigger.toString() + action + model.baseUrl);
+      identifier = md5(trigger.toString() + action + model.scope);
     }
 
     const _trigger = async (payload) => {
@@ -404,9 +404,7 @@ class Client {
       }
 
       try {
-        const {
-          data: { data: hook },
-        } = await this._axios.post("/sockethooks", {
+        _hook = await this.models.Sockethook.create({
           socket: this.socket.id,
           scope: model.scope,
           await: _await,
@@ -415,7 +413,6 @@ class Client {
           timeout,
           priority,
         });
-        _hook = hook;
 
         this.socket.on(`/hooks/${_hook._id}`, _trigger);
       } catch (e) {
