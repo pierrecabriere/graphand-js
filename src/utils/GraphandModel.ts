@@ -311,7 +311,7 @@ class GraphandModel {
       return;
     }
 
-    this._client.socket.on(this.baseUrl, async ({ action, payload }) => {
+    this._client.socket.on("/models/" + this.scope, async ({ action, payload }) => {
       if (!payload) {
         return;
       }
