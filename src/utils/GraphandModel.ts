@@ -334,6 +334,10 @@ class GraphandModel {
     });
   }
 
+  static async handleUpdateCall(payload) {
+    return await this._client._axios.patch(this.baseUrl, payload);
+  }
+
   static on(event, trigger, options) {
     this._client.registerHook({ model: this, action: event, trigger, ...options });
   }
@@ -893,7 +897,7 @@ class GraphandModel {
     }
 
     try {
-      const { data } = await this._client._axios.patch(this.baseUrl, payload);
+      const { data } = await this.handleUpdateCall(payload);
 
       if (!data) {
         return;

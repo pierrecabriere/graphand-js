@@ -373,7 +373,7 @@ class Client {
     _await = _await === undefined ? trigger.constructor.name === "AsyncFunction" : _await;
 
     if (!identifier) {
-      identifier = md5(trigger.toString());
+      identifier = md5(trigger.toString() + action + model.baseUrl);
     }
 
     const _trigger = async (payload) => {

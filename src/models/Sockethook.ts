@@ -13,11 +13,55 @@ class Sockethook extends GraphandModel {
     action: new GraphandFieldText({ name: "Action" }),
     path: new GraphandFieldText({ name: "Chemin" }),
     await: new GraphandFieldBoolean({ name: "Attendre le retour" }),
+    blocked: new GraphandFieldBoolean({ name: "Bloqué" }),
     timeout: new GraphandFieldNumber({ name: "Timeout" }),
     priority: new GraphandFieldNumber({ name: "Priorité", defaultValue: 0 }),
+    revision: new GraphandFieldNumber({ name: "Revision", defaultValue: 1 }),
     socket: new GraphandFieldText({ name: "Identifiant du socket" }),
     ip: new GraphandFieldText({ name: "Adresse ip" }),
   };
+
+  identifier;
+  action;
+  path;
+  await;
+  blocked;
+  timeout;
+  priority;
+  revision;
+  socket;
+  ip;
+
+  static async handleUpdateCall(payload) {
+    if (payload.query._id) {
+      if (payload.set.blocked === true) {
+        return await this._client._axios.post(`${this.baseUrl}/${payload.query._id}/block`);
+      } else if (payload.set.blocked === false) {
+        return await this._client._axios.post(`${this.baseUrl}/${payload.query._id}/unblock`);
+      }
+    }
+
+    return super.handleUpdateCall.apply(this, arguments);
+  }
+
+  async ping() {
+    const { constructor } = Object.getPrototypeOf(this);
+    try {
+      const startTime = new Date().getTime();
+      await constructor._client._axios.post(`${constructor.baseUrl}/ping`, { ip: this.ip, identifier: this.identifier });
+      return new Date().getTime() - startTime;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  block() {
+    return this.update({ set: { blocked: true } }, true);
+  }
+
+  unblock() {
+    return this.update({ set: { blocked: false } }, true);
+  }
 }
 
 export default Sockethook;
