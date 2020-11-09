@@ -1,5 +1,6 @@
 import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
+import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
 import GraphandModel from "../utils/GraphandModel";
 
@@ -11,7 +12,7 @@ class Sockethook extends GraphandModel {
   static baseFields = {
     identifier: new GraphandFieldText({ name: "Identifiant unique" }),
     action: new GraphandFieldText({ name: "Action" }),
-    path: new GraphandFieldText({ name: "Chemin" }),
+    scope: new GraphandFieldScope({ name: "Scope" }),
     await: new GraphandFieldBoolean({ name: "Attendre le retour" }),
     blocked: new GraphandFieldBoolean({ name: "Bloqué" }),
     timeout: new GraphandFieldNumber({ name: "Timeout" }),
@@ -23,7 +24,7 @@ class Sockethook extends GraphandModel {
 
   identifier;
   action;
-  path;
+  scope;
   await;
   blocked;
   timeout;
