@@ -408,7 +408,7 @@ class Client {
           data: { data: hook },
         } = await this._axios.post("/sockethooks", {
           socket: this.socket.id,
-          path: model.baseUrl,
+          scope: model.scope,
           await: _await,
           identifier,
           action,
