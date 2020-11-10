@@ -145,7 +145,7 @@ class GraphandModel {
     return this;
   }
 
-  assign(values, upsert = true) {
+  assign(values, upsert = true, updatedAtNow = true) {
     const { constructor } = Object.getPrototypeOf(this);
     const fields = constructor.fields;
     const _this = this.clone();
@@ -153,7 +153,9 @@ class GraphandModel {
       _this.set(key, values[key], fields);
     });
 
-    _this.updatedAt = new Date();
+    if (updatedAtNow) {
+      this.updatedAt = new Date();
+    }
 
     if (upsert) {
       constructor.upsertStore(_this);
@@ -163,7 +165,9 @@ class GraphandModel {
       this.set(key, values[key], fields);
     });
 
-    this.updatedAt = _this.updatedAt;
+    if (updatedAtNow) {
+      this.updatedAt = _this.updatedAt;
+    }
 
     return this;
   }
