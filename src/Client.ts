@@ -37,6 +37,11 @@ const defaultOptions = {
   cdn: "cdn.graphand.io",
   ssl: true,
   unloadTimeout: 100,
+  project: undefined,
+  accessToken: undefined,
+  locale: undefined,
+  translations: undefined,
+  socket: undefined,
 };
 
 class Client {
@@ -59,7 +64,7 @@ class Client {
   GraphandModel = GraphandModel.setClient(this);
 
   constructor(options: ClientOptions) {
-    this._options = Object.assign({}, defaultOptions, options);
+    this._options = { ...defaultOptions, ...options };
 
     this._axios = axios.create({
       baseURL: `${this._options.ssl ? "https" : "http"}://${this._options.project ? `${this._options.project}.` : ""}${this._options.host}`,
@@ -71,6 +76,7 @@ class Client {
       config.headers = config.headers || {};
       if (!config.headers.Authorization) {
         const token = this.accessToken || this._options.accessToken;
+        console.log(token);
         config.headers.Authorization = `Bearer ${token}`;
       }
 
@@ -220,9 +226,11 @@ class Client {
   }
 
   extendsModel(Class) {
+    const client = this;
     return class extends Class {
       static cache = {};
       static _listSubject;
+      static _client = client;
     };
   }
 
