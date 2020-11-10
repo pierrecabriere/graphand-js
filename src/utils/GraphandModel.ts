@@ -827,6 +827,8 @@ class GraphandModel {
   }
 
   static async create(payload, hooks = true) {
+    await this.init();
+
     const config = { params: {} };
 
     if (payload.locale && this._client._project && payload.locale === this._client._project.defaultLocale) {
@@ -882,6 +884,8 @@ class GraphandModel {
   }
 
   static async update(payload, hooks = true, clearCache = true) {
+    await this.init();
+
     if (this.translatable && !payload.translations && this._client._project?.locales?.length) {
       payload.translations = this._client._project?.locales;
     }
@@ -976,6 +980,8 @@ class GraphandModel {
   }
 
   static async delete(payload: GraphandModel | any, hooks = true) {
+    await this.init();
+
     const args = { payload };
 
     if (hooks) {
@@ -1068,6 +1074,12 @@ class GraphandModel {
         return `${cdnUri}/public/${constructor._client._options.project}/${oTarget.raw[sKey]}`;
       },
     });
+  }
+
+  toJSON() {
+    const { constructor } = Object.getPrototypeOf(this);
+    const fields = constructor.getFields(this);
+    return Object.keys(fields).reduce((final, slug) => Object.assign(final, { [slug]: this.get(slug, true) }), {});
   }
 
   // hooks
