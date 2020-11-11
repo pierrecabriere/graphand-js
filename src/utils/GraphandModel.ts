@@ -996,7 +996,8 @@ class GraphandModel {
 
     if (payload instanceof GraphandModel) {
       try {
-        await this._client._axios.delete(`${this.baseUrl}/${payload._id}`);
+        const { _id } = payload;
+        await this._client._axios.delete(`${this.baseUrl}/${_id}`);
 
         this.clearCache();
         this.deleteFromStore(payload);
@@ -1005,9 +1006,7 @@ class GraphandModel {
           await this.afterDelete?.call(this, args);
         }
       } catch (e) {
-        if (!this.socketSubscription) {
-          this.upsertStore(payload);
-        }
+        this.upsertStore(payload);
 
         if (hooks) {
           await this.afterDelete?.call(this, args, e);

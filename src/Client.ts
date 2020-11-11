@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import md5 from "md5";
-import { Subject } from "rxjs";
+import { BehaviorSubject, Subject } from "rxjs";
 import io from "socket.io-client";
 import Account from "./models/Account";
 import Aggregation from "./models/Aggregation";
@@ -55,8 +55,7 @@ class Client {
   _project: any;
   _models: any = {};
   socketSubject = new Subject();
-  mediasQueue = [];
-  mediasQueueSubject = new Subject();
+  mediasQueueSubject = new BehaviorSubject([]);
   loadTimeout;
   prevLoading;
   initialized = false;
@@ -76,7 +75,6 @@ class Client {
       config.headers = config.headers || {};
       if (!config.headers.Authorization) {
         const token = this.accessToken || this._options.accessToken;
-        console.log(token);
         config.headers.Authorization = `Bearer ${token}`;
       }
 
@@ -161,22 +159,18 @@ class Client {
     });
 
     this.socket.on("/uploads", ({ action, payload }) => {
-      const queueItem = this.mediasQueue.find((item) => (payload.socket ? item.socket === payload.socket : item.name === payload.name));
+      const queueItem = this.mediasQueueSubject.value.find((item) => (payload.socket ? item.socket === payload.socket : item.name === payload.name));
       payload.status = action;
       switch (action) {
         case "start":
-          this.mediasQueue.push(payload);
+          this.mediasQueueSubject.next(this.mediasQueueSubject.value.concat(payload));
           break;
-        case "progress":
         case "end":
         case "aborted":
-          if (queueItem) {
-            Object.assign(queueItem, payload);
-          } else {
-            this.mediasQueue.push(payload);
-          }
+        case "progress":
+          this.mediasQueueSubject.next(this.mediasQueueSubject.value.map((item) => (item === queueItem ? Object.assign(item, payload) : item)));
+          break;
       }
-      this.mediasQueueSubject.next({ action, payload });
     });
   }
 

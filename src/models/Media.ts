@@ -27,6 +27,8 @@ class Media extends GraphandModel {
       args.payload.file = args.payload.file.getAsFile();
     }
 
+    args.config.params.socket = Math.random().toString(36).substr(2, 9);
+
     const formData = new FormData();
     Object.keys(args.payload).forEach((key) => {
       if (args.payload[key] !== undefined) {
