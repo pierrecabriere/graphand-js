@@ -36,7 +36,6 @@ class DataField extends GraphandModel {
           { value: "Number", label: "Nombre" },
           { value: "Boolean", label: "Booléen" },
           { value: "Relation", label: "Relation" },
-          { value: "RelationReverse", label: "Relation inverse" },
           { value: "Color", label: "Couleur" },
           { value: "Date", label: "Date" },
           { value: "JSON", label: "JSON" },
@@ -136,15 +135,6 @@ class DataField extends GraphandModel {
           multiple: configuration.multiple,
           model: constructor._client.getModelByScope(configuration.ref),
           query: configuration.initialQuery,
-        });
-      case "RelationReverse":
-        const field = await constructor._client.models.DataField.get(configuration.targetField);
-
-        return new GraphandFieldRelation({
-          name,
-          multiple: true,
-          model: constructor._client.getModelByScope(field.scope),
-          query: {},
         });
       case "Date":
         return new GraphandFieldDate({ name, time: configuration.time });

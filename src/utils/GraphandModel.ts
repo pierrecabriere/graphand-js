@@ -148,17 +148,17 @@ class GraphandModel {
   assign(values, upsert = true, updatedAtNow = true) {
     const { constructor } = Object.getPrototypeOf(this);
     const fields = constructor.fields;
-    const _this = this.clone();
+    const clone = this.clone();
     Object.keys(values).forEach((key) => {
-      _this.set(key, values[key], fields);
+      clone.set(key, values[key], fields);
     });
 
     if (updatedAtNow) {
-      this.updatedAt = new Date();
+      clone.updatedAt = new Date();
     }
 
     if (upsert) {
-      constructor.upsertStore(_this);
+      constructor.upsertStore(clone);
     }
 
     Object.keys(values).forEach((key) => {
@@ -166,7 +166,7 @@ class GraphandModel {
     });
 
     if (updatedAtNow) {
-      this.updatedAt = _this.updatedAt;
+      this.updatedAt = clone.updatedAt;
     }
 
     return this;
@@ -444,7 +444,10 @@ class GraphandModel {
         return list.concat(item);
       }
 
-      if (force || !isEqual({ ...found._data, updatedAt: undefined }, { ...item._data, updatedAt: undefined })) {
+      if (
+        force ||
+        (item.updatedAt > found.updatedAt && !isEqual({ ...found._data, updatedAt: undefined }, { ...item._data, updatedAt: undefined }))
+      ) {
         refresh = true;
         return list.map((i) => (i === found ? item : i));
       }

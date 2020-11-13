@@ -30,6 +30,7 @@ interface ClientOptions {
   socket: boolean;
   ssl: boolean;
   unloadTimeout: number;
+  init: boolean;
 }
 
 const defaultOptions = {
@@ -42,6 +43,7 @@ const defaultOptions = {
   locale: undefined,
   translations: undefined,
   socket: undefined,
+  init: true,
 };
 
 class Client {
@@ -102,7 +104,7 @@ class Client {
       this.accessToken = this._options.accessToken;
     }
 
-    if (this._options.project) {
+    if (this._options.project && this._options.init) {
       this.init();
     }
 
@@ -389,6 +391,7 @@ class Client {
           }
           this.socket.emit(`/hooks/${_hook._id}/end`, res ?? payload);
         } catch (e) {
+          console.log("error", e);
           this.socket.emit(`/hooks/${_hook._id}/error`, e);
         }
       } else {
@@ -418,7 +421,7 @@ class Client {
 
         this.socket.on(`/hooks/${_hook._id}`, _trigger);
       } catch (e) {
-        console.error(e);
+        console.error("error2", e);
       }
     };
 
