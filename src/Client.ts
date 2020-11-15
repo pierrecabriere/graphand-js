@@ -230,88 +230,99 @@ class Client {
     };
   }
 
-  getModel(sKey) {
-    if (!this._models[sKey]) {
-      switch (sKey) {
-        case "Aggregation":
-          this._models[sKey] = this.extendsModel(Aggregation);
-          break;
-        case "Module":
-          this._models[sKey] = this.extendsModel(Module);
-          break;
-        case "User":
-          this._models[sKey] = this.extendsModel(User);
-          break;
-        case "Project":
-          this._models[sKey] = this.extendsModel(Project);
-          break;
-        case "Data":
-          this._models[sKey] = this.extendsModel(Data);
-          break;
-        case "Account":
-          this._models[sKey] = this.extendsModel(Account);
-          break;
-        case "Role":
-          this._models[sKey] = this.extendsModel(Role);
-          break;
-        case "Rule":
-          this._models[sKey] = this.extendsModel(Rule);
-          break;
-        case "Restriction":
-          this._models[sKey] = this.extendsModel(Restriction);
-          break;
-        case "DataField":
-          this._models[sKey] = this.extendsModel(DataField);
-          break;
-        case "DataModel":
-          this._models[sKey] = this.extendsModel(DataModel);
-          break;
-        case "Media":
-          this._models[sKey] = this.extendsModel(Media);
-          break;
-        case "Token":
-          this._models[sKey] = this.extendsModel(Token);
-          break;
-        case "Webhook":
-          this._models[sKey] = this.extendsModel(Webhook);
-          break;
-        case "Sockethook":
-          this._models[sKey] = this.extendsModel(Sockethook);
-          break;
-        default:
-          const DataClass = this.extendsModel(Data);
-          const Model = class extends DataClass {
-            static apiIdentifier = sKey;
-          };
-          this.registerModel(Model);
-          this._models[sKey] = Model;
-          break;
-      }
-    }
-
-    return this._models[sKey];
-  }
-
-  get models(): any {
-    return new Proxy(this, {
-      get: function (oTarget, sKey) {
-        return oTarget.getModel(sKey);
-      },
-    });
-  }
-
-  getModelByIdentifier(identifier: string) {
-    const Model = Object.values(this._models).find((m: any) => m.apiIdentifier === identifier);
-    return Model || this.models[identifier];
-  }
-
-  getModelByScope(scope: string) {
+  getModel(scope) {
     try {
       const { 1: slug } = scope.match(/^Data:(.+?)$/);
       return this.getModelByIdentifier(slug);
     } catch (e) {
-      return this.getModel(scope);
+      return this.getGraphandModel(scope);
     }
+  }
+
+  getGraphandModel(scope) {
+    if (!this._models[scope]) {
+      switch (scope) {
+        case "Aggregation":
+          this._models[scope] = this.extendsModel(Aggregation);
+          break;
+        case "Module":
+          this._models[scope] = this.extendsModel(Module);
+          break;
+        case "User":
+          this._models[scope] = this.extendsModel(User);
+          break;
+        case "Project":
+          this._models[scope] = this.extendsModel(Project);
+          break;
+        case "Data":
+          this._models[scope] = this.extendsModel(Data);
+          break;
+        case "Account":
+          this._models[scope] = this.extendsModel(Account);
+          break;
+        case "Role":
+          this._models[scope] = this.extendsModel(Role);
+          break;
+        case "Rule":
+          this._models[scope] = this.extendsModel(Rule);
+          break;
+        case "Restriction":
+          this._models[scope] = this.extendsModel(Restriction);
+          break;
+        case "DataField":
+          this._models[scope] = this.extendsModel(DataField);
+          break;
+        case "DataModel":
+          this._models[scope] = this.extendsModel(DataModel);
+          break;
+        case "Media":
+          this._models[scope] = this.extendsModel(Media);
+          break;
+        case "Token":
+          this._models[scope] = this.extendsModel(Token);
+          break;
+        case "Webhook":
+          this._models[scope] = this.extendsModel(Webhook);
+          break;
+        case "Sockethook":
+          this._models[scope] = this.extendsModel(Sockethook);
+          break;
+        default:
+          break;
+      }
+    }
+
+    return this._models[scope];
+  }
+
+  getModelByIdentifier(identifier: string) {
+    const Model = Object.values(this._models).find((m: any) => m.apiIdentifier === identifier);
+    if (Model) {
+      return Model;
+    }
+
+    if (!this._models[identifier]) {
+      const DataClass = this.extendsModel(Data);
+      const Model = class extends DataClass {
+        static apiIdentifier = identifier;
+      };
+      this.registerModel(Model);
+      this._models[identifier] = Model;
+    }
+
+    return this._models[identifier];
+  }
+
+  getModelByScope(scope: string) {
+    return this.getModel(scope);
+  }
+
+  get models(): any {
+    return new Proxy(this, {
+      get: function (oTarget, sKey: string) {
+        return oTarget.getGraphandModel(sKey) || oTarget.getModelByIdentifier(sKey);
+      },
+    });
   }
 
   get accessToken() {

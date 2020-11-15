@@ -145,13 +145,15 @@ class GraphandModel {
     return this;
   }
 
-  assign(values, upsert = true, updatedAtNow = true) {
+  assign(values?, upsert = true, updatedAtNow = true) {
     const { constructor } = Object.getPrototypeOf(this);
     const fields = constructor.fields;
     const clone = this.clone();
-    Object.keys(values).forEach((key) => {
-      clone.set(key, values[key], fields);
-    });
+    if (values) {
+      Object.keys(values).forEach((key) => {
+        clone.set(key, values[key], fields);
+      });
+    }
 
     if (updatedAtNow) {
       clone.updatedAt = new Date();
@@ -161,9 +163,11 @@ class GraphandModel {
       constructor.upsertStore(clone);
     }
 
-    Object.keys(values).forEach((key) => {
-      this.set(key, values[key], fields);
-    });
+    if (values) {
+      Object.keys(values).forEach((key) => {
+        this.set(key, values[key], fields);
+      });
+    }
 
     if (updatedAtNow) {
       this.updatedAt = clone.updatedAt;
@@ -444,10 +448,7 @@ class GraphandModel {
         return list.concat(item);
       }
 
-      if (
-        force ||
-        (item.updatedAt > found.updatedAt && !isEqual({ ...found._data, updatedAt: undefined }, { ...item._data, updatedAt: undefined }))
-      ) {
+      if (force || item.updatedAt > found.updatedAt) {
         refresh = true;
         return list.map((i) => (i === found ? item : i));
       }
@@ -890,8 +891,22 @@ class GraphandModel {
     return item;
   }
 
-  static async update(payload, hooks = true, clearCache = true) {
+  static refreshList() {
+    this.listSubject.next(this.getList());
+  }
+
+  static async update(payload, options) {
     await this.init();
+
+    options = Object.assign(
+      {},
+      {
+        hooks: true,
+        clearCache: true,
+        upsert: true,
+      },
+      options,
+    );
 
     if (this.translatable && !payload.translations && this._client._project?.locales?.length) {
       payload.translations = this._client._project?.locales;
@@ -901,7 +916,7 @@ class GraphandModel {
       delete payload.locale;
     }
 
-    if (hooks) {
+    if (options.hooks) {
       if ((await this.beforeUpdate?.call(this, payload)) === false) {
         return;
       }
@@ -916,19 +931,21 @@ class GraphandModel {
 
       const items = data.data.rows.map((item) => new this(item));
 
-      const upserted = this.upsertStore(items);
+      if (options.upsert) {
+        const upserted = this.upsertStore(items);
 
-      if (upserted) {
-        this.clearCache();
+        if (upserted) {
+          this.clearCache();
 
-        items.forEach((item) => item.HistoryModel.clearCache());
+          items.forEach((item) => item.HistoryModel.clearCache());
+        }
       }
 
-      if (hooks) {
+      if (options.hooks) {
         await this.afterUpdate?.call(this, items, null, payload);
       }
     } catch (e) {
-      if (hooks) {
+      if (options.hooks) {
         await this.afterUpdate?.call(this, null, e, payload);
       }
 
@@ -936,11 +953,22 @@ class GraphandModel {
     }
   }
 
-  static refreshList() {
-    this.listSubject.next(this.getList());
-  }
+  async update(payload: any, options) {
+    options = Object.assign(
+      {},
+      {
+        hooks: true,
+        clearCache: false,
+        preStore: false,
+        upsert: undefined,
+        revertOnError: undefined,
+      },
+      options,
+    );
 
-  async update(payload: any, preStore = false, hooks = true, clearCache = false) {
+    options.upsert = options.upsert ?? !options.preStore;
+    options.revertOnError = options.revertOnError ?? options.preStore;
+
     const constructor = this.constructor as any;
 
     if (constructor.translatable && !payload.translations && constructor._client._project?.locales?.length) {
@@ -951,7 +979,7 @@ class GraphandModel {
       payload.locale = this._locale;
     }
 
-    if (hooks) {
+    if (options.hooks) {
       if ((await constructor.beforeUpdate?.call(constructor, payload, this)) === false) {
         return;
       }
@@ -960,23 +988,26 @@ class GraphandModel {
     const _id = payload._id || this._id;
     let backup = this.clone();
 
-    if (preStore) {
+    if (options.preStore) {
       this.assign(payload.set);
     }
 
     try {
-      await constructor.update({ ...payload, query: { _id } }, false, clearCache);
+      await constructor.update({ ...payload, query: { _id } }, { clearCache: options.clearCache, upsert: options.upsert, hooks: false });
+      if (!options.upsert) {
+        this.assign();
+      }
       this.assign(constructor.get(_id, false).raw, false);
 
-      if (hooks) {
+      if (options.hooks) {
         await constructor.afterUpdate?.call(constructor, constructor.get(_id), null, payload);
       }
     } catch (e) {
-      if (preStore) {
+      if (options.revertOnError) {
         constructor.upsertStore(backup);
       }
 
-      if (hooks) {
+      if (options.hooks) {
         await constructor.afterUpdate?.call(constructor, null, e, payload);
       }
 

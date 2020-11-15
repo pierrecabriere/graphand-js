@@ -2,19 +2,31 @@ import isEqual from "fast-deep-equal";
 import { Observable } from "rxjs";
 
 class GraphandModelList extends Array implements Array<any> {
-  model;
+  _model;
   count;
-  query;
+  _query;
 
   constructor({ model, count, query }: { model?; count?; query? }, ...elements) {
     super(...elements);
-    this.model = model;
+    this._model = model;
     this.count = count || 0;
-    this.query = query;
+    this._query = query;
   }
 
   get _ids() {
     return this.map((item) => item?._id).filter((_id) => _id);
+  }
+
+  get model() {
+    return this._model || this[0]?.constructor;
+  }
+
+  get query() {
+    return this._query || { query: { _id: { $in: this._ids } } };
+  }
+
+  get promise() {
+    return this.model.getList(this.query);
   }
 
   subscribe() {
