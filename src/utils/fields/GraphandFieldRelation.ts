@@ -13,7 +13,7 @@ class GraphandFieldRelation extends GraphandField {
 
   getter(value, from: GraphandModel) {
     if (!value) {
-      return null;
+      return;
     }
 
     if (this.multiple) {

@@ -27,7 +27,8 @@ interface ClientOptions {
   translations: string[];
   host?: string;
   cdn?: string;
-  socket: boolean;
+  realtime: boolean;
+  autoSync: boolean;
   ssl: boolean;
   unloadTimeout: number;
   init: boolean;
@@ -42,7 +43,8 @@ const defaultOptions = {
   accessToken: undefined,
   locale: undefined,
   translations: undefined,
-  socket: undefined,
+  realtime: undefined,
+  autoSync: false,
   init: true,
 };
 
@@ -108,7 +110,7 @@ class Client {
       this.init();
     }
 
-    if (this._options.socket) {
+    if (this._options.realtime) {
       this.connectSocket();
     }
   }
@@ -336,7 +338,7 @@ class Client {
   setAccessToken(token: string) {
     this._accessToken = token;
 
-    if (this._options.socket) {
+    if (this._options.realtime) {
       if (token) {
         this.connectSocket();
       } else {
@@ -349,8 +351,9 @@ class Client {
     return this._socket;
   }
 
-  async registerModel(Model: any, options: { sync?: boolean; name?: string; force?: boolean } = {}) {
-    options.sync = options.sync ?? this._options.socket;
+  async registerModel(Model: any, options?) {
+    options = Object.assign({}, { sync: undefined, name: undefined, force: false }, options);
+    options.sync = options.sync ?? this._options.autoSync;
 
     if (options.force) {
       Model.__registered = false;
