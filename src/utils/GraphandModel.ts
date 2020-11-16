@@ -503,13 +503,8 @@ class GraphandModel {
     if (query) {
       const _this = this;
 
-      if (
-        query.query?._id?.$in &&
-        Object.keys(query).length === 1 &&
-        Object.keys(query.query).length === 1 &&
-        Object.keys(query.query._id).length === 1
-      ) {
-        const ids = Array.isArray(query.query._id.$in) ? query.query._id.$in : [query.query._id.$in];
+      if (query.map && Object.keys(query).length === 1) {
+        const ids = Array.isArray(query.map) ? query.map : [query.map];
         const list = ids.map((_id) => this.get(_id, false));
         if (list.every((i) => i)) {
           // @ts-ignore
@@ -611,7 +606,7 @@ class GraphandModel {
                 _resolve(ids);
               }, 100);
             });
-            const res = await this.query({ query: { _id: { $in: ids } } });
+            const res = await this.query({ map: ids });
             resolve(res);
           })
             .then(async (res: any) => {
@@ -733,6 +728,16 @@ class GraphandModel {
 
     if (this.translatable && !query.translations && this._client._project?.locales?.length) {
       query.translations = this._client._project?.locales;
+    }
+
+    if (
+      this._client._options.autoMapQueries &&
+      query.query?._id?.$in &&
+      Object.keys(query.query).length === 1 &&
+      Object.keys(query.query._id).length === 1
+    ) {
+      query.map = query.query._id.$in;
+      delete query.query;
     }
 
     if (hooks) {

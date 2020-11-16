@@ -17,8 +17,8 @@ class GraphandModelListPromise extends GraphandModelPromise {
   }
 
   get _ids() {
-    if (this.query?.query?._id?.$in) {
-      return Array.isArray(this.query.query._id.$in) ? this.query.query._id.$in : [this.query.query._id.$in] ;
+    if (this.query?.map) {
+      return Array.isArray(this.query.map) ? this.query.map : [this.query.map];
     }
 
     return [];
@@ -37,7 +37,7 @@ class GraphandModelListPromise extends GraphandModelPromise {
     const observable = new Observable((subscriber) => {
       let prevRaw = null;
       _this.model.listSubject.subscribe(async () => {
-        const query = _this.query || { query: { _id: { $in: _this._ids } } };
+        const query = _this.query || { map: _this._ids };
         const list = await _this.model.getList(query);
         const raw = list.map((item) => item?.raw);
         if (!isEqual(raw, prevRaw)) {

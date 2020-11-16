@@ -18,7 +18,7 @@ class GraphandFieldRelation extends GraphandField {
 
     if (this.multiple) {
       const ids = typeof value === "string" ? [value] : value.map((v) => v._id || v) || [];
-      return this.model.getList({ query: { _id: { $in: ids } } });
+      return this.model.getList({ map: ids });
     } else {
       const id = typeof value === "string" ? value : value._id;
       return this.model.get(id);

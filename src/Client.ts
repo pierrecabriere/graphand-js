@@ -29,6 +29,7 @@ interface ClientOptions {
   cdn?: string;
   realtime: boolean;
   autoSync: boolean;
+  autoMapQueries: boolean;
   ssl: boolean;
   unloadTimeout: number;
   init: boolean;
@@ -44,6 +45,7 @@ const defaultOptions = {
   locale: undefined,
   translations: undefined,
   realtime: undefined,
+  autoMapQueries: false,
   autoSync: false,
   init: true,
 };
