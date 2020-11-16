@@ -503,8 +503,8 @@ class GraphandModel {
     if (query) {
       const _this = this;
 
-      if (query.map && Object.keys(query).length === 1) {
-        const ids = Array.isArray(query.map) ? query.map : [query.map];
+      if (query.ids && Object.keys(query).length === 1) {
+        const ids = Array.isArray(query.ids) ? query.ids : [query.ids];
         const list = ids.map((_id) => this.get(_id, false));
         if (list.every((i) => i)) {
           // @ts-ignore
@@ -606,7 +606,7 @@ class GraphandModel {
                 _resolve(ids);
               }, 100);
             });
-            const res = await this.query({ map: ids });
+            const res = await this.query({ ids: ids });
             resolve(res);
           })
             .then(async (res: any) => {
@@ -736,8 +736,8 @@ class GraphandModel {
       Object.keys(query.query).length === 1 &&
       Object.keys(query.query._id).length === 1
     ) {
-      query.map = query.query._id.$in;
-      delete query.query;
+      query.ids = query.query._id.$in;
+      // delete query.query;
     }
 
     if (hooks) {
@@ -1062,9 +1062,9 @@ class GraphandModel {
           await this.afterDelete?.call(this, args);
         }
 
-        if (!this.socketSubscription) {
-          this.clearCache();
-        }
+        // if (!this.socketSubscription) {
+        this.clearCache();
+        // }
       } catch (e) {
         if (hooks) {
           await this.afterDelete?.call(this, args, e);

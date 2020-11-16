@@ -13,7 +13,7 @@ class GraphandModelList extends Array implements Array<any> {
     this._query = query;
   }
 
-  get _ids() {
+  get ids() {
     return this.map((item) => item?._id).filter((_id) => _id);
   }
 
@@ -22,7 +22,7 @@ class GraphandModelList extends Array implements Array<any> {
   }
 
   get query() {
-    return this._query || { map: this._ids };
+    return this._query || { ids: this.ids };
   }
 
   get promise() {
@@ -38,7 +38,7 @@ class GraphandModelList extends Array implements Array<any> {
     const observable = new Observable((subscriber) => {
       let prevRaw = _this.map((item) => item.raw);
       _this.model.listSubject.subscribe(async () => {
-        const query = _this.query || { map: _this._ids };
+        const query = _this.query || { ids: _this.ids };
         const list = await _this.model.getList(query);
         const raw = list.map((item) => item?.raw);
         if (!isEqual(raw, prevRaw)) {

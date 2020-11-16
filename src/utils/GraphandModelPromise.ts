@@ -1,14 +1,14 @@
-// @ts-ignore
-class GraphandModelPromise extends Promise {
+class GraphandModelPromise {
   _id;
+  executor: Function;
   cached;
   model;
-  then: Function;
   update: Function;
   delete: Function;
+  promise?;
 
   constructor(executor, model, _id?, cached = false) {
-    super(executor);
+    this.executor = executor;
     this.cached = cached;
     if (_id) {
       this._id = _id;
@@ -30,6 +30,10 @@ class GraphandModelPromise extends Promise {
     }
   }
 
+  get id() {
+    return this._id;
+  }
+
   translate(locale) {
     if (locale) {
       return this.then((res) => res?.translate?.call(res, locale));
@@ -44,6 +48,21 @@ class GraphandModelPromise extends Promise {
 
   toString() {
     return this._id;
+  }
+
+  toPromise() {
+    // @ts-ignore
+    return new Promise(this.executor);
+  }
+
+  then(..._arguments) {
+    this.promise = this.promise || this.toPromise();
+    return this.promise.then.apply(this.promise, _arguments);
+  }
+
+  catch(..._arguments) {
+    this.promise = this.promise || this.toPromise();
+    return this.promise.catch.apply(this.promise, _arguments);
   }
 }
 

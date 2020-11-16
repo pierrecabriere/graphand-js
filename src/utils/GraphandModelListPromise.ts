@@ -6,8 +6,6 @@ class GraphandModelListPromise extends GraphandModelPromise {
   model;
   query;
 
-  then: Function;
-
   private _subscription;
 
   constructor(executor, model, query) {
@@ -17,15 +15,23 @@ class GraphandModelListPromise extends GraphandModelPromise {
   }
 
   get _ids() {
-    if (this.query?.map) {
-      return Array.isArray(this.query.map) ? this.query.map : [this.query.map];
+    if (this.query?.ids) {
+      return Array.isArray(this.query.ids) ? this.query.ids : [this.query.ids];
+    }
+
+    return [];
+  }
+
+  get ids() {
+    if (this.query?.ids) {
+      return Array.isArray(this.query.ids) ? this.query.ids : [this.query.ids];
     }
 
     return [];
   }
 
   get length() {
-    return this._ids?.length || null;
+    return this.ids?.length || null;
   }
 
   subscribe() {
@@ -37,7 +43,7 @@ class GraphandModelListPromise extends GraphandModelPromise {
     const observable = new Observable((subscriber) => {
       let prevRaw = null;
       _this.model.listSubject.subscribe(async () => {
-        const query = _this.query || { map: _this._ids };
+        const query = _this.query || { ids: _this.ids };
         const list = await _this.model.getList(query);
         const raw = list.map((item) => item?.raw);
         if (!isEqual(raw, prevRaw)) {
