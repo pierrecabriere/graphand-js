@@ -23,9 +23,10 @@ class GraphandModel {
   static queryUrl;
   static prevListLength?: number;
   static socketSubscription = null;
-  private static _fields = {};
-  private static _fieldsSubscription;
-  private static initialized = false;
+  static _fieldsIds = null;
+  static _fields = {};
+  static _fieldsSubscription;
+  static initialized = false;
   static baseFields = {};
   static _fieldsObserver;
   static __registered = false;
@@ -219,7 +220,7 @@ class GraphandModel {
   }
 
   static getFields(item?) {
-    if (this.queryFields && !this._fieldsSubscription) {
+    if (this.queryFields && !this._fieldsSubscription && this._client._options.subscribeFields) {
       this._fieldsSubscription = this.fieldsObserver?.list.subscribe(async (list) => {
         const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
         const fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
@@ -299,7 +300,8 @@ class GraphandModel {
         await this._client.init();
 
         if (this.queryFields && this._client._options.project) {
-          const list = await this._client.models.DataField.getList({ query: { scope: this.scope } });
+          const query = this._fieldsIds || { query: { scope: this.scope } };
+          const list = await this._client.models.DataField.getList(query);
           const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
           this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
         }
@@ -499,9 +501,7 @@ class GraphandModel {
     return false;
   }
 
-  static prepareQuery(_query?: any) {
-    let query = Object.assign({}, _query);
-
+  static prepareQuery(query?: any) {
     const _decodeInstances = (object) => {
       if (object instanceof GraphandModelList || object instanceof GraphandModelListPromise) {
         object = object.ids;
@@ -515,8 +515,6 @@ class GraphandModel {
     };
 
     _decodeInstances(query);
-
-    return query;
   }
 
   static getList() {
@@ -527,7 +525,7 @@ class GraphandModel {
     if (query) {
       const _this = this;
 
-      query = this.prepareQuery(query);
+      this.prepareQuery(query);
 
       if (Array.isArray(query)) {
         query = { ids: query };

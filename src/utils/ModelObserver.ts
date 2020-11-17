@@ -39,7 +39,7 @@ class ModelObserver {
     populate: undefined,
     sort: undefined,
     pageSize: undefined,
-    page: 1,
+    page: undefined,
     translations: undefined,
     query: undefined,
     ids: undefined,

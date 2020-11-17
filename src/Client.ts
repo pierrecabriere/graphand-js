@@ -32,6 +32,7 @@ interface ClientOptions {
   autoMapQueries: boolean;
   ssl: boolean;
   unloadTimeout: number;
+  subscribeFields: boolean;
   init: boolean;
 }
 
@@ -47,6 +48,7 @@ const defaultOptions = {
   realtime: undefined,
   autoMapQueries: false,
   autoSync: false,
+  subscribeFields: false,
   init: true,
 };
 
@@ -56,14 +58,10 @@ class Client {
   private _socket: any;
   private _accessToken: string;
   private _locale: string;
-  private _loadStack = [];
-  worker = new Subject();
   _project: any;
   _models: any = {};
   socketSubject = new Subject();
   mediasQueueSubject = new BehaviorSubject([]);
-  loadTimeout;
-  prevLoading;
   initialized = false;
 
   GraphandModel = GraphandModel.setClient(this);
@@ -117,40 +115,6 @@ class Client {
     }
   }
 
-  isLoading(key?) {
-    return key ? this._loadStack.includes(key) : !!this._loadStack.length;
-  }
-
-  get loading() {
-    return this.isLoading();
-  }
-
-  private load(key) {
-    if (this._loadStack.includes(key)) {
-      return null;
-    }
-
-    this._loadStack.push(key);
-    this.loadTimeout && clearTimeout(this.loadTimeout);
-    this.loadTimeout = setTimeout(() => {
-      if (this.loading !== this.prevLoading) {
-        this.prevLoading = this.loading;
-        this.worker.next(this.loading);
-      }
-    });
-  }
-
-  private unload(key) {
-    this._loadStack.splice(this._loadStack.indexOf(key), 1);
-    this.loadTimeout && clearTimeout(this.loadTimeout);
-    this.loadTimeout = setTimeout(() => {
-      if (this.loading !== this.prevLoading) {
-        this.prevLoading = this.loading;
-        this.worker.next(this.loading);
-      }
-    }, this._options.unloadTimeout);
-  }
-
   connectSocket() {
     if (this._socket) {
       this.disconnectSocket(false);
@@ -194,8 +158,6 @@ class Client {
       return;
     }
 
-    this.load("project");
-
     if (this._options.project) {
       try {
         const { data } = await this._axios.get("/projects/current");
@@ -212,8 +174,6 @@ class Client {
       this._project = null;
     }
 
-    this.unload("project");
-
     this.initialized = true;
   }
 
@@ -228,22 +188,22 @@ class Client {
   extendsModel(Class) {
     const client = this;
     return class extends Class {
+      static _client = client;
       static cache = {};
       static _listSubject;
-      static _client = client;
     };
   }
 
-  getModel(scope) {
+  getModel(scope, options?) {
     try {
       const { 1: slug } = scope.match(/^Data:(.+?)$/);
-      return this.getModelByIdentifier(slug);
+      return this.getModelByIdentifier(slug, options);
     } catch (e) {
-      return this.getGraphandModel(scope);
+      return this.getGraphandModel(scope, options);
     }
   }
 
-  getGraphandModel(scope) {
+  getGraphandModel(scope, options?) {
     if (!this._models[scope]) {
       switch (scope) {
         case "Aggregation":
@@ -294,12 +254,14 @@ class Client {
         default:
           break;
       }
+
+      this.registerModel(this._models[scope], options);
     }
 
     return this._models[scope];
   }
 
-  getModelByIdentifier(identifier: string) {
+  getModelByIdentifier(identifier: string, options?) {
     const Model = Object.values(this._models).find((m: any) => m.apiIdentifier === identifier);
     if (Model) {
       return Model;
@@ -310,8 +272,8 @@ class Client {
       const Model = class extends DataClass {
         static apiIdentifier = identifier;
       };
-      this.registerModel(Model);
       this._models[identifier] = Model;
+      this.registerModel(this._models[identifier], options);
     }
 
     return this._models[identifier];
@@ -358,7 +320,11 @@ class Client {
       return;
     }
 
-    options = Object.assign({}, { sync: undefined, name: undefined, force: false }, options);
+    if (typeof Model === "string") {
+      return this.getModel(Model, options);
+    }
+
+    options = Object.assign({}, { sync: undefined, name: undefined, force: false, fieldsIds: undefined }, options);
     options.sync = options.sync ?? this._options.autoSync;
 
     if (options.force) {
@@ -370,13 +336,14 @@ class Client {
       return;
     }
 
+    Model.__registered = true;
+
     const _name = options.name || Model.scope;
 
     if (_name) {
       this._models[_name] = Model;
     }
 
-    this.load(Model);
     try {
       Model.setClient(this);
 
@@ -384,12 +351,26 @@ class Client {
         Model.sync();
       }
 
+      if (options.fieldsIds) {
+        Model._fieldsIds = options.fieldsIds;
+      }
+
       await Model.init();
-      Model.__registered = true;
-      // Model.clearCache();
     } catch (e) {}
-    this.unload(Model);
-    return Model;
+
+    return this._models[_name];
+  }
+
+  async registerModels(modelsList, options?) {
+    const scopes = modelsList.map((model) => (typeof model === "string" ? model : model.scope));
+    const fields = await this.models.DataField.getList({ query: { scope: { $in: scopes } } });
+    await Promise.all(
+      modelsList.map(async (model) => {
+        const scope = typeof model === "string" ? model : model.scope;
+        const fieldsIds = fields.filter((f) => f.scope === scope).map((f) => f._id);
+        await this.registerModel(model, { ...options, fieldsIds });
+      }),
+    );
   }
 
   registerHook({ identifier, model, action, trigger, _await, timeout, priority }) {

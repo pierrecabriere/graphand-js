@@ -50,6 +50,11 @@ class GraphandModelListPromise extends GraphandModelPromise {
     return clone;
   }
 
+  map(mapFn: Function) {
+    // @ts-ignore
+    return new Array(...this).map(mapFn);
+  }
+
   toJSON() {
     return this.ids;
   }
