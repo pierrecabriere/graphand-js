@@ -30,10 +30,6 @@ class GraphandModelPromise {
     }
   }
 
-  get id() {
-    return this._id;
-  }
-
   translate(locale) {
     if (locale) {
       return this.then((res) => res?.translate?.call(res, locale));

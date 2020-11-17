@@ -354,6 +354,10 @@ class Client {
   }
 
   async registerModel(Model: any, options?) {
+    if (!Model) {
+      return;
+    }
+
     options = Object.assign({}, { sync: undefined, name: undefined, force: false }, options);
     options.sync = options.sync ?? this._options.autoSync;
 
@@ -424,21 +428,17 @@ class Client {
         _unregister();
       }
 
-      try {
-        _hook = await this.models.Sockethook.create({
-          socket: this.socket.id,
-          scope: model.scope,
-          await: _await,
-          identifier,
-          action,
-          timeout,
-          priority,
-        });
+      _hook = await this.models.Sockethook.create({
+        socket: this.socket.id,
+        scope: model.scope,
+        await: _await,
+        identifier,
+        action,
+        timeout,
+        priority,
+      });
 
-        this.socket.on(`/hooks/${_hook._id}`, _trigger);
-      } catch (e) {
-        console.error("error2", e);
-      }
+      this.socket.on(`/hooks/${_hook._id}`, _trigger);
     };
 
     const _unregister = () => {

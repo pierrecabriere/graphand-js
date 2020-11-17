@@ -499,11 +499,47 @@ class GraphandModel {
     return false;
   }
 
-  static getList(query?: any, ...params): GraphandModelList {
+  static prepareQuery(_query?: any) {
+    let query = Object.assign({}, _query);
+
+    const _decodeInstances = (object) => {
+      if (object instanceof GraphandModelList || object instanceof GraphandModelListPromise) {
+        object = object.ids;
+      } else if (object instanceof GraphandModel || object instanceof GraphandModelPromise) {
+        object = [object._id];
+      } else if (object && typeof object === "object") {
+        Object.keys(object).forEach((key) => {
+          _decodeInstances(object[key]);
+        });
+      }
+    };
+
+    _decodeInstances(query);
+
+    return query;
+  }
+
+  static getList() {
+    return this.query.apply(this, arguments);
+  }
+
+  static query(query?: any, ...params): GraphandModelList {
     if (query) {
       const _this = this;
 
-      if (query.ids && Object.keys(query).length === 1) {
+      query = this.prepareQuery(query);
+
+      if (Array.isArray(query)) {
+        query = { ids: query };
+      }
+
+      if (query.ids) {
+        if (query.ids instanceof GraphandModelList || query.ids instanceof GraphandModelListPromise) {
+          query.ids = query.ids.ids;
+        } else if (query.ids instanceof GraphandModel || query.ids instanceof GraphandModelPromise) {
+          query.ids = [query.ids._id];
+        }
+      } else if (query.ids && Object.keys(query).length === 1) {
         const ids = Array.isArray(query.ids) ? query.ids : [query.ids];
         const list = ids.map((_id) => this.get(_id, false));
         if (list.every((i) => i)) {
@@ -523,7 +559,7 @@ class GraphandModel {
       return new GraphandModelListPromise(
         async (resolve) => {
           try {
-            const res = await _this.query(query, ...params);
+            const res = await _this.fetch(query, ...params);
             const {
               data: {
                 data: { rows, count },
@@ -549,7 +585,7 @@ class GraphandModel {
     if (!_id) {
       return new GraphandModelPromise(async (resolve, reject) => {
         try {
-          const res = await this.query(null, undefined, true);
+          const res = await this.fetch(null, undefined, true);
           resolve(this.get((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id, false));
         } catch (e) {
           reject(e);
@@ -565,7 +601,7 @@ class GraphandModel {
         async (resolve, reject) => {
           let res;
           try {
-            res = await this.query(_id, undefined, true);
+            res = await this.fetch(_id, undefined, true);
             const id = res.data.data && ((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id);
             if (id) {
               resolve(this.get(id, false));
@@ -606,7 +642,7 @@ class GraphandModel {
                 _resolve(ids);
               }, 100);
             });
-            const res = await this.query({ ids: ids });
+            const res = await this.fetch({ ids: ids });
             resolve(res);
           })
             .then(async (res: any) => {
@@ -715,7 +751,7 @@ class GraphandModel {
     return request;
   }
 
-  static async query(query: any, cache = true, waitRequest = false, callback?: Function, hooks = true) {
+  static async fetch(query: any, cache = true, waitRequest = false, callback?: Function, hooks = true) {
     await this.init();
 
     let _id;

@@ -1,5 +1,7 @@
 import isEqual from "fast-deep-equal";
 import { Observable } from "rxjs";
+import GraphandModel from "./GraphandModel";
+import GraphandModelList from "./GraphandModelList";
 import GraphandModelPromise from "./GraphandModelPromise";
 
 class GraphandModelListPromise extends GraphandModelPromise {
@@ -11,7 +13,7 @@ class GraphandModelListPromise extends GraphandModelPromise {
   constructor(executor, model, query) {
     super(executor, model);
     this.model = model;
-    this.query = query;
+    this.query = query || {};
   }
 
   get _ids() {
@@ -32,6 +34,28 @@ class GraphandModelListPromise extends GraphandModelPromise {
 
   get length() {
     return this.ids?.length || null;
+  }
+
+  concat(concatWith?: GraphandModel | GraphandModelPromise | GraphandModelList | GraphandModelListPromise) {
+    const clone = new GraphandModelListPromise(this.executor, this.model, this.query);
+
+    const concatIds = "ids" in concatWith ? concatWith.ids : [concatWith._id];
+    clone.query.ids = clone.query.ids || [];
+    clone.query.ids = clone.query.ids.concat(concatIds);
+
+    if ("query" in concatWith && concatWith.query.query) {
+      clone.query.query = clone.query.query ? { $or: [clone.query.query, concatWith.query.query] } : concatWith.query.query;
+    }
+
+    return clone;
+  }
+
+  toJSON() {
+    return this.ids;
+  }
+
+  toString() {
+    return JSON.stringify(this.toJSON());
   }
 
   subscribe() {
