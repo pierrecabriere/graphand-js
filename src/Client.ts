@@ -56,6 +56,7 @@ class Client {
   _options: ClientOptions;
   _axios: AxiosInstance;
   private _socket: any;
+  private _initPromise;
   private _accessToken: string;
   private _locale: string;
   _project: any;
@@ -117,18 +118,14 @@ class Client {
 
   connectSocket() {
     if (this._socket) {
-      this.disconnectSocket(false);
+      return this._socket;
     }
 
-    this._socket = io.connect(`${this._options.ssl ? "https" : "http"}://${this._options.host}`, {
+    this._socket = io(`${this._options.ssl ? "https" : "http"}://${this._options.host}`, {
       query: { token: this.accessToken, projectId: this._options.project },
     });
 
-    this.socket.on("connect", () => {
-      this.socketSubject.next(this.socket);
-    });
-
-    this.socket.on("/uploads", ({ action, payload }) => {
+    this._socket.on("/uploads", ({ action, payload }) => {
       const queueItem = this.mediasQueueSubject.value.find((item) => (payload.socket ? item.socket === payload.socket : item.name === payload.name));
       payload.status = action;
       switch (action) {
@@ -142,10 +139,18 @@ class Client {
           break;
       }
     });
+
+    this._socket.on("connect", () => this.socketSubject.next(this._socket));
+
+    return this._socket;
   }
 
   disconnectSocket(triggerSubject = true) {
-    this._socket?.disconnect();
+    if (!this.socket) {
+      return;
+    }
+
+    this.socket.disconnect();
     delete this._socket;
 
     if (triggerSubject) {
@@ -154,27 +159,29 @@ class Client {
   }
 
   async init() {
-    if (this.initialized) {
-      return;
-    }
-
-    if (this._options.project) {
-      try {
-        const { data } = await this._axios.get("/projects/current");
-        this._project = data.data;
-        this.models.Project.upsertStore(new this.models.Project(this._project));
-        if (!this.locale) {
-          this.locale = this._options.locale || this._project.defaultLocale;
+    if (!this._initPromise) {
+      this._initPromise = new Promise(async (resolve, reject) => {
+        if (this._options.project) {
+          try {
+            const { data } = await this._axios.get("/projects/current");
+            this._project = data.data;
+            this.models.Project.upsertStore(new this.models.Project(this._project));
+            if (!this.locale) {
+              this.locale = this._options.locale || this._project.defaultLocale;
+            }
+          } catch (e) {
+            console.error(e);
+            reject("Impossible to init project");
+          }
+        } else {
+          this._project = null;
         }
-      } catch (e) {
-        console.error(e);
-        throw new Error("Impossible to init project");
-      }
-    } else {
-      this._project = null;
+
+        resolve();
+      });
     }
 
-    this.initialized = true;
+    return this._initPromise;
   }
 
   reinit() {
@@ -376,7 +383,9 @@ class Client {
     );
   }
 
-  registerHook({ identifier, model, action, trigger, _await, timeout, priority }) {
+  async registerHook({ identifier, model, action, trigger, _await, timeout, priority }) {
+    await this.init();
+
     let _hook;
     _await = _await === undefined ? trigger.constructor.name === "AsyncFunction" : _await;
 
@@ -403,17 +412,15 @@ class Client {
       }
     };
 
-    const _register = async (unregister = true) => {
-      if (!this.socket || !this.socket.id) {
+    const _register = async (socket) => {
+      if (!socket) {
         return;
       }
 
-      if (unregister) {
-        _unregister();
-      }
+      _unregister();
 
       _hook = await this.models.Sockethook.create({
-        socket: this.socket.id,
+        socket: socket?.id,
         scope: model.scope,
         await: _await,
         identifier,
@@ -422,7 +429,7 @@ class Client {
         priority,
       });
 
-      this.socket.on(`/hooks/${_hook._id}`, _trigger);
+      socket.on(`/hooks/${_hook._id}`, _trigger);
     };
 
     const _unregister = () => {
@@ -430,16 +437,11 @@ class Client {
         return;
       }
 
-      this.socket.off(`/hooks/${_hook._id}`);
+      this._socket.off(`/hooks/${_hook._id}`);
     };
 
-    this.socketSubject.asObservable().subscribe(() => _register());
-
-    if (!this.socket) {
-      this.connectSocket();
-    } else {
-      _register(false);
-    }
+    this.socketSubject.subscribe((socket) => _register(socket));
+    this.connectSocket();
   }
 
   getModelFromScope(scope: string, wait = false) {

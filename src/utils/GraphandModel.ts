@@ -320,12 +320,13 @@ class GraphandModel {
     return this._initPromise;
   }
 
-  private static setupSocket() {
-    if (!this._client?.socket) {
+  private static setupSocket(socket?) {
+    socket = socket || this._client?.socket;
+    if (!socket) {
       return;
     }
 
-    this._client.socket.on("/models/" + this.scope, async ({ action, payload }) => {
+    socket.on("/models/" + this.scope, async ({ action, payload }) => {
       if (!payload) {
         return;
       }
@@ -359,7 +360,7 @@ class GraphandModel {
   static sync() {
     if (this._client && !this.socketSubscription) {
       this.setupSocket();
-      this.socketSubscription = this._client.socketSubject.asObservable().subscribe(() => this.setupSocket());
+      this.socketSubscription = this._client.socketSubject.subscribe((socket) => this.setupSocket(socket));
     }
 
     return this;
