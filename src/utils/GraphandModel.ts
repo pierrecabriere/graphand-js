@@ -291,6 +291,10 @@ class GraphandModel {
   }
 
   static async init() {
+    if (!this.__registered) {
+      throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
+    }
+
     if (this.initialized) {
       return;
     }

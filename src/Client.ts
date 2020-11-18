@@ -191,6 +191,8 @@ class Client {
       static _client = client;
       static cache = {};
       static _listSubject;
+      static __registered = false;
+      static __initialized = false;
     };
   }
 
@@ -261,7 +263,7 @@ class Client {
     return this._models[scope];
   }
 
-  getModelByIdentifier(identifier: string, options?) {
+  getModelByIdentifier(identifier: string, options = {}) {
     const Model = Object.values(this._models).find((m: any) => m.apiIdentifier === identifier);
     if (Model) {
       return Model;
@@ -272,8 +274,7 @@ class Client {
       const Model = class extends DataClass {
         static apiIdentifier = identifier;
       };
-      this._models[identifier] = Model;
-      this.registerModel(this._models[identifier], options);
+      this.registerModel(Model, { ...options, name: identifier });
     }
 
     return this._models[identifier];
@@ -327,9 +328,13 @@ class Client {
     options = Object.assign({}, { sync: undefined, name: undefined, force: false, fieldsIds: undefined }, options);
     options.sync = options.sync ?? this._options.autoSync;
 
+    const _name = options.name || Model.scope;
+
     if (options.force) {
       Model.__registered = false;
       Model.clearCache();
+    } else if (this._models[_name]?.__registered) {
+      return;
     }
 
     if (Model.__registered) {
@@ -337,8 +342,6 @@ class Client {
     }
 
     Model.__registered = true;
-
-    const _name = options.name || Model.scope;
 
     if (_name) {
       this._models[_name] = Model;
