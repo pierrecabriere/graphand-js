@@ -19,6 +19,7 @@ import User from "./models/User";
 import Webhook from "./models/Webhook";
 import GraphandError from "./utils/GraphandError";
 import GraphandModel from "./utils/GraphandModel";
+import ModelObserver from "./utils/ModelObserver";
 
 interface ClientOptions {
   project: string;
@@ -184,14 +185,6 @@ class Client {
     return this._initPromise;
   }
 
-  reinit() {
-    this.initialized = false;
-
-    Object.values(this._models).forEach((model: any) => model.clearCache(undefined, true));
-
-    return this.init();
-  }
-
   extendsModel(Class) {
     const client = this;
     return class extends Class {
@@ -339,7 +332,6 @@ class Client {
 
     if (options.force) {
       Model.__registered = false;
-      Model.clearCache();
     } else if (this._models[_name]?.__registered) {
       return;
     }
@@ -537,6 +529,20 @@ class Client {
 
   plugin(plugin: Function, options: any = {}) {
     plugin(this, options);
+  }
+
+  async close() {
+    this.initialized = false;
+    this.socketSubject.complete();
+    Object.values(this._models).forEach((model: any) => {
+      model.clearCache(undefined, true);
+      model._listSubject?.complete();
+      model.socketTriggerSubject.complete();
+      model._fieldsObserver?.unobserve();
+      model.observers.forEach((observer: ModelObserver) => {
+        observer.unobserve();
+      });
+    });
   }
 }
 

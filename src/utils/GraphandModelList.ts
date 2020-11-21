@@ -29,6 +29,7 @@ class GraphandModelList extends Array implements Array<any> {
     return this.model.getList(this.query);
   }
 
+  // @ts-ignore
   map(mapFn: Function) {
     // @ts-ignore
     return new Array(...this).map(mapFn);

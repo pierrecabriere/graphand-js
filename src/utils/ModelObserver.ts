@@ -160,6 +160,8 @@ class ModelObserver {
     setTimeout(() => {
       this.reload();
     }, 100);
+
+    this.model.observers.add(this);
   }
 
   unobserve() {
@@ -167,6 +169,8 @@ class ModelObserver {
     this.loading?.complete();
     this.count?.complete();
     this.mainSubscription?.unsubscribe();
+
+    this.model.observers.delete(this);
   }
 
   reload(clearCache = false) {

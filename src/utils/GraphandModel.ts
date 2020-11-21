@@ -31,6 +31,7 @@ class GraphandModel {
   static _fieldsObserver;
   static __registered = false;
   static __initialized = false;
+  static observers = new Set([]);
   private _data: any = {};
   private _locale;
   _fields = {};
