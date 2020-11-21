@@ -57,11 +57,11 @@ class Sockethook extends GraphandModel {
   }
 
   block() {
-    return this.update({ set: { blocked: true } }, true);
+    return this.update({ set: { blocked: true } }, { preStore: true });
   }
 
   unblock() {
-    return this.update({ set: { blocked: false } }, true);
+    return this.update({ set: { blocked: false } }, { preStore: true });
   }
 }
 
