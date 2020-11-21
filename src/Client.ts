@@ -385,7 +385,7 @@ class Client {
     }
 
     const _trigger = async (payload, hook) => {
-      console.log(`trigger ${hook.identifier(hook._id)} with payload ${JSON.stringify(payload)}`);
+      console.log(`trigger ${hook.identifier} (${hook._id}) with payload ${JSON.stringify(payload)}`);
       if (hook.await) {
         let res;
         try {
@@ -419,7 +419,7 @@ class Client {
         priority,
       });
 
-      console.log(`register hook ${hook.identifier} on socket ${socket?.id}`);
+      console.log(`register hook ${hook.identifier} (${hook._id}) on socket ${socket?.id}`);
 
       socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
     };
