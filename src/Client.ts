@@ -378,15 +378,15 @@ class Client {
   async registerHook({ identifier, model, action, trigger, _await, timeout, priority }) {
     await this.init();
 
-    let _hook;
     _await = _await === undefined ? trigger.constructor.name === "AsyncFunction" : _await;
 
     if (!identifier) {
       identifier = md5(trigger.toString() + action + model.scope);
     }
 
-    const _trigger = async (payload) => {
-      if (_hook.await) {
+    const _trigger = async (payload, hook) => {
+      console.log(`trigger ${hook.identifier(hook._id)} with payload ${JSON.stringify(payload)}`);
+      if (hook.await) {
         let res;
         try {
           if (trigger.constructor.name === "AsyncFunction") {
@@ -394,10 +394,10 @@ class Client {
           } else {
             res = await new Promise((resolve, reject) => trigger(payload, resolve, reject));
           }
-          this.socket.emit(`/hooks/${_hook._id}/end`, res ?? payload);
+          this.socket.emit(`/hooks/${hook._id}/end`, res ?? payload);
         } catch (e) {
           console.log("error", e);
-          this.socket.emit(`/hooks/${_hook._id}/error`, e);
+          this.socket.emit(`/hooks/${hook._id}/error`, e);
         }
       } else {
         trigger(payload);
@@ -409,9 +409,7 @@ class Client {
         return;
       }
 
-      _unregister();
-
-      _hook = await this.models.Sockethook.create({
+      const hook = await this.models.Sockethook.create({
         socket: socket?.id,
         scope: model.scope,
         await: _await,
@@ -421,15 +419,9 @@ class Client {
         priority,
       });
 
-      socket.on(`/hooks/${_hook._id}`, _trigger);
-    };
+      console.log(`register hook ${hook.identifier} on socket ${socket?.id}`);
 
-    const _unregister = () => {
-      if (!_hook) {
-        return;
-      }
-
-      this._socket.off(`/hooks/${_hook._id}`);
+      socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
     };
 
     this.socketSubject.subscribe((socket) => _register(socket));
