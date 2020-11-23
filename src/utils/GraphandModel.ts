@@ -15,33 +15,36 @@ class GraphandModel {
   createdAt: Date;
   updatedAt: Date;
 
-  static _client: Client;
-  static cache = {};
+  // configurable fields
   static translatable = true;
   static queryFields = false;
-  static baseUrl;
-  static queryUrl;
-  static prevListLength?: number;
+  static baseUrl = null;
+  static queryUrl = null;
+  static baseFields = {};
+  static scope = null;
+
+  // private fields
+  static _client: Client;
+  static cache = {};
   static socketSubscription = null;
   static _fieldsIds = null;
   static _fields = {};
-  static _fieldsSubscription;
+  static _fieldsSubscription = null;
   static initialized = false;
-  static baseFields = {};
-  static _fieldsObserver;
+  static _fieldsObserver = null;
   static __registered = false;
   static __initialized = false;
   static observers = new Set([]);
-  private _data: any = {};
-  private _locale;
-  _fields = {};
   static defaultFields = true;
   static queryPromises = {};
-  static scope;
   static socketTriggerSubject = new Subject();
-  static _initPromise;
-  static _listSubject;
+  static _initPromise = null;
+  static _listSubject = null;
+
+  private _data: any = {};
+  private _locale = null;
   private _version = 1;
+  _fields = {};
 
   static modelPromise(promise: GraphandModelPromise) {}
 
@@ -410,7 +413,7 @@ class GraphandModel {
       .filter((field) => field instanceof GraphandFieldRelation)
       .forEach((field) => {
         // @ts-ignore
-        field.model.clearCache();
+        field.model && field.model.clearCache();
       });
   }
 
