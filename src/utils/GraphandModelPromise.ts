@@ -28,6 +28,12 @@ class GraphandModelPromise {
 
       model.modelPromise(this);
     }
+
+    Object.defineProperty(this, "executor", { enumerable: false });
+    Object.defineProperty(this, "cached", { enumerable: false });
+    Object.defineProperty(this, "model", { enumerable: false });
+    Object.defineProperty(this, "update", { enumerable: false });
+    Object.defineProperty(this, "delete", { enumerable: false });
   }
 
   translate(locale) {

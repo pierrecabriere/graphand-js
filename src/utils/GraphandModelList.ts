@@ -1,5 +1,6 @@
 import isEqual from "fast-deep-equal";
 import { Observable } from "rxjs";
+import GraphandModelListPromise from "./GraphandModelListPromise";
 
 class GraphandModelList extends Array implements Array<any> {
   _model;
@@ -11,6 +12,10 @@ class GraphandModelList extends Array implements Array<any> {
     this._model = model;
     this.count = count || 0;
     this._query = query;
+
+    Object.defineProperty(this, "_model", { enumerable: false });
+    Object.defineProperty(this, "count", { enumerable: false });
+    Object.defineProperty(this, "_query", { enumerable: false });
   }
 
   get ids() {
@@ -26,7 +31,13 @@ class GraphandModelList extends Array implements Array<any> {
   }
 
   get promise() {
-    return this.model.getList(this.query);
+    return new GraphandModelListPromise(
+      (resolve) => {
+        resolve(this);
+      },
+      this.model,
+      this.query,
+    );
   }
 
   // @ts-ignore

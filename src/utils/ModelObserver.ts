@@ -44,6 +44,7 @@ class ModelObserver {
     query: undefined,
     ids: undefined,
   };
+
   get current() {
     return this._current;
   }

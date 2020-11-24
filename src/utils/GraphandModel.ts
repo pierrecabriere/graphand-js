@@ -62,6 +62,11 @@ class GraphandModel {
     this._data = data;
     this._locale = locale;
 
+    Object.defineProperty(this, "_data", { enumerable: false });
+    Object.defineProperty(this, "_locale", { enumerable: false });
+    Object.defineProperty(this, "_version", { enumerable: false });
+    Object.defineProperty(this, "_fields", { enumerable: false });
+
     const { constructor } = Object.getPrototypeOf(this);
     if (constructor.queryFields) {
       constructor.fieldsObserver?.list.subscribe(() => {
@@ -70,6 +75,7 @@ class GraphandModel {
     }
 
     this.reloadFields();
+    this.updateFieldsProperties();
   }
 
   translate(locale) {
@@ -146,6 +152,7 @@ class GraphandModel {
     this._data[slug] = value;
 
     this._fields = constructor.getFields(this);
+    // this.updateFieldsProperties();
 
     return this;
   }
@@ -283,13 +290,31 @@ class GraphandModel {
       }
 
       Object.defineProperty(this.prototype, slug, {
-        configurable: true,
+        enumerable: true,
         get: function () {
           return this.get(slug);
         },
         set(v) {
           return this.set(slug, v);
         },
+      });
+    });
+  }
+
+  updateFieldsProperties() {
+    const { constructor } = Object.getPrototypeOf(this);
+    const fields = constructor.getFields(this);
+    Object.keys(fields).forEach((slug) => {
+      const field = fields[slug];
+      if (field.assign === false) {
+        return;
+      }
+
+      Object.defineProperty(this, slug, {
+        enumerable: true,
+        configurable: true,
+        writable: true,
+        value: this.get(slug),
       });
     });
   }
@@ -315,6 +340,11 @@ class GraphandModel {
         }
 
         this.setPrototypeFields();
+        Object.defineProperty(this, "name", {
+          get() {
+            return this.scope;
+          },
+        });
 
         this.initialized = true;
         resolve();
@@ -381,9 +411,14 @@ class GraphandModel {
     return this.reinitStore();
   }
 
+  static getCacheKey(obj) {
+    const { select, populate, sort, pageSize, page, translations, query, ids } = obj;
+    return this.baseUrl + JSON.stringify([select, populate, sort, pageSize, page, translations, query, ids]);
+  }
+
   static clearCache(query?, clean = false) {
     if (query) {
-      const cacheKey = `${this.baseUrl}:${JSON.stringify(query)}`;
+      const cacheKey = this.getCacheKey(query);
       if (this.cache[cacheKey]) {
         if (clean) {
           delete this.cache[cacheKey];
@@ -530,7 +565,7 @@ class GraphandModel {
     return this.query.apply(this, arguments);
   }
 
-  static query(query?: any, ...params): GraphandModelList {
+  static query(query?: any, ...params): GraphandModelList | GraphandModelListPromise {
     if (query) {
       const _this = this;
 
@@ -546,23 +581,16 @@ class GraphandModel {
         } else if (query.ids instanceof GraphandModel || query.ids instanceof GraphandModelPromise) {
           query.ids = [query.ids._id];
         }
-      } else if (query.ids && Object.keys(query).length === 1) {
+      }
+
+      if (query.ids && Object.keys(query).length === 1) {
         const ids = Array.isArray(query.ids) ? query.ids : [query.ids];
         const list = ids.map((_id) => this.get(_id, false));
         if (list.every((i) => i)) {
-          // @ts-ignore
-          return new GraphandModelListPromise(
-            (resolve) => {
-              const modelList = new GraphandModelList({ model: _this, count: list.length, query }, ...list);
-              resolve(modelList);
-            },
-            this,
-            query,
-          );
+          return new GraphandModelList({ model: _this, count: list.length, query }, ...list);
         }
       }
 
-      // @ts-ignore
       return new GraphandModelListPromise(
         async (resolve) => {
           try {
@@ -627,108 +655,175 @@ class GraphandModel {
     return fetch ? new GraphandModelPromise((resolve) => resolve(item), this, item._id, true) : item;
   }
 
+  static getPopulatedPaths(populateQuery) {
+    if (!populateQuery) {
+      return null;
+    }
+
+    if (typeof populateQuery === "string") {
+      return [populateQuery];
+    }
+
+    const _getPopulatedPaths = function (list, arr, prefix) {
+      for (const pop of arr) {
+        list.push(prefix + pop.path);
+        if (!Array.isArray(pop.populate)) {
+          continue;
+        }
+        _getPopulatedPaths(list, pop.populate, prefix + pop.path + ".");
+      }
+    };
+
+    const ret = [];
+    for (const path of Object.keys(populateQuery)) {
+      const pop = populateQuery[path];
+      if ("string" === typeof pop) {
+        ret.push(pop);
+        continue;
+      } else if (!Array.isArray(pop.populate)) {
+        continue;
+      }
+
+      _getPopulatedPaths(ret, pop.populate, path + ".");
+    }
+
+    return ret;
+  }
+
   static getRequest(query, hooks, cacheKey?) {
     let request;
     if (query?.query?._id && typeof query.query._id === "string" && Object.keys(query.query).length === 1) {
-      if (0 && /^(?=[a-f\d]{24}$)(\d+[a-f]|[a-f]+\d)/i.test(query.query._id)) {
-        this.queryPromises[this.baseUrl] = this.queryPromises[this.baseUrl] || Promise.resolve([]);
+      request = (cacheKey?: string) =>
+        this._client._axios
+          .get(`${this.baseUrl}/${query.query._id}`)
+          .then(async (res) => {
+            if (res.data?.data) {
+              const populatedPaths = this.getPopulatedPaths(query.populate);
+              if (populatedPaths?.length) {
+                const fields = this.getFields(res.data.data);
+                for (const path of populatedPaths) {
+                  const field = fields[path];
+                  if (!field || !(field instanceof GraphandFieldRelation)) {
+                    continue;
+                  }
 
-        this.queryPromises[this.baseUrl] = this.queryPromises[this.baseUrl].then((ids) => {
-          if (ids.includes(query.query._id)) {
-            return ids;
-          }
+                  const populatedData = _.get(res.data.data, path);
+                  if (!populatedData) {
+                    continue;
+                  }
+                  if (field.multiple && Array.isArray(populatedData)) {
+                    for (const populatedItem of populatedData) {
+                      const _item = new field.model(populatedItem);
+                      field.model.upsertStore(_item);
+                    }
 
-          return ids.concat(query.query._id);
-        });
+                    const ids = populatedData.map((i) => i._id);
+                    _.set(res.data.data, path, ids);
+                  } else {
+                    const _item = new field.model(populatedData);
+                    field.model.upsertStore(_item);
+                    _.set(res.data.data, path, populatedData._id);
+                  }
+                }
+              }
 
-        request = (cacheKey) =>
-          new Promise(async (resolve) => {
-            const ids = await new Promise((_resolve) => {
-              setTimeout(async () => {
-                const ids = await this.queryPromises[this.baseUrl];
-                _resolve(ids);
-              }, 100);
-            });
-            const res = await this.fetch({ ids: ids });
-            resolve(res);
+              const item = this.get(res.data.data._id, false) || new this(res.data?.data);
+              this.upsertStore(item);
+            }
+
+            if (cacheKey) {
+              this.cache[cacheKey] = this.cache[cacheKey] || {};
+              this.cache[cacheKey].previous = res;
+            }
+
+            if (hooks) {
+              await this.afterQuery?.call(this, query, res);
+            }
+
+            return res;
           })
-            .then(async (res: any) => {
-              delete this.queryPromises[this.baseUrl];
-              const row = res.data.data?.rows.find((r) => r._id === query.query._id);
-              res = { data: { data: row } };
+          .catch(async (e) => {
+            delete this.cache[cacheKey];
 
-              if (res.data?.data) {
-                res.data.data = new this(res.data.data);
+            if (hooks) {
+              await this.afterQuery?.call(this, query, null, e);
+            }
 
-                const item = this.get(res.data.data._id, false);
-                this.upsertStore(item || res.data?.data);
-              }
-
-              if (cacheKey) {
-                this.cache[cacheKey] = this.cache[cacheKey] || {};
-                this.cache[cacheKey].previous = res;
-              }
-
-              if (hooks) {
-                await this.afterQuery?.call(this, query, res);
-              }
-
-              return res;
-            })
-            .catch(async (e) => {
-              delete this.cache[cacheKey];
-
-              if (hooks) {
-                await this.afterQuery?.call(this, query, null, e);
-              }
-
-              throw e;
-            });
-      } else {
-        request = (cacheKey?: string) =>
-          this._client._axios
-            .get(`${this.baseUrl}/${query.query._id}`)
-            .then(async (res) => {
-              if (res.data?.data) {
-                res.data.data = new this(res.data.data);
-                const item = this.get(res.data.data._id, false);
-                this.upsertStore(item || res.data?.data);
-              }
-
-              if (cacheKey) {
-                this.cache[cacheKey] = this.cache[cacheKey] || {};
-                this.cache[cacheKey].previous = res;
-              }
-
-              if (hooks) {
-                await this.afterQuery?.call(this, query, res);
-              }
-
-              return res;
-            })
-            .catch(async (e) => {
-              delete this.cache[cacheKey];
-
-              if (hooks) {
-                await this.afterQuery?.call(this, query, null, e);
-              }
-
-              throw e;
-            });
-      }
+            throw e;
+          });
     } else {
       request = (cacheKey?: string) =>
         this._client._axios
           .post(this.queryUrl || `${this.baseUrl}/query`, query)
           .then(async (res) => {
+            const populatedPaths = this.getPopulatedPaths(query.populate);
+
             if (res.data?.data?.rows) {
-              res.data.data.rows = res.data.data.rows.map((item) => new this(item));
+              res.data.data.rows = res.data.data.rows.map((item) => {
+                if (populatedPaths?.length) {
+                  const fields = this.getFields(item);
+                  for (const path of populatedPaths) {
+                    const field = fields[path];
+                    if (!field || !(field instanceof GraphandFieldRelation)) {
+                      continue;
+                    }
+
+                    const populatedData = _.get(item, path);
+                    if (!populatedData) {
+                      continue;
+                    }
+                    if (field.multiple && Array.isArray(populatedData)) {
+                      for (const populatedItem of populatedData) {
+                        const _item = new field.model(populatedItem);
+                        field.model.upsertStore(_item);
+                      }
+
+                      const ids = populatedData.map((i) => i._id);
+                      _.set(item, path, ids);
+                    } else {
+                      const _item = new field.model(populatedData);
+                      field.model.upsertStore(_item);
+                      _.set(item, path, populatedData._id);
+                    }
+                  }
+                }
+
+                return new this(item);
+              });
 
               let rows = res.data.data.rows || [res.data.data];
               rows = rows.map((item) => (item?._id && this.get(item._id, false)) || item);
 
               this.upsertStore(rows);
             } else if (res.data.data && typeof res.data.data === "object") {
+              if (populatedPaths?.length) {
+                const fields = this.getFields(res.data.data);
+                for (const path of populatedPaths) {
+                  const field = fields[path];
+                  if (!field || !(field instanceof GraphandFieldRelation)) {
+                    continue;
+                  }
+
+                  const populatedData = _.get(res.data.data, path);
+                  if (!populatedData) {
+                    continue;
+                  }
+                  if (field.multiple && Array.isArray(populatedData)) {
+                    for (const populatedItem of populatedData) {
+                      const _item = new field.model(populatedItem);
+                      field.model.upsertStore(_item);
+                    }
+
+                    const ids = populatedData.map((i) => i._id);
+                    _.set(res.data.data, path, ids);
+                  } else {
+                    const _item = new field.model(populatedData);
+                    field.model.upsertStore(_item);
+                    _.set(res.data.data, path, populatedData._id);
+                  }
+                }
+              }
+
               const item = this.get(res.data.data._id, false) || new this(res.data.data);
               this.upsertStore(item);
             }
@@ -780,42 +875,11 @@ class GraphandModel {
       Object.keys(query.query._id).length === 1
     ) {
       query.ids = query.query._id.$in;
-      // delete query.query;
     }
 
     if (hooks) {
       await this.beforeQuery?.call(this, query);
     }
-
-    // if (query?.query?._id && typeof query.query._id === "string" && Object.keys(query.query).length === 1) {
-    //   _id = query.query._id;
-    //
-    //   if (_id && this.get(_id, false)) {
-    //     return { data: { data: this.get(_id, false).raw } };
-    //   }
-    //
-    //   this.queryPromises[this.baseUrl] = this.queryPromises[this.baseUrl] || Promise.resolve([]);
-    //
-    //   this.queryPromises[this.baseUrl] = this.queryPromises[this.baseUrl].then((ids) => {
-    //     if (ids.includes(query.query._id)) {
-    //       return ids;
-    //     }
-    //
-    //     return ids.concat(query.query._id);
-    //   });
-    //
-    //   const ids: [] = await new Promise((resolve) => {
-    //     setTimeout(async () => {
-    //       const ids = await this.queryPromises[this.baseUrl];
-    //       delete this.queryPromises[this.baseUrl];
-    //       resolve(ids);
-    //     }, 100);
-    //   });
-    //
-    //   if (ids?.length > 1) {
-    //     query.query = { _id: { $in: ids } };
-    //   }
-    // }
 
     if (_id && this.get(_id, false)) {
       return { data: { data: this.get(_id, false).raw } };
@@ -823,7 +887,7 @@ class GraphandModel {
 
     let res;
     if (cache) {
-      const cacheKey = `${this.baseUrl}:${JSON.stringify(query)}`;
+      const cacheKey = this.getCacheKey(query);
       const request = this.getRequest(query, hooks, cacheKey);
 
       if (!this.cache[cacheKey]) {
@@ -1159,6 +1223,12 @@ class GraphandModel {
         return `${cdnUri}/public/${constructor._client._options.project}/${oTarget.raw[sKey]}`;
       },
     });
+  }
+
+  toObject() {
+    const { constructor } = Object.getPrototypeOf(this);
+    const fields = constructor.getFields(this);
+    return Object.keys(fields).reduce((final, slug) => Object.assign(final, { [slug]: this.get(slug) }), {});
   }
 
   toJSON() {

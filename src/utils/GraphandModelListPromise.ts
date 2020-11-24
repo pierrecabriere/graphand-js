@@ -14,6 +14,13 @@ class GraphandModelListPromise extends GraphandModelPromise {
     super(executor, model);
     this.model = model;
     this.query = query || {};
+
+    if (this.ids) {
+      Object.defineProperty(this, "ids", { enumerable: true, value: this.ids });
+    }
+    if (Object.keys(this.query).length) {
+      Object.defineProperty(this, "query", { enumerable: false });
+    }
   }
 
   get _ids() {
