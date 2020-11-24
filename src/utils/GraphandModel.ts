@@ -75,7 +75,6 @@ class GraphandModel {
     }
 
     this.reloadFields();
-    this.updateFieldsProperties();
   }
 
   translate(locale) {
@@ -149,10 +148,9 @@ class GraphandModel {
       value = field.setter(value, this);
     }
 
-    this._data[slug] = value;
+    _.set(this._data, slug, value);
 
-    this._fields = constructor.getFields(this);
-    // this.updateFieldsProperties();
+    this.reloadFields();
 
     return this;
   }
@@ -227,6 +225,20 @@ class GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     this._fields = constructor.getFields();
     this._fields = constructor.getFields(this);
+
+    Object.keys(this._fields).forEach((slug) => {
+      const field = this._fields[slug];
+      if (field.assign === false) {
+        return;
+      }
+
+      Object.defineProperty(this, slug, {
+        enumerable: true,
+        configurable: true,
+        writable: true,
+        value: this.get(slug),
+      });
+    });
     return this._fields;
   }
 
@@ -297,24 +309,6 @@ class GraphandModel {
         set(v) {
           return this.set(slug, v);
         },
-      });
-    });
-  }
-
-  updateFieldsProperties() {
-    const { constructor } = Object.getPrototypeOf(this);
-    const fields = constructor.getFields(this);
-    Object.keys(fields).forEach((slug) => {
-      const field = fields[slug];
-      if (field.assign === false) {
-        return;
-      }
-
-      Object.defineProperty(this, slug, {
-        enumerable: true,
-        configurable: true,
-        writable: true,
-        value: this.get(slug),
       });
     });
   }
@@ -413,7 +407,7 @@ class GraphandModel {
 
   static getCacheKey(obj) {
     const { select, populate, sort, pageSize, page, translations, query, ids } = obj;
-    return this.baseUrl + JSON.stringify([select, populate, sort, pageSize, page, translations, query, ids]);
+    return this.scope + JSON.stringify([select, populate, sort, pageSize, page, translations, query, ids]);
   }
 
   static clearCache(query?, clean = false) {

@@ -72,7 +72,8 @@ class DataField extends GraphandModel {
         } else if (this.raw.configuration.ref === "Media") {
         } else {
           const { 1: slug } = this.raw.configuration.ref.match(/^Data:(.+?)$/);
-          defaultMultiple = (await constructor._client.models.DataModel.get({ query: { slug } }))?.multiple;
+          const model = constructor._client.models.DataModel.getList().find((m) => m.slug === slug);
+          defaultMultiple = model ? model.multiple : (await constructor._client.models.DataModel.get({ query: { slug } }))?.multiple;
         }
 
         return {
