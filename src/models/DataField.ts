@@ -14,8 +14,6 @@ class DataField extends GraphandModel {
   static baseUrl = "/data-fields";
   static scope = "DataField";
 
-  private _configurationFields = {};
-
   name;
   slug;
   type;
@@ -43,7 +41,6 @@ class DataField extends GraphandModel {
       }),
       configuration: new GraphandFieldJSON({
         name: "Configuration",
-        assign: false,
       }),
       scope: new GraphandFieldScope({
         name: "Scope",
@@ -51,78 +48,7 @@ class DataField extends GraphandModel {
     };
   }
 
-  async getConfigurationFields() {
-    const { constructor } = Object.getPrototypeOf(this);
-    switch (this.type) {
-      case "Relation":
-        const models = await constructor._client.models.DataModel.getList();
-        const options = models.reduce(
-          (scopes, model) => {
-            scopes.push({ value: `Data:${model.slug}`, label: model.name });
-            return scopes;
-          },
-          [
-            { value: "Role", label: "Role" },
-            { value: "Account", label: "Comptes" },
-          ],
-        );
-
-        let defaultMultiple = true;
-        if (this.raw.configuration.ref === "Account") {
-        } else if (this.raw.configuration.ref === "Media") {
-        } else {
-          const { 1: slug } = this.raw.configuration.ref.match(/^Data:(.+?)$/);
-          const model = constructor._client.models.DataModel.getList().find((m) => m.slug === slug);
-          defaultMultiple = model ? model.multiple : (await constructor._client.models.DataModel.get({ query: { slug } }))?.multiple;
-        }
-
-        return {
-          ref: new GraphandFieldSelect({
-            name: "Réf",
-            type: GraphandFieldText,
-            options,
-          }),
-          multiple: new GraphandFieldBoolean({
-            name: "Multiple",
-            defaultValue: defaultMultiple,
-          }),
-          initialQuery: new GraphandFieldJSON({
-            name: "Requête",
-          }),
-        };
-      case "Date":
-        return {
-          time: new GraphandFieldBoolean({
-            name: "Afficher le temps",
-            defaultValue: true,
-          }),
-        };
-      default:
-        return {};
-    }
-  }
-
-  get configuration() {
-    const configurationFields = this._configurationFields;
-    const defaults = Object.keys(configurationFields).reduce((payload, key) => {
-      const field = configurationFields[key];
-      if (field.defaultValue !== undefined) {
-        payload[key] = field.defaultValue;
-      }
-
-      return payload;
-    }, {});
-    return { ...defaults, ...this.raw.configuration };
-  }
-
-  async updateConfiguration() {
-    try {
-      this._configurationFields = await this.getConfigurationFields();
-    } catch (e) {}
-  }
-
   async toGraphandField() {
-    await this.updateConfiguration();
     const { constructor } = Object.getPrototypeOf(this);
     // @ts-ignore
     const { name, type, configuration } = this;

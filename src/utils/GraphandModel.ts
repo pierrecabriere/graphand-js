@@ -11,10 +11,6 @@ import GraphandModelPromise from "./GraphandModelPromise";
 import ModelObserver from "./ModelObserver";
 
 class GraphandModel {
-  _id: string;
-  createdAt: Date;
-  updatedAt: Date;
-
   // configurable fields
   static translatable = true;
   static queryFields = false;
@@ -23,7 +19,7 @@ class GraphandModel {
   static baseFields = {};
   static scope = null;
 
-  // private fields
+  // private static fields
   static _client: Client;
   static cache = {};
   static socketSubscription = null;
@@ -41,10 +37,16 @@ class GraphandModel {
   static _initPromise = null;
   static _listSubject = null;
 
+  // private fields
   private _data: any = {};
   private _locale = null;
   private _version = 1;
-  _fields = {};
+  private _fields = {};
+
+  // other fields
+  _id: string;
+  createdAt: Date;
+  updatedAt: Date;
 
   static modelPromise(promise: GraphandModelPromise) {}
 
@@ -56,25 +58,26 @@ class GraphandModel {
     return this._listSubject;
   }
 
-  constructor(data: any = {}, locale?: string) {
-    data = data instanceof GraphandModel ? data.raw : data;
+  constructor(data: any = {}, _fields?) {
+    if (data instanceof GraphandModel) {
+      return data.clone();
+    }
+
     this._id = data._id;
     this._data = data;
-    this._locale = locale;
+
+    const { constructor } = Object.getPrototypeOf(this);
+    this._fields = _fields || constructor.getFields() || {};
+    this.reloadFields();
 
     Object.defineProperty(this, "_data", { enumerable: false });
     Object.defineProperty(this, "_locale", { enumerable: false });
     Object.defineProperty(this, "_version", { enumerable: false });
     Object.defineProperty(this, "_fields", { enumerable: false });
 
-    const { constructor } = Object.getPrototypeOf(this);
     if (constructor.queryFields) {
-      constructor.fieldsObserver?.list.subscribe(() => {
-        this.reloadFields();
-      });
+      constructor.fieldsObserver?.list.subscribe(() => this.reloadFields());
     }
-
-    this.reloadFields();
   }
 
   translate(locale) {
@@ -95,12 +98,16 @@ class GraphandModel {
   }
 
   clone(locale?) {
-    const clone = _.cloneDeep(this);
+    const { constructor } = Object.getPrototypeOf(this);
+    const clone = new constructor(_.cloneDeep(this.raw), this._fields);
+    if (locale) {
+      clone.translate(locale);
+    }
     clone._version = this._version + 1;
     return clone;
   }
 
-  get(slug, decode = false, fields?) {
+  get(slug, decode = false) {
     const { constructor } = Object.getPrototypeOf(this);
 
     let value = _.get(this._data, slug);
@@ -119,14 +126,13 @@ class GraphandModel {
       }
     }
 
-    const field = (fields && fields[slug]) || (this._fields && this._fields[slug]);
+    const field = this._fields[slug];
     if (!field) {
       return undefined;
     }
 
     if (value === undefined) {
-      // value = field ? field.defaultValue : _.get(this._data, slug);
-      value = field && field.defaultValue;
+      value = field.defaultValue;
     }
 
     if (field?.getter) {
@@ -139,10 +145,8 @@ class GraphandModel {
     return value;
   }
 
-  set(slug, value, fields?) {
-    const { constructor } = Object.getPrototypeOf(this);
-    fields = fields || constructor.fields;
-    const field = fields[slug];
+  set(slug, value) {
+    const field = this._fields[slug];
 
     if (field?.setter) {
       value = field.setter(value, this);
@@ -150,18 +154,15 @@ class GraphandModel {
 
     _.set(this._data, slug, value);
 
-    this.reloadFields();
-
     return this;
   }
 
   assign(values?, upsert = true, updatedAtNow = true) {
     const { constructor } = Object.getPrototypeOf(this);
-    const fields = constructor.fields;
     const clone = this.clone();
     if (values) {
       Object.keys(values).forEach((key) => {
-        clone.set(key, values[key], fields);
+        clone.set(key, values[key]);
       });
     }
 
@@ -175,7 +176,7 @@ class GraphandModel {
 
     if (values) {
       Object.keys(values).forEach((key) => {
-        this.set(key, values[key], fields);
+        this.set(key, values[key]);
       });
     }
 
@@ -223,23 +224,57 @@ class GraphandModel {
 
   reloadFields() {
     const { constructor } = Object.getPrototypeOf(this);
-    this._fields = constructor.getFields();
-    this._fields = constructor.getFields(this);
+    this._fields = constructor.getFields(this) || {};
 
-    Object.keys(this._fields).forEach((slug) => {
+    const properties = Object.keys(this._fields).reduce((final, slug) => {
       const field = this._fields[slug];
       if (field.assign === false) {
-        return;
+        return final;
       }
 
-      Object.defineProperty(this, slug, {
+      final[slug] = {
         enumerable: true,
         configurable: true,
-        writable: true,
-        value: this.get(slug),
-      });
-    });
+        get: function () {
+          return this.get(slug);
+        },
+        set(v) {
+          return this.set(slug, v);
+        },
+      };
+
+      return final;
+    }, {});
+
+    Object.defineProperties(this, properties);
+
     return this._fields;
+  }
+
+  static setPrototypeFields() {
+    // const fields = this.fields;
+    //
+    // const properties = Object.keys(fields).reduce((final, slug) => {
+    //   const field = fields[slug];
+    //   if (field.assign === false) {
+    //     return final;
+    //   }
+    //
+    //   final[slug] = {
+    //     enumerable: true,
+    //     configurable: true,
+    //     get: function () {
+    //       return this.get(slug);
+    //     },
+    //     set(v) {
+    //       return this.set(slug, v);
+    //     },
+    //   };
+    //
+    //   return final;
+    // }, {});
+    //
+    // Object.defineProperties(this.prototype, properties);
   }
 
   static getFields(item?) {
@@ -249,6 +284,7 @@ class GraphandModel {
         const fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
         if (!isEqual(this._fields, fields)) {
           this._fields = fields;
+          this.setPrototypeFields();
           this.fieldsObserver.list.next(list);
         }
       });
@@ -293,26 +329,6 @@ class GraphandModel {
     return this.getFields();
   }
 
-  static setPrototypeFields() {
-    const fields = this.fields;
-    Object.keys(fields).forEach((slug) => {
-      const field = fields[slug];
-      if (field.assign === false) {
-        return;
-      }
-
-      Object.defineProperty(this.prototype, slug, {
-        enumerable: true,
-        get: function () {
-          return this.get(slug);
-        },
-        set(v) {
-          return this.set(slug, v);
-        },
-      });
-    });
-  }
-
   static async init() {
     if (!this.__registered) {
       throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
@@ -331,14 +347,10 @@ class GraphandModel {
           const list = await this._client.models.DataField.getList(query);
           const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
           this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
+          this.setPrototypeFields();
         }
 
-        this.setPrototypeFields();
-        Object.defineProperty(this, "name", {
-          get() {
-            return this.scope;
-          },
-        });
+        Object.defineProperty(this, "name", { value: this.scope });
 
         this.initialized = true;
         resolve();
