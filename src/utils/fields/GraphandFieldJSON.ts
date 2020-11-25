@@ -9,36 +9,47 @@ class GraphandFieldJSON extends GraphandField {
       return value;
     }
 
-    const defaultValues = this.fields
-      ? Object.keys(this.fields).reduce((payload, key) => {
-          if (this.fields[key].defaultValue !== undefined) {
-            payload[key] = this.fields[key].defaultValue;
-          }
+    const _fields = this.fields || {};
+    const defaults = Object.keys(_fields).reduce((payload, key) => {
+      const field = _fields[key];
+      if (field.defaultValue !== undefined) {
+        payload[key] = field.defaultValue;
+      }
 
-          return payload;
-        }, {})
-      : {};
+      return payload;
+    }, {});
 
     if (typeof value !== "object") {
       value = {};
     }
 
-    return { ...defaultValues, ...value };
+    return { ...defaults, ...value };
   }
 
   setter(value) {
-    return this.fields
-      ? Object.keys(this.fields).reduce(
-          (payload, key) => {
-            if (isEqual(this.fields[key].defaultValue, value[key])) {
-              delete payload[key];
-            }
+    const _fields = this.fields || {};
+    const defaults = Object.keys(_fields).reduce((payload, key) => {
+      const field = _fields[key];
+      if (field.defaultValue !== undefined) {
+        payload[key] = field.defaultValue;
+      }
 
-            return payload;
-          },
-          { ...value },
-        )
-      : value;
+      return payload;
+    }, {});
+
+    return (
+      value &&
+      Object.keys(value).reduce(
+        (payload, key) => {
+          if (isEqual(defaults[key], value[key])) {
+            delete payload[key];
+          }
+
+          return payload;
+        },
+        { ...value },
+      )
+    );
   }
 }
 
