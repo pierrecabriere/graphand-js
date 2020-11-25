@@ -362,7 +362,7 @@ class GraphandModel {
 
   private static setupSocket(socket?) {
     socket = socket || this._client?.socket;
-    if (!socket) {
+    if (!socket || !socket.id) {
       return;
     }
 

@@ -118,8 +118,8 @@ class Client {
   }
 
   connectSocket() {
-    if (this._socket) {
-      return this._socket;
+    if (this.socket) {
+      return this.socket;
     }
 
     this._socket = io(`${this._options.ssl ? "https" : "http"}://${this._options.host}`, {
@@ -157,6 +157,15 @@ class Client {
     if (triggerSubject) {
       this.socketSubject.next(null);
     }
+  }
+
+  reconnectSocket() {
+    if (this.socket) {
+      this.socket.disconnect();
+      delete this._socket;
+    }
+
+    this.connectSocket();
   }
 
   async init() {
@@ -316,7 +325,7 @@ class Client {
 
     if (this._options.realtime) {
       if (token) {
-        this.connectSocket();
+        this.reconnectSocket();
       } else {
         this.disconnectSocket();
       }
@@ -420,19 +429,23 @@ class Client {
         return;
       }
 
-      const hook = await this.models.Sockethook.create({
-        socket: socket?.id,
-        scope: model.scope,
-        await: _await,
-        identifier,
-        action,
-        timeout,
-        priority,
-      });
+      try {
+        const hook = await this.models.Sockethook.create({
+          socket: socket?.id,
+          scope: model.scope,
+          await: _await,
+          identifier,
+          action,
+          timeout,
+          priority,
+        });
 
-      console.log(`register hook ${hook.identifier} (${hook._id}) on socket ${socket?.id}`);
+        console.log(`register hook ${hook.identifier} (${hook._id}) on socket ${socket?.id}`);
 
-      socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
+        socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
+      } catch (e) {
+        console.log(e);
+      }
     };
 
     this.socketSubject.subscribe((socket) => _register(socket));
