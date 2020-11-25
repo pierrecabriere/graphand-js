@@ -546,20 +546,6 @@ class Client {
   plugin(plugin: Function, options: any = {}) {
     plugin(this, options);
   }
-
-  async close() {
-    this.initialized = false;
-    this.socketSubject.complete();
-    Object.values(this._models).forEach((model: any) => {
-      model.clearCache(undefined, true);
-      model._listSubject?.complete();
-      model.socketTriggerSubject.complete();
-      model._fieldsObserver?.unobserve();
-      model.observers.forEach((observer: ModelObserver) => {
-        observer.unobserve();
-      });
-    });
-  }
 }
 
 export default Client;
