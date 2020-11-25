@@ -17,6 +17,7 @@ class DataField extends GraphandModel {
   name;
   slug;
   type;
+  configuration;
 
   static get baseFields() {
     return {
@@ -50,29 +51,28 @@ class DataField extends GraphandModel {
 
   async toGraphandField() {
     const { constructor } = Object.getPrototypeOf(this);
-    // @ts-ignore
     const { name, type, configuration } = this;
     switch (type) {
       case "Text":
       default:
-        return new GraphandFieldText({ name, type, configuration });
+        return new GraphandFieldText({ ...configuration, name, type });
       case "Relation":
         return new GraphandFieldRelation({
+          ...configuration,
           name,
-          multiple: configuration.multiple,
           model: constructor._client.getModelByScope(configuration.ref),
           query: configuration.initialQuery,
         });
       case "Date":
-        return new GraphandFieldDate({ name, time: configuration.time });
+        return new GraphandFieldDate({ ...configuration, name });
       case "Boolean":
-        return new GraphandFieldBoolean({ name });
+        return new GraphandFieldBoolean({ ...configuration, name });
       case "Number":
-        return new GraphandFieldNumber({ name });
+        return new GraphandFieldNumber({ ...configuration, name });
       case "Color":
-        return new GraphandFieldColor({ name });
+        return new GraphandFieldColor({ ...configuration, name });
       case "JSON":
-        return new GraphandFieldJSON({ name });
+        return new GraphandFieldJSON({ ...configuration, name });
     }
   }
 }

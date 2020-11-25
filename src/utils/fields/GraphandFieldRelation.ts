@@ -7,10 +7,6 @@ class GraphandFieldRelation extends GraphandField {
   query;
   defaultField;
 
-  constructor(data) {
-    super(data);
-  }
-
   getter(value, from: GraphandModel) {
     if (!value) {
       return;
