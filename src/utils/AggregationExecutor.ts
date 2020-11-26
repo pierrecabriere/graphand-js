@@ -32,7 +32,7 @@ class AggregationExecutor {
     this.run();
   }
 
-  cache(cacheKey: string, timeout: number) {
+  cache(cacheKey?: string, timeout?: number) {
     const { constructor } = Object.getPrototypeOf(this);
     this.cacheKey = cacheKey || this.getCacheKey();
 
@@ -51,6 +51,14 @@ class AggregationExecutor {
     }
 
     return this;
+  }
+
+  clearCache(cacheKey?) {
+    cacheKey = cacheKey || this.cacheKey || this.getCacheKey();
+    const { constructor } = Object.getPrototypeOf(this);
+    if (cacheKey) {
+      return constructor.clearCache(cacheKey);
+    }
   }
 
   run() {

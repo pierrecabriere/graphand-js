@@ -1236,6 +1236,13 @@ class GraphandModel {
     return this._id;
   }
 
+  refresh() {
+    const { constructor } = Object.getPrototypeOf(this);
+    const newItem = constructor.get(this._id, false);
+    this.assign(newItem, false);
+    return this;
+  }
+
   // hooks
   static beforeQuery;
   static afterQuery;

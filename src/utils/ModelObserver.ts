@@ -93,13 +93,14 @@ class ModelObserver {
           return;
         }
 
-        const list = model.getList();
-        const prevListLength = prevList.length;
-        const listLength = list.length;
-        if (prevListLength !== listLength || !isEqual(prevList, list)) {
-          prevList = list;
-          refresh();
-        }
+        refresh();
+        // const list = model.getList();
+        // const prevListLength = prevList.length;
+        // const listLength = list.length;
+        // if (prevListLength !== listLength || !isEqual(prevList, list)) {
+        //   prevList = list;
+        //   refresh();
+        // }
       };
 
       Object.keys(this.subjects).forEach((key) => {
