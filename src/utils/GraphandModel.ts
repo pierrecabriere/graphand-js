@@ -622,8 +622,8 @@ class GraphandModel {
     return new GraphandModelList({ model: this }, ...this.listSubject.getValue());
   }
 
-  static get(_id, fetch = true) {
-    if (!_id) {
+  static get(query, fetch = true) {
+    if (!query) {
       return new GraphandModelPromise(async (resolve, reject) => {
         try {
           const res = await this.fetch(null, undefined, true);
@@ -634,7 +634,7 @@ class GraphandModel {
       }, this);
     }
 
-    _id = typeof _id === "object" && _id.query?._id ? _id.query._id : _id;
+    const _id = typeof query === "object" && query.query?._id ? query.query._id : typeof query === "string" ? query : null;
     const item = this.getList().find((item) => item._id === _id);
 
     if (!item && fetch) {
@@ -642,7 +642,7 @@ class GraphandModel {
         async (resolve, reject) => {
           let res;
           try {
-            res = await this.fetch(_id, undefined, true);
+            res = await this.fetch(query, undefined, true);
             const id = res.data.data && ((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id);
             if (id) {
               resolve(this.get(id, false));
@@ -654,7 +654,7 @@ class GraphandModel {
           }
         },
         this,
-        _id,
+        query,
       );
     }
 
@@ -862,8 +862,6 @@ class GraphandModel {
   static async fetch(query: any, cache = true, waitRequest = false, callback?: Function, hooks = true) {
     await this.init();
 
-    let _id;
-
     if (typeof query === "string") {
       query = { query: { _id: query } };
     } else if (!query) {
@@ -885,10 +883,6 @@ class GraphandModel {
 
     if (hooks) {
       await this.beforeQuery?.call(this, query);
-    }
-
-    if (_id && this.get(_id, false)) {
-      return { data: { data: this.get(_id, false).raw } };
     }
 
     let res;
@@ -938,11 +932,6 @@ class GraphandModel {
       const request = this.getRequest(query, hooks);
       res = await request();
       callback && callback(res);
-    }
-
-    if (_id && res.data.data?.rows) {
-      const row = res.data.data?.rows.find((r) => r._id === _id);
-      return { data: { data: row } };
     }
 
     return res;
@@ -1241,6 +1230,10 @@ class GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     const fields = constructor.getFields(this);
     return Object.keys(fields).reduce((final, slug) => Object.assign(final, { [slug]: this.get(slug, true) }), {});
+  }
+
+  toString() {
+    return this._id;
   }
 
   // hooks

@@ -5,21 +5,13 @@ import GraphandModelList from "./GraphandModelList";
 import GraphandModelPromise from "./GraphandModelPromise";
 
 class GraphandModelListPromise extends GraphandModelPromise {
-  model;
-  query;
-
   private _subscription;
 
   constructor(executor, model, query) {
-    super(executor, model);
-    this.model = model;
-    this.query = query || {};
+    super(executor, model, query);
 
     if (this.ids) {
       Object.defineProperty(this, "ids", { enumerable: true, value: this.ids });
-    }
-    if (Object.keys(this.query).length) {
-      Object.defineProperty(this, "query", { enumerable: false });
     }
   }
 

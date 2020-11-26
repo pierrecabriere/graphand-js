@@ -1,39 +1,39 @@
 class GraphandModelPromise {
-  _id;
   executor: Function;
   cached;
   model;
-  update: Function;
-  delete: Function;
   promise?;
+  query;
 
-  constructor(executor, model, _id?, cached = false) {
+  constructor(executor, model, query?, cached = false) {
     this.executor = executor;
     this.cached = cached;
-    if (_id) {
-      this._id = _id;
-    }
-    if (model) {
-      this.model = model;
 
-      if (_id) {
-        this.update = function () {
-          model.update({ _id }, ...arguments);
-        };
+    this.model = model;
+    this.query = query || {};
 
-        this.delete = function () {
-          model.delete({ _id }, ...arguments);
-        };
-      }
-
-      model.modelPromise(this);
-    }
+    model.modelPromise(this);
 
     Object.defineProperty(this, "executor", { enumerable: false });
     Object.defineProperty(this, "cached", { enumerable: false });
     Object.defineProperty(this, "model", { enumerable: false });
-    Object.defineProperty(this, "update", { enumerable: false });
-    Object.defineProperty(this, "delete", { enumerable: false });
+
+    if (this._id) {
+      Object.defineProperty(this, "_id", { enumerable: true, value: this._id });
+    }
+    if (this._id) {
+      Object.defineProperty(this, "_id", { enumerable: true, value: this._id });
+      Object.defineProperty(this, "query", { enumerable: false });
+    }
+    if (!Object.keys(this.query).length) {
+      Object.defineProperty(this, "query", { enumerable: false });
+    }
+  }
+
+  get _id() {
+    const { query } = this;
+    const _id = typeof query === "object" && query.query?._id ? query.query._id : query;
+    return typeof _id === "string" ? _id : null;
   }
 
   translate(locale) {
@@ -50,6 +50,14 @@ class GraphandModelPromise {
 
   toString() {
     return this._id;
+  }
+
+  update() {
+    return this.then((i) => i.update?.apply(i, arguments));
+  }
+
+  delete() {
+    return this.then((i) => i.update?.apply(i, arguments));
   }
 
   toPromise() {
