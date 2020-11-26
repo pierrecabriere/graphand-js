@@ -252,29 +252,29 @@ class GraphandModel {
   }
 
   static setPrototypeFields() {
-    // const fields = this.fields;
-    //
-    // const properties = Object.keys(fields).reduce((final, slug) => {
-    //   const field = fields[slug];
-    //   if (field.assign === false) {
-    //     return final;
-    //   }
-    //
-    //   final[slug] = {
-    //     enumerable: true,
-    //     configurable: true,
-    //     get: function () {
-    //       return this.get(slug);
-    //     },
-    //     set(v) {
-    //       return this.set(slug, v);
-    //     },
-    //   };
-    //
-    //   return final;
-    // }, {});
-    //
-    // Object.defineProperties(this.prototype, properties);
+    const fields = this.fields;
+
+    const properties = Object.keys(fields).reduce((final, slug) => {
+      const field = fields[slug];
+      if (field.assign === false) {
+        return final;
+      }
+
+      final[slug] = {
+        enumerable: true,
+        configurable: true,
+        get: function () {
+          return this.get(slug);
+        },
+        set(v) {
+          return this.set(slug, v);
+        },
+      };
+
+      return final;
+    }, {});
+
+    Object.defineProperties(this.prototype, properties);
   }
 
   static getFields(item?) {
