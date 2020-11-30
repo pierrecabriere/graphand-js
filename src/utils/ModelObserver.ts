@@ -69,7 +69,7 @@ class ModelObserver {
       const refresh = async () => {
         subscriber.next({ loading: true });
         try {
-          const { data } = await model.fetch(this.current, true, true);
+          const { data } = await model.fetch(this.current);
           const rows = data.data?.rows || [data.data];
           ids = rows.map((item) => item._id);
           triggerSubscription({ loading: false, count: data.data.count });
@@ -88,19 +88,25 @@ class ModelObserver {
         return subscriber.next({ list, ...payload });
       };
 
-      const subscriptionHandler = () => {
+      const subscriptionHandler = (list) => {
         if (!prevList || !ids) {
           return;
         }
 
         refresh();
-        // const list = model.getList();
-        // const prevListLength = prevList.length;
-        // const listLength = list.length;
-        // if (prevListLength !== listLength || !isEqual(prevList, list)) {
-        //   prevList = list;
-        //   refresh();
-        // }
+
+        const prevListLength = prevList.length;
+        const listLength = list.length;
+        if (prevListLength !== listLength) {
+          prevList = list.map((i) => i.toJSON());
+          refresh();
+        } else {
+          const parsedList = list.map((i) => i.toJSON());
+          if (!isEqual(prevList, parsedList)) {
+            prevList = parsedList;
+            refresh();
+          }
+        }
       };
 
       Object.keys(this.subjects).forEach((key) => {
@@ -114,14 +120,12 @@ class ModelObserver {
               delete this._current[key];
             }
             this.subjectTimeout && clearTimeout(this.subjectTimeout);
-            this.subjectTimeout = setTimeout(() => {
-              refresh().then(() => (prevList = model.getList()));
-            });
+            this.subjectTimeout = setTimeout(() => refresh());
           },
         });
       });
 
-      prevList = model.getList();
+      prevList = model.getList().map((i) => i.toJSON());
       model.listSubject.subscribe(subscriptionHandler);
     });
 
@@ -137,9 +141,12 @@ class ModelObserver {
     });
 
     this.mainSubscription = mainObservable.subscribe(({ list, loading, count }) => {
-      if (list !== undefined && !isEqual(this.prevList, list)) {
-        this.prevList = list;
-        this.list.next(list);
+      if (list !== undefined) {
+        const parsedList = list.map((i) => i.toJSON());
+        if (!isEqual(this.prevList, parsedList)) {
+          this.prevList = parsedList;
+          this.list.next(list);
+        }
       }
 
       if (loading !== undefined && this.prevLoading !== loading) {

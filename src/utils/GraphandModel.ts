@@ -626,7 +626,7 @@ class GraphandModel {
     if (!query) {
       return new GraphandModelPromise(async (resolve, reject) => {
         try {
-          const res = await this.fetch(null, undefined, true);
+          const res = await this.fetch(null);
           resolve(this.get((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id, false));
         } catch (e) {
           reject(e);
@@ -642,7 +642,7 @@ class GraphandModel {
         async (resolve, reject) => {
           let res;
           try {
-            res = await this.fetch(query, undefined, true);
+            res = await this.fetch(query);
             const id = res.data.data && ((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id);
             if (id) {
               resolve(this.get(id, false));
@@ -699,7 +699,7 @@ class GraphandModel {
   static getRequest(query, hooks, cacheKey?) {
     let request;
     if (query?.query?._id && typeof query.query._id === "string" && Object.keys(query.query).length === 1) {
-      request = (cacheKey?: string) =>
+      request = () =>
         this._client._axios
           .get(`${this.baseUrl}/${query.query._id}`)
           .then(async (res) => {
@@ -758,7 +758,7 @@ class GraphandModel {
             throw e;
           });
     } else {
-      request = (cacheKey?: string) =>
+      request = () =>
         this._client._axios
           .post(this.queryUrl || `${this.baseUrl}/query`, query)
           .then(async (res) => {
@@ -859,7 +859,7 @@ class GraphandModel {
     return request;
   }
 
-  static async fetch(query: any, cache = true, waitRequest = false, callback?: Function, hooks = true) {
+  static async fetch(query: any, cache = true, callback?: Function, hooks = true) {
     await this.init();
 
     if (typeof query === "string") {
@@ -885,55 +885,37 @@ class GraphandModel {
       await this.beforeQuery?.call(this, query);
     }
 
-    let res;
-    if (cache) {
-      const cacheKey = this.getCacheKey(query);
-      const request = this.getRequest(query, hooks, cacheKey);
-
-      if (!this.cache[cacheKey]) {
-        this.cache[cacheKey] = {
-          previous: null,
-          request: request(cacheKey),
-        };
-
-        res = await this.cache[cacheKey].request;
-        callback && callback(res);
-      } else if (this.cache[cacheKey].previous && this.cache[cacheKey].request) {
-        if (waitRequest) {
-          res = await this.cache[cacheKey].request;
-          callback && callback(res);
-        } else {
-          res = this.cache[cacheKey].previous;
-          callback && callback(false);
-
-          this.cache[cacheKey].request.then(async (res) => {
-            callback && callback(res);
-            return res;
-          });
-        }
-      } else if (this.cache[cacheKey].previous && !waitRequest) {
-        res = this.cache[cacheKey].previous;
-        this.cache[cacheKey].request = request(cacheKey);
-        callback && callback(res);
-
-        this.cache[cacheKey].request.then(async (_res) => {
-          callback && callback(_res);
-          return _res;
-        });
-      } else {
-        if (!this.cache[cacheKey].request) {
-          this.cache[cacheKey].request = request(cacheKey);
-        }
-
-        res = await this.cache[cacheKey].request;
-        callback && callback(res);
-      }
-    } else {
-      const request = this.getRequest(query, hooks);
-      res = await request();
-      callback && callback(res);
+    if (!cache) {
+      const createRequest = this.getRequest(query, hooks);
+      return await createRequest();
     }
 
+    let res;
+    const cacheKey = this.getCacheKey(query);
+    const createRequest = this.getRequest(query, hooks, cacheKey);
+    const cacheEntry = this.cache[cacheKey];
+
+    if (!cacheEntry) {
+      this.cache[cacheKey] = {
+        previous: null,
+        request: createRequest(),
+      };
+
+      res = await this.cache[cacheKey].request;
+      callback?.call(callback, res);
+    } else {
+      if (cacheEntry.previous) {
+        callback?.call(callback, cacheEntry.previous);
+      }
+
+      if (!cacheEntry.request) {
+        cacheEntry.request = createRequest();
+      }
+
+      res = await cacheEntry.request;
+    }
+
+    callback && callback(res);
     return res;
   }
 

@@ -405,7 +405,6 @@ class Client {
     }
 
     const _trigger = async (payload, hook) => {
-      console.log(`trigger ${hook.identifier} (${hook._id}) with payload ${JSON.stringify(payload)}`);
       if (hook.await) {
         let res;
         try {
@@ -429,26 +428,40 @@ class Client {
         return;
       }
 
-      try {
-        const hook = await this.models.Sockethook.create({
-          socket: socket?.id,
-          scope: model.scope,
-          await: _await,
-          identifier,
-          action,
-          timeout,
-          priority,
-        });
+      const hook = await this.models.Sockethook.create({
+        socket: socket?.id,
+        scope: model.scope,
+        await: _await,
+        identifier,
+        action,
+        timeout,
+        priority,
+      });
 
-        console.log(`register hook ${hook.identifier} (${hook._id}) on socket ${socket?.id}`);
-
-        socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
-      } catch (e) {
-        console.log(e);
-      }
+      socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
     };
 
-    this.socketSubject.subscribe((socket) => _register(socket));
+    this.socketSubject.subscribe(async (socket) => {
+      const error = await Array(5)
+        .fill(null)
+        .reduce(async (promise, _) => {
+          const error = await promise;
+          if (!error) {
+            return;
+          }
+
+          try {
+            await _register(socket);
+            return;
+          } catch (e) {
+            return e;
+          }
+        }, Promise.resolve(true));
+
+      if (error) {
+        console.error(`Error creating the sockethook`, error);
+      }
+    });
     this.connectSocket();
   }
 
