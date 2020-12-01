@@ -442,6 +442,10 @@ class Client {
     };
 
     this.socketSubject.subscribe(async (socket) => {
+      if (!socket) {
+        return;
+      }
+
       const error = await Array(5)
         .fill(null)
         .reduce(async (promise, _) => {

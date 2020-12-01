@@ -36,7 +36,9 @@ class Media extends GraphandModel {
       }
     });
 
-    args.config.headers = formData.getHeaders();
+    args.config.headers = formData.getHeaders?.call(formData) || {
+      "Content-Type": "multipart/form-data",
+    };
 
     args.payload = formData;
   }
