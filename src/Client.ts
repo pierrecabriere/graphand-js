@@ -441,13 +441,7 @@ class Client {
       socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
     };
 
-    this.socketSubject.subscribe(async (socket) => {
-      if (!socket) {
-        return;
-      }
-
-      await _register(socket);
-    });
+    this.socketSubject.subscribe((socket) => _register(socket));
     this.connectSocket();
   }
 
