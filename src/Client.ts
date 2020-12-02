@@ -446,25 +446,7 @@ class Client {
         return;
       }
 
-      const error = await Array(5)
-        .fill(null)
-        .reduce(async (promise, _) => {
-          const error = await promise;
-          if (!error) {
-            return;
-          }
-
-          try {
-            await _register(socket);
-            return;
-          } catch (e) {
-            return e;
-          }
-        }, Promise.resolve(true));
-
-      if (error) {
-        console.error(`Error creating the sockethook`, error);
-      }
+      await _register(socket);
     });
     this.connectSocket();
   }
