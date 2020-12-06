@@ -415,8 +415,7 @@ class Client {
           }
           this.socket.emit(`/hooks/${hook._id}/end`, res ?? payload);
         } catch (e) {
-          console.log("error", e);
-          this.socket.emit(`/hooks/${hook._id}/error`, e);
+          this.socket.emit(`/hooks/${hook._id}/error`, e.message);
         }
       } else {
         trigger(payload);

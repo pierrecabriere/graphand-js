@@ -58,10 +58,12 @@ class GraphandModel {
     return this._listSubject;
   }
 
-  constructor(data: any = {}, _fields?) {
+  constructor(data: any, _fields?) {
     if (data instanceof GraphandModel) {
       return data.clone();
     }
+
+    data = Object.assign({}, data);
 
     this._id = data._id;
     this._data = data;
@@ -607,10 +609,10 @@ class GraphandModel {
               },
             } = res;
             const storeList = _this.listSubject.getValue();
-            const list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r);
+            const list = rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
             resolve(new GraphandModelList({ model: _this, count, query }, ...list));
           } catch (e) {
-            console.error(e);
+            console.log(e);
             resolve([]);
           }
         },
@@ -723,7 +725,7 @@ class GraphandModel {
                       field.model.upsertStore(_item);
                     }
 
-                    const ids = populatedData.map((i) => i._id);
+                    const ids = populatedData.map((i) => i && i._id).filter((id) => id);
                     _.set(res.data.data, path, ids);
                   } else {
                     const _item = new field.model(populatedData);
@@ -784,7 +786,7 @@ class GraphandModel {
                         field.model.upsertStore(_item);
                       }
 
-                      const ids = populatedData.map((i) => i._id);
+                      const ids = populatedData.map((i) => i && i._id).filter((id) => id);
                       _.set(item, path, ids);
                     } else {
                       const _item = new field.model(populatedData);
