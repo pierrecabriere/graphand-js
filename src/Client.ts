@@ -126,6 +126,8 @@ class Client {
       query: { token: this.accessToken, projectId: this._options.project },
     });
 
+    console.log("socket setup");
+
     this._socket.on("/uploads", ({ action, payload }) => {
       const queueItem = this.mediasQueueSubject.value.find((item) => (payload.socket ? item.socket === payload.socket : item.name === payload.name));
       payload.status = action;
@@ -141,7 +143,10 @@ class Client {
       }
     });
 
-    this._socket.on("connect", () => this.socketSubject.next(this._socket));
+    this._socket.on("connect", () => {
+      console.log("socket connected");
+      this.socketSubject.next(this._socket);
+    });
 
     return this._socket;
   }
@@ -427,17 +432,23 @@ class Client {
         return;
       }
 
-      const hook = await this.models.Sockethook.create({
-        socket: socket?.id,
-        scope: model.scope,
-        await: _await,
-        identifier,
-        action,
-        timeout,
-        priority,
-      });
+      try {
+        const hook = await this.models.Sockethook.create({
+          socket: socket?.id,
+          scope: model.scope,
+          await: _await,
+          identifier,
+          action,
+          timeout,
+          priority,
+        });
 
-      socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
+        console.error(`sockethook registered`, hook._id);
+
+        socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
+      } catch (e) {
+        console.error(`error registering sockethook`, e);
+      }
     };
 
     this.socketSubject.subscribe((socket) => _register(socket));
