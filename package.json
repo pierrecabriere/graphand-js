@@ -1,6 +1,6 @@
 {
   "name": "graphand-js",
-  "version": "0.13.16-beta",
+  "version": "0.13.20-beta",
   "description": "",
   "main": "dist/index.js",
   "author": "Pierre Cabrière",

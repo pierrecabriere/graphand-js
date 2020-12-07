@@ -27,7 +27,7 @@ class GraphandFieldRelation extends GraphandField {
     }
 
     if (this.multiple) {
-      return value?._ids?.map((v) => v._id || v) || value?.map((v) => v._id || v) || value;
+      return value?._ids?.map((v) => v._id || v) || value?.filter(v => v).map((v) => v._id || v) || value;
     } else {
       return value?._id || value;
     }

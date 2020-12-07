@@ -126,8 +126,6 @@ class Client {
       query: { token: this.accessToken, projectId: this._options.project },
     });
 
-    console.log("socket setup");
-
     this._socket.on("/uploads", ({ action, payload }) => {
       const queueItem = this.mediasQueueSubject.value.find((item) => (payload.socket ? item.socket === payload.socket : item.name === payload.name));
       payload.status = action;
@@ -144,7 +142,6 @@ class Client {
     });
 
     this._socket.on("connect", () => {
-      console.log("socket connected");
       this.socketSubject.next(this._socket);
     });
 
@@ -402,6 +399,8 @@ class Client {
 
   async registerHook({ identifier, model, action, trigger, _await, timeout, priority }) {
     await this.init();
+    let hook;
+    let socket;
 
     _await = _await === undefined ? trigger.constructor.name === "AsyncFunction" : _await;
 
@@ -418,22 +417,28 @@ class Client {
           } else {
             res = await new Promise((resolve, reject) => trigger(payload, resolve, reject));
           }
-          this.socket.emit(`/hooks/${hook._id}/end`, res ?? payload);
+          this._axios.post(`/sockethooks/${hook._id}/end`, res ?? payload);
         } catch (e) {
-          this.socket.emit(`/hooks/${hook._id}/error`, e.message);
+          this._axios.post(`/sockethooks/${hook._id}/throw`, { message: e.message });
         }
       } else {
         trigger(payload);
       }
     };
 
-    const _register = async (socket) => {
-      if (!socket) {
+    const _register = async (_socket) => {
+      if (!_socket) {
         return;
       }
 
+      socket = _socket;
+
+      if (hook) {
+        socket.off(`/hooks/${hook._id}`);
+      }
+
       try {
-        const hook = await this.models.Sockethook.create({
+        hook = await this.models.Sockethook.create({
           socket: socket?.id,
           scope: model.scope,
           await: _await,
@@ -443,7 +448,7 @@ class Client {
           priority,
         });
 
-        console.error(`sockethook registered`, hook._id);
+        console.error(`sockethook registered`, hook._id, socket?.id);
 
         socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
       } catch (e) {
@@ -451,7 +456,7 @@ class Client {
       }
     };
 
-    this.socketSubject.subscribe((socket) => _register(socket));
+    this.socketSubject.subscribe((_socket) => _register(_socket));
     this.connectSocket();
   }
 
