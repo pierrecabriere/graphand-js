@@ -19,7 +19,6 @@ import User from "./models/User";
 import Webhook from "./models/Webhook";
 import GraphandError from "./utils/GraphandError";
 import GraphandModel from "./utils/GraphandModel";
-import ModelObserver from "./utils/ModelObserver";
 
 interface ClientOptions {
   project: string;
@@ -141,9 +140,7 @@ class Client {
       }
     });
 
-    this._socket.on("connect", () => {
-      this.socketSubject.next(this._socket);
-    });
+    this._socket.on("connect", () => this.socketSubject.next(this._socket));
 
     return this._socket;
   }
@@ -447,8 +444,6 @@ class Client {
           timeout,
           priority,
         });
-
-        console.error(`sockethook registered`, hook._id, socket?.id);
 
         socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
       } catch (e) {

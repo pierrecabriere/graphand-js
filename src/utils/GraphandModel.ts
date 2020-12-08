@@ -612,7 +612,7 @@ class GraphandModel {
             const list = rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
             resolve(new GraphandModelList({ model: _this, count, query }, ...list));
           } catch (e) {
-            console.log(e);
+            console.error(e);
             resolve([]);
           }
         },
