@@ -436,7 +436,7 @@ class Client {
 
       try {
         hook = await this.models.Sockethook.create({
-          socket: socket?.id,
+          socket: socket.id,
           scope: model.scope,
           await: _await,
           identifier,
