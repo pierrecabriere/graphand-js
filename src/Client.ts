@@ -7,6 +7,7 @@ import Aggregation from "./models/Aggregation";
 import Data from "./models/Data";
 import DataField from "./models/DataField";
 import DataModel from "./models/DataModel";
+import EsMapping from "./models/EsMapping";
 import Media from "./models/Media";
 import Module from "./models/Module";
 import Project from "./models/Project";
@@ -271,6 +272,9 @@ class Client {
           break;
         case "Sockethook":
           this._models[scope] = this.extendsModel(Sockethook);
+          break;
+        case "EsMapping":
+          this._models[scope] = this.extendsModel(EsMapping);
           break;
         default:
           break;

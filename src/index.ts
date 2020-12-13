@@ -4,6 +4,7 @@ import Aggregation from "./models/Aggregation";
 import Data from "./models/Data";
 import DataField from "./models/DataField";
 import DataModel from "./models/DataModel";
+import EsMapping from "./models/EsMapping";
 import Media from "./models/Media";
 import Module from "./models/Module";
 import Project from "./models/Project";
@@ -64,6 +65,7 @@ export {
   Webhook as GraphandModelWebhook,
   Aggregation as GraphandModelAggregation,
   Sockethook as GraphandModelSockethook,
+  EsMapping as GraphandModelEsMapping,
   GraphandError,
   GraphandValidationError,
   ModelObserver,
