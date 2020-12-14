@@ -11,7 +11,7 @@ class GraphandModelListPromise extends GraphandModelPromise {
     super(executor, model, query);
 
     if (this.ids) {
-      Object.defineProperty(this, "ids", { enumerable: true, value: this.ids });
+      Object.defineProperty(this, "ids", { enumerable: true, get: () => this._ids });
     }
   }
 
@@ -37,8 +37,14 @@ class GraphandModelListPromise extends GraphandModelPromise {
 
   concat(concatWith?: GraphandModel | GraphandModelPromise | GraphandModelList | GraphandModelListPromise) {
     const clone = new GraphandModelListPromise(this.executor, this.model, this.query);
+    if (!concatWith) {
+      return clone;
+    } else if (typeof concatWith !== "object") {
+      concatWith = new this.model(concatWith);
+    }
 
     const concatIds = "ids" in concatWith ? concatWith.ids : [concatWith._id];
+    console.log(concatIds);
     clone.query.ids = clone.query.ids || [];
     clone.query.ids = clone.query.ids.concat(concatIds);
 
