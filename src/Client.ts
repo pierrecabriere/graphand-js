@@ -413,18 +413,26 @@ class Client {
       if (hook.await) {
         let res;
         try {
-          if (trigger.constructor.name === "AsyncFunction") {
-            res = await trigger(payload);
-          } else {
-            res = await new Promise((resolve, reject) => trigger(payload, resolve, reject));
-          }
+          res = await new Promise((resolve, reject) => {
+            const resolver = trigger(payload, resolve, reject);
+            if (typeof resolver.then === "function") {
+              resolver.then(resolve);
+            }
+            if (typeof resolver.catch === "function") {
+              resolver.catch(reject);
+            }
+          });
           this._axios.post(`/sockethooks/${hook._id}/end`, res ?? payload);
         } catch (e) {
           console.error(e);
           this._axios.post(`/sockethooks/${hook._id}/throw`, { message: e.message });
         }
       } else {
-        trigger(payload);
+        try {
+          trigger(payload);
+        } catch (e) {
+          console.error(e);
+        }
       }
     };
 

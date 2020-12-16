@@ -396,7 +396,7 @@ class GraphandModel {
   }
 
   static on(event, trigger, options) {
-    this._client.registerHook({ model: this, action: event, trigger, ...options });
+    this._client.registerHook({ model: this, action: event, trigger, _await: options.await, ...options });
   }
 
   static sync() {

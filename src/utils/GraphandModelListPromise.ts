@@ -40,11 +40,10 @@ class GraphandModelListPromise extends GraphandModelPromise {
     if (!concatWith) {
       return clone;
     } else if (typeof concatWith !== "object") {
-      concatWith = new this.model(concatWith);
+      concatWith = new this.model({ _id: concatWith });
     }
 
     const concatIds = "ids" in concatWith ? concatWith.ids : [concatWith._id];
-    console.log(concatIds);
     clone.query.ids = clone.query.ids || [];
     clone.query.ids = clone.query.ids.concat(concatIds);
 
