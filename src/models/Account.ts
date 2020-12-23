@@ -112,6 +112,20 @@ class Account extends GraphandModel {
     return item;
   }
 
+  static async generateToken(id: string) {
+    const {
+      data: {
+        data: { accessToken },
+      },
+    } = await this._client._axios.post(`accounts/${id}/generate-token`);
+    return accessToken;
+  }
+
+  async generateToken() {
+    const { constructor } = Object.getPrototypeOf(this);
+    return await constructor.generateToken(this._id);
+  }
+
   static async getCurrent(populate = true) {
     if (!this._currentId) {
       this._currentId = this.get("current").then((account) => account?._id || null);
