@@ -368,7 +368,8 @@ class GraphandModel {
       return;
     }
 
-    socket.on("/models/" + this.scope, async ({ action, payload }) => {
+    const path = "/models/" + this.scope;
+    const trigger = async ({ action, payload }) => {
       if (!payload) {
         return;
       }
@@ -388,7 +389,10 @@ class GraphandModel {
             break;
         }
       });
-    });
+    };
+
+    socket.off(path);
+    socket.on(path, trigger);
   }
 
   static async handleUpdateCall(payload) {
