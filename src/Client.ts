@@ -168,8 +168,8 @@ class Client {
     this.connectSocket();
   }
 
-  async init() {
-    if (!this._initPromise) {
+  async init(force = false) {
+    if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
         if (this._options.project) {
           try {
@@ -180,6 +180,7 @@ class Client {
               this.locale = this._options.locale || this._project.defaultLocale;
             }
           } catch (e) {
+            delete this._initPromise;
             console.error(e);
             reject("Impossible to init project");
           }
