@@ -188,7 +188,7 @@ class Client {
           this._project = null;
         }
 
-        resolve();
+        resolve(true);
       });
     }
 

@@ -355,7 +355,7 @@ class GraphandModel {
         Object.defineProperty(this, "name", { value: this.scope });
 
         this.initialized = true;
-        resolve();
+        resolve(true);
       });
     }
 
