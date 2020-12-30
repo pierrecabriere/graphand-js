@@ -3,6 +3,7 @@ import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
 import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
 import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldDate from "../utils/fields/GraphandFieldDate";
 
 class Sockethook extends GraphandModel {
   static apiIdentifier = "sockethooks";
@@ -20,6 +21,10 @@ class Sockethook extends GraphandModel {
     revision: new GraphandFieldNumber({ name: "Revision", defaultValue: 1 }),
     socket: new GraphandFieldText({ name: "Identifiant du socket" }),
     ip: new GraphandFieldText({ name: "Adresse ip" }),
+    connectedAt: new GraphandFieldDate({
+      name: "Dernière connexion à",
+      time: true,
+    }),
   };
 
   identifier;
