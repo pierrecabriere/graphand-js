@@ -560,6 +560,10 @@ class Client {
     return new Client({ ...this._options, ...options });
   }
 
+  clone() {
+    return this.create.apply(this, arguments);
+  }
+
   plugin(plugin: Function, options: any = {}) {
     plugin(this, options);
   }
