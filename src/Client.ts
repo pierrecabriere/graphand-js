@@ -511,13 +511,6 @@ class Client {
     return accessToken;
   }
 
-  async getStats() {
-    const {
-      data: { data },
-    } = await this._axios.get("/stats");
-    return data;
-  }
-
   loginWithGraphand = () => {
     let loginWindow;
 
