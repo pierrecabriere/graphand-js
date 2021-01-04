@@ -25,9 +25,10 @@ class Project extends GraphandModel {
       }),
       defaultLocale: new GraphandFieldSelect({
         name: "Langue par défaut",
-        options: locales.filter((locale) => project?.locales && project.locales.includes(locale.value)),
+        options: locales,
       }),
       settings: new GraphandFieldJSON({ name: "Paramètres" }),
+      stats: new GraphandFieldJSON({ name: "Stats" }),
     };
   }
 

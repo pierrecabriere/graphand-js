@@ -193,11 +193,11 @@ class GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     const parent = this;
     const observable = new Observable((subscriber) => {
-      let prevRaw = parent.raw;
+      let prevRaw = _.cloneDeep(parent.raw);
       let prevVersion = parent._version;
       constructor.listSubject.subscribe(async () => {
         const item = await constructor.get(parent._id);
-        if (item && (!isEqual(item.raw, prevRaw) || item._version !== prevVersion)) {
+        if (item && (item._version !== prevVersion || !isEqual(item.raw, prevRaw))) {
           prevRaw = item.raw;
           subscriber.next(item);
         } else if (!item) {
@@ -403,8 +403,8 @@ class GraphandModel {
     this._client.registerHook({ model: this, action: event, trigger, _await: options.await, ...options });
   }
 
-  static sync() {
-    if (this._client && !this.socketSubscription) {
+  static sync(force = false) {
+    if (force || (this._client && !this.socketSubscription)) {
       this.setupSocket();
       this.socketSubscription = this._client.socketSubject.subscribe((socket) => this.setupSocket(socket));
     }
