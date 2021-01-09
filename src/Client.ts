@@ -20,6 +20,7 @@ import User from "./models/User";
 import Webhook from "./models/Webhook";
 import GraphandError from "./utils/GraphandError";
 import GraphandModel from "./utils/GraphandModel";
+import Log from "./models/Log";
 
 interface ClientOptions {
   project: string;
@@ -276,6 +277,9 @@ class Client {
           break;
         case "EsMapping":
           this._models[scope] = this.extendsModel(EsMapping);
+          break;
+        case "Log":
+          this._models[scope] = this.extendsModel(Log);
           break;
         default:
           break;

@@ -61,12 +61,6 @@ class Webhook extends GraphandModel {
       priority: new GraphandFieldNumber({ name: "Priorité" }),
       active: new GraphandFieldBoolean({ name: "Actif", defaultValue: true }),
     };
-
-    return {
-      url: new GraphandFieldText({
-        name: "Url",
-      }),
-    };
   }
 
   get LogsModel() {
