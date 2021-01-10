@@ -15,6 +15,7 @@ import Sockethook from "./models/Sockethook";
 import Token from "./models/Token";
 import User from "./models/User";
 import Webhook from "./models/Webhook";
+import Log from "./models/Log";
 import AggregationExecutor from "./utils/AggregationExecutor";
 import GraphandFieldBoolean from "./utils/fields/GraphandFieldBoolean";
 import GraphandFieldColor from "./utils/fields/GraphandFieldColor";
@@ -66,6 +67,7 @@ export {
   Aggregation as GraphandModelAggregation,
   Sockethook as GraphandModelSockethook,
   EsMapping as GraphandModelEsMapping,
+  Log as GraphandModelLog,
   GraphandError,
   GraphandValidationError,
   ModelObserver,

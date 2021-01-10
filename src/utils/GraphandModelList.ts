@@ -58,7 +58,7 @@ class GraphandModelList extends Array implements Array<any> {
         const query = _this.query || { ids: _this.ids };
         const list = await _this.model.getList(query);
         const raw = list.map((item) => item?.raw);
-        if (!isEqual(raw, prevRaw)) {
+        if (prevRaw.length !== raw.length || !isEqual(raw, prevRaw)) {
           prevRaw = raw;
           subscriber.next(list);
         }
