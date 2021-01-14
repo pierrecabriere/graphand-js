@@ -197,10 +197,11 @@ class GraphandModel {
       let prevVersion = parent._version;
       constructor.listSubject.subscribe(async () => {
         const item = await constructor.get(parent._id);
-        if (item && (item._version !== prevVersion || !isEqual(item.raw, prevRaw))) {
-          prevRaw = item.raw;
-          subscriber.next(item);
-        } else if (!item) {
+        if (!item || item._version > prevVersion || !isEqual(item.raw, prevRaw)) {
+          if (item) {
+            prevRaw = item.raw;
+            prevVersion = item._version;
+          }
           subscriber.next(item);
         }
       });

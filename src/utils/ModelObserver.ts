@@ -97,15 +97,10 @@ class ModelObserver {
 
         const prevListLength = prevList.length;
         const listLength = list.length;
-        if (prevListLength !== listLength) {
-          prevList = list.map((i) => i.toJSON());
+        const parsedList = list.map((i) => i.toJSON());
+        if (prevListLength !== listLength || !isEqual(prevList, parsedList)) {
+          prevList = parsedList;
           refresh();
-        } else {
-          const parsedList = list.map((i) => i.toJSON());
-          if (!isEqual(prevList, parsedList)) {
-            prevList = parsedList;
-            refresh();
-          }
         }
       };
 
