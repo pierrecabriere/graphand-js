@@ -1,6 +1,7 @@
 import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
 import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
+import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
 import GraphandModel from "../utils/GraphandModel";
 
 class EsMapping extends GraphandModel {
@@ -14,6 +15,7 @@ class EsMapping extends GraphandModel {
       description: new GraphandFieldText({ name: "Description" }),
       scope: new GraphandFieldScope({ name: "Scope" }),
       fields: new GraphandFieldJSON({ name: "Mapping des champs" }),
+      indexCount: new GraphandFieldNumber({ name: "Taille de l'index" })
     };
   }
 

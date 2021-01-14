@@ -28,7 +28,6 @@ class Project extends GraphandModel {
         options: locales,
       }),
       settings: new GraphandFieldJSON({ name: "Paramètres" }),
-      stats: new GraphandFieldJSON({ name: "Stats" }),
     };
   }
 
