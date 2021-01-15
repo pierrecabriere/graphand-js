@@ -490,6 +490,11 @@ class Client {
     this.setLocale(locale);
   }
 
+  async getStats() {
+    const { data } = await this._axios.get("/stats");
+    return data && data.data;
+  }
+
   setLocale(locale: string) {
     this._locale = locale;
   }
