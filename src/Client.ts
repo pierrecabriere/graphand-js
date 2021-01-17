@@ -227,6 +227,10 @@ class Client {
     }
   }
 
+  getModels(scopes, options?) {
+    return scopes.map((scope: string) => this.getModel(scope, options));
+  }
+
   getGraphandModel(scope, options?) {
     if (!this._models[scope]) {
       switch (scope) {
@@ -544,7 +548,7 @@ class Client {
       window.addEventListener("message", callback);
 
       loginWindow = window.open(
-        "http://graphand.io.local:3000/auth",
+        `https://graphand.io/auth?project=${this._options.project}`,
         "_blank",
         `fullscreen=no,height=${height},width=${width},top=${top},left=${left}`,
       );
