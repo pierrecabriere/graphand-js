@@ -641,7 +641,7 @@ class GraphandModel {
       }, this);
     }
 
-    const _id = typeof query === "object" && query.query?._id ? query.query._id : typeof query === "string" ? query : null;
+    const _id = query instanceof GraphandModel ? query._id : typeof query === "object" && query.query?._id ? query.query._id : typeof query === "string" ? query : null;
     const item = this.getList().find((item) => item._id === _id);
 
     if (!item && fetch) {
