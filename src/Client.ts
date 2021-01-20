@@ -123,7 +123,7 @@ class Client {
       return this.socket;
     }
 
-    this._socket = io(`${this._options.ssl ? "https" : "http"}://${this._options.host}`, {
+    this._socket = io.connect(`${this._options.ssl ? "https" : "http"}://${this._options.host}`, {
       query: { token: this.accessToken, projectId: this._options.project },
     });
 
@@ -457,7 +457,7 @@ class Client {
       }
 
       try {
-        hook = await this.models.Sockethook.create({
+        hook = await this.getModel("Sockethook").create({
           socket: socket.id,
           scope: model.scope,
           await: _await,
@@ -467,6 +467,7 @@ class Client {
           priority,
         });
 
+        console.error(`sockethook registered`, hook.identifier);
         socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
       } catch (e) {
         console.error(`error registering sockethook`, e);

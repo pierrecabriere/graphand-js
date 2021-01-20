@@ -19,7 +19,7 @@ class GraphandModelList extends Array implements Array<any> {
   }
 
   get ids() {
-    return this.map((item) => item?._id || item).filter((_id) => _id);
+    return this.map((item) => item?._id || item).filter(Boolean);
   }
 
   get model() {

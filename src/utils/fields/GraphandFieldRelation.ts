@@ -13,7 +13,7 @@ class GraphandFieldRelation extends GraphandField {
     }
 
     if (this.multiple) {
-      const ids = typeof value === "string" ? [value] : value.filter((v) => v).map((v) => v._id || v) || [];
+      const ids = typeof value === "string" ? [value] : value.filter(Boolean).map((v) => v._id || v) || [];
       return this.model.getList({ ids });
     } else {
       const id = typeof value === "string" ? value : value._id;
@@ -27,7 +27,7 @@ class GraphandFieldRelation extends GraphandField {
     }
 
     if (this.multiple) {
-      return value?._ids?.map((v) => v._id || v) || value?.filter(v => v).map((v) => v._id || v) || value;
+      return value?._ids?.map((v) => v._id || v) || value?.filter(Boolean).map((v) => v._id || v) || value;
     } else {
       return value?._id || value;
     }

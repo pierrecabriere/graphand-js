@@ -730,7 +730,7 @@ class GraphandModel {
                       field.model.upsertStore(_item);
                     }
 
-                    const ids = populatedData.map((i) => i && i._id).filter((id) => id);
+                    const ids = populatedData.map((i) => i && i._id).filter(Boolean);
                     _.set(res.data.data, path, ids);
                   } else {
                     const _item = new field.model(populatedData);
@@ -791,7 +791,7 @@ class GraphandModel {
                         field.model.upsertStore(_item);
                       }
 
-                      const ids = populatedData.map((i) => i && i._id).filter((id) => id);
+                      const ids = populatedData.map((i) => i && i._id).filter(Boolean);
                       _.set(item, path, ids);
                     } else {
                       const _item = new field.model(populatedData);

@@ -84,7 +84,7 @@ class ModelObserver {
         }
 
         const modelList = model.getList();
-        const list = ids.map((id) => modelList.find((item) => item._id === id)).filter((item) => item);
+        const list = ids.map((id) => modelList.find((item) => item._id === id)).filter(Boolean);
         return subscriber.next({ list, ...payload });
       };
 
