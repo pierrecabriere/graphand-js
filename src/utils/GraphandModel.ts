@@ -1090,10 +1090,11 @@ class GraphandModel {
 
     try {
       await constructor.update({ ...payload, query: { _id } }, { clearCache: options.clearCache, upsert: options.upsert, hooks: false });
-      if (!options.upsert) {
-        this.assign();
+      if (options.upsert) {
+        this.assign(constructor.get(_id, false).raw, false);
+      } else {
+        this.assign(null, false);
       }
-      this.assign(constructor.get(_id, false).raw, false);
 
       if (options.hooks) {
         await constructor.afterUpdate?.call(constructor, constructor.get(_id), null, payload);
