@@ -35,8 +35,12 @@ class GraphandModelListPromise extends GraphandModelPromise {
     return this.ids?.length || null;
   }
 
+  clone() {
+    return new GraphandModelListPromise(this.executor, this.model, this.query);
+  }
+
   concat(concatWith?: GraphandModel | GraphandModelPromise | GraphandModelList | GraphandModelListPromise) {
-    const clone = new GraphandModelListPromise(this.executor, this.model, this.query);
+    const clone = this.clone();
     if (!concatWith) {
       return clone;
     } else if (typeof concatWith !== "object") {

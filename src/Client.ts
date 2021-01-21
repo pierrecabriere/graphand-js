@@ -434,7 +434,7 @@ class Client {
           this._axios.post(`/sockethooks/${hook._id}/end`, res ?? payload);
         } catch (e) {
           console.error(e);
-          this._axios.post(`/sockethooks/${hook._id}/throw`, { message: e.message });
+          this._axios.post(`/sockethooks/${hook._id}/throw`, e);
         }
       } else {
         try {
