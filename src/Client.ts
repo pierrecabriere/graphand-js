@@ -122,7 +122,7 @@ class Client {
       return this.socket;
     }
 
-    this._socket = io.connect(`ws://${this._options.host}`, {
+    this._socket = io.connect(`${this._options.ssl ? "https" : "http"}://${this._options.host}`, {
       query: { token: this.accessToken, projectId: this._options.project },
     });
 
@@ -142,6 +142,7 @@ class Client {
     });
 
     this._socket.on("connect", () => this.socketSubject.next(this._socket));
+    this._socket.on("reconnect_error", console.log);
 
     return this._socket;
   }
