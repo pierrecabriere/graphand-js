@@ -76,8 +76,7 @@ class Client {
       baseURL: `${this._options.ssl ? "https" : "http"}://${this._options.project ? `${this._options.project}.` : ""}${this._options.host}`,
     });
 
-    this._axios.interceptors.request.use((config) => {
-      // @ts-ignore
+    this._axios.interceptors.request.use((config: any) => {
       config.data = config.data || config._data;
       config.headers = config.headers || {};
       if (!config.headers.Authorization) {
@@ -123,7 +122,7 @@ class Client {
       return this.socket;
     }
 
-    this._socket = io.connect(`${this._options.ssl ? "https" : "http"}://${this._options.host}`, {
+    this._socket = io.connect(`ws://${this._options.host}`, {
       query: { token: this.accessToken, projectId: this._options.project },
     });
 
