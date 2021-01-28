@@ -416,6 +416,8 @@ class GraphandModel {
   static unsync() {
     this.socketSubscription.unsubscribe();
     delete this.socketSubscription;
+    this.listSubject.unsubscribe();
+    delete this._listSubject;
   }
 
   static reinit() {
