@@ -476,7 +476,8 @@ class GraphandModel {
   static deleteFromStore(payload, force = false) {
     let refresh = false;
     const _delete = (list, item) => {
-      const found = list.find((i) => i._id === item._id);
+      const _id = typeof item === "string" ? item : item._id;
+      const found = list.find((i) => i._id === _id);
       if (found) {
         refresh = true;
       }
@@ -1116,12 +1117,22 @@ class GraphandModel {
     return this;
   }
 
-  static async delete(payload: GraphandModel | any, hooks = true) {
+  static async delete(payload: GraphandModel | any, options) {
     await this.init();
+
+    options = Object.assign(
+      {},
+      {
+        hooks: true,
+        clearCache: true,
+        updateStore: true,
+      },
+      options,
+    );
 
     const args = { payload };
 
-    if (hooks) {
+    if (options.hooks) {
       if ((await this.beforeDelete?.call(this, args)) === false) {
         return;
       }
@@ -1132,16 +1143,21 @@ class GraphandModel {
         const { _id } = payload;
         await this._client._axios.delete(`${this.baseUrl}/${_id}`);
 
-        this.clearCache();
-        this.deleteFromStore(payload);
+        if (options.updateStore) {
+          const updated = this.deleteFromStore(payload);
 
-        if (hooks) {
+          if (updated) {
+            this.clearCache();
+          }
+        }
+
+        if (options.hooks) {
           await this.afterDelete?.call(this, args);
         }
       } catch (e) {
         this.upsertStore(payload);
 
-        if (hooks) {
+        if (options.hooks) {
           await this.afterDelete?.call(this, args, e);
         }
 
@@ -1150,17 +1166,27 @@ class GraphandModel {
     } else {
       try {
         // @ts-ignore
-        await this._client._axios.delete(this.baseUrl, { _data: payload });
+        const { data } = await this._client._axios.delete(this.baseUrl, { _data: payload });
 
-        if (hooks) {
-          await this.afterDelete?.call(this, args);
+        if (!data) {
+          return;
         }
 
-        // if (!this.socketSubscription) {
-        this.clearCache();
-        // }
+        const ids = data.data.ids;
+
+        if (options.updateStore) {
+          const updated = this.deleteFromStore(ids);
+
+          if (updated) {
+            this.clearCache();
+          }
+        }
+
+        if (options.hooks) {
+          await this.afterDelete?.call(this, args);
+        }
       } catch (e) {
-        if (hooks) {
+        if (options.hooks) {
           await this.afterDelete?.call(this, args, e);
         }
 
@@ -1171,9 +1197,9 @@ class GraphandModel {
     return true;
   }
 
-  delete() {
+  delete(options) {
     const constructor = this.constructor as any;
-    return constructor.delete(this, ...arguments);
+    return constructor.delete(this, options);
   }
 
   static setClient(client) {
