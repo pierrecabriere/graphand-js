@@ -19,7 +19,6 @@ class Aggregation extends GraphandModel {
       description: new GraphandFieldText({ name: "Description" }),
       scope: new GraphandFieldScope({ name: "Scope" }),
       clearCacheScope: new GraphandFieldScope({ name: "Scope de mise en cache" }),
-      autoCache: new GraphandFieldBoolean({ name: "Mise en cache automatique", defaultValue: false }),
       clearCacheActions: new GraphandFieldSelect({
         name: "Actions de mise en cache",
         type: GraphandFieldText,
