@@ -109,28 +109,22 @@ class GraphandModel {
     return clone;
   }
 
-  get(slug, decode = false) {
+  get(slug, decode = false, _locale = this._locale, fallback = true) {
     const { constructor } = Object.getPrototypeOf(this);
-
-    let value = _.get(this._data, slug);
-
-    if (constructor.translatable) {
-      let locale = this._locale || constructor._client.locale;
-      if (
-        (locale && constructor._client._project?.locales && !constructor._client._project.locales.includes(locale)) ||
-        constructor._client._project?.defaultLocale === locale
-      ) {
-        locale = undefined;
-      }
-
-      if (locale && this._data.translations && this._data.translations[locale] && _.get(this._data.translations[locale], slug) !== undefined) {
-        value = _.get(this._data.translations[locale], slug);
-      }
-    }
 
     const field = this._fields[slug];
     if (!field) {
       return undefined;
+    }
+
+    let value = _.get(this._data, slug);
+
+    if (constructor.translatable) {
+      let locale = _locale || constructor._client.locale;
+      if (locale && constructor._client._project?.locales?.includes(locale) && locale !== constructor._client._project.defaultLocale) {
+        const translationValue = _.get(this._data, `translations.${locale}.${slug}`);
+        value = fallback && translationValue !== undefined ? value : translationValue;
+      }
     }
 
     if (value === undefined) {
