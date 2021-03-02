@@ -353,8 +353,9 @@ class Client {
       return;
     }
 
-    if (typeof Model === "string") {
-      return this.getModel(Model, options);
+    if (!Model.scope) {
+      console.warn(`You registered a Model without scope`, Model);
+      return null;
     }
 
     options = Object.assign({}, { sync: undefined, name: undefined, force: false, fieldsIds: undefined }, options);
