@@ -336,21 +336,25 @@ class GraphandModel {
     }
 
     if (!this._initPromise) {
-      this._initPromise = new Promise(async (resolve) => {
-        await this._client.init();
+      this._initPromise = new Promise(async (resolve, reject) => {
+        try {
+          await this._client.init();
 
-        if (this.queryFields && this._client._options.project) {
-          const query = this._fieldsIds || { query: { scope: this.scope } };
-          const list = await this._client.models.DataField.getList(query);
-          const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
-          this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
-          this.setPrototypeFields();
+          if (this.queryFields && this._client._options.project) {
+            const query = this._fieldsIds || { query: { scope: this.scope } };
+            const list = await this._client.models.DataField.getList(query);
+            const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
+            this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
+            this.setPrototypeFields();
+          }
+
+          Object.defineProperty(this, "name", { value: this.scope });
+
+          this.initialized = true;
+          resolve(true);
+        } catch (e) {
+          reject(e);
         }
-
-        Object.defineProperty(this, "name", { value: this.scope });
-
-        this.initialized = true;
-        resolve(true);
       });
     }
 

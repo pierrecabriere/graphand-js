@@ -184,6 +184,7 @@ class Client {
             delete this._initPromise;
             console.error(e);
             reject("Impossible to init project");
+            return;
           }
         } else {
           this._project = null;
@@ -468,7 +469,7 @@ class Client {
           priority,
         });
 
-        console.error(`sockethook registered`, hook.identifier);
+        console.error(`sockethook ${hook.identifier} with _id ${hook._id} registered on socket ${socket.id}`);
         socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
       } catch (e) {
         console.error(`error registering sockethook`, e);
