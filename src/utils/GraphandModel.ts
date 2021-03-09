@@ -1214,6 +1214,10 @@ class GraphandModel {
       const HistoryModel = class extends GraphandHistoryModel {
         static baseUrl = `${constructor.baseUrl}/${parent._id}/history`;
         static queryUrl = `${constructor.baseUrl}/${parent._id}/history`;
+
+        static get scope() {
+          return `${constructor.scope}_history`;
+        }
       };
 
       constructor._client.registerModel(HistoryModel, { name: modelName });
