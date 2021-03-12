@@ -21,21 +21,22 @@ import Webhook from "./models/Webhook";
 import GraphandError from "./utils/GraphandError";
 import GraphandModel from "./utils/GraphandModel";
 import Log from "./models/Log";
+import * as utils from "./utils";
 
 interface ClientOptions {
-  project: string;
+  project?: string;
   accessToken?: string;
-  locale: string;
-  translations: string[];
+  locale?: string;
+  translations?: string[];
   host?: string;
   cdn?: string;
-  realtime: boolean;
-  autoSync: boolean;
-  autoMapQueries: boolean;
-  ssl: boolean;
-  unloadTimeout: number;
-  subscribeFields: boolean;
-  init: boolean;
+  realtime?: boolean;
+  autoSync?: boolean;
+  autoMapQueries?: boolean;
+  ssl?: boolean;
+  unloadTimeout?: number;
+  subscribeFields?: boolean;
+  init?: boolean;
 }
 
 const defaultOptions = {
@@ -69,7 +70,13 @@ class Client {
 
   GraphandModel = GraphandModel.setClient(this);
 
-  constructor(options: ClientOptions) {
+  static utils = utils;
+
+  constructor(project: string | ClientOptions, options: ClientOptions = {}) {
+    options = project && typeof project === "object" ? { ...project, ...options } : options;
+    if (typeof project === "string" && !options.project) {
+      options.project = project;
+    }
     this._options = { ...defaultOptions, ...options };
 
     this._axios = axios.create({
