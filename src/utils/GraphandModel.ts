@@ -581,8 +581,6 @@ class GraphandModel {
 
   static query(query?: any, ...params): GraphandModelList | GraphandModelListPromise {
     if (query) {
-      const _this = this;
-
       this.prepareQuery(query);
 
       if (Array.isArray(query)) {
@@ -594,26 +592,23 @@ class GraphandModel {
           query.ids = query.ids.ids;
         } else if (query.ids instanceof GraphandModel || query.ids instanceof GraphandModelPromise) {
           query.ids = [query.ids._id];
+        } else if (typeof query.ids === "string") {
+          query.ids = [query.ids];
+        }
+
+        if (Object.keys(query).length === 1) {
+          const list = query.ids.map((_id) => this.get(_id, false));
+          if (list.every(Boolean)) {
+            return new GraphandModelList({ model: this, count: list.length, query }, ...list);
+          }
         }
       }
 
-      if (query.ids && Object.keys(query).length === 1) {
-        const ids = Array.isArray(query.ids) ? query.ids : [query.ids];
-        const list = ids.map((_id) => this.get(_id, false));
-        if (list.every((i) => i)) {
-          return new GraphandModelList({ model: _this, count: list.length, query }, ...list);
-        }
-      }
-
+      const _this = this;
       return new GraphandModelListPromise(
         async (resolve) => {
           try {
-            const res = await _this.fetch(query, ...params);
-            const {
-              data: {
-                data: { rows, count },
-              },
-            } = res;
+            const { data: { data: { rows, count } } } = await _this.fetch(query, ...params);
             const storeList = _this.listSubject.getValue();
             const list = rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
             resolve(new GraphandModelList({ model: _this, count, query }, ...list));
@@ -627,7 +622,13 @@ class GraphandModel {
       );
     }
 
-    return new GraphandModelList({ model: this }, ...this.listSubject.getValue());
+    const list = this.listSubject.getValue();
+    try {
+      return new GraphandModelList({ model: this }, ...list);
+    } catch (e) {
+      console.log("ThisIsAMarker", list);
+      return null;
+    }
   }
 
   static get(query, fetch = true) {

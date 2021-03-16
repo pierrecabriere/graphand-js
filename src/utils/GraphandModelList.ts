@@ -8,6 +8,10 @@ class GraphandModelList extends Array implements Array<any> {
   _query;
 
   constructor({ model, count, query }: { model?; count?; query? }, ...elements) {
+    if (!elements?.length) {
+      elements = [];
+    }
+
     super(...elements);
     this._model = model;
     this.count = count || 0;
