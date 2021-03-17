@@ -1,8 +1,8 @@
 import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
 import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
 import GraphandFieldText from "../utils/fields/GraphandFieldText";
-import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
 import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
 
 class EsMapping extends GraphandModel {
   static apiIdentifier = "elasticsearch";
@@ -15,7 +15,8 @@ class EsMapping extends GraphandModel {
       description: new GraphandFieldText({ name: "Description" }),
       scope: new GraphandFieldScope({ name: "Scope" }),
       fields: new GraphandFieldJSON({ name: "Mapping des champs" }),
-      indexCount: new GraphandFieldNumber({ name: "Taille de l'index" })
+      externalHost: new GraphandFieldBoolean({ name: "Utiliser un hôte externe" }),
+      host: new GraphandFieldText({ name: "Hôte" }),
     };
   }
 
