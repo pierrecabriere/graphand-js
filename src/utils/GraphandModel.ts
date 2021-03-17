@@ -369,7 +369,6 @@ class GraphandModel {
 
     const path = "/models/" + this.scope;
     const trigger = async ({ action, payload }) => {
-      console.log(path, action, payload);
       if (!payload) {
         return;
       }
