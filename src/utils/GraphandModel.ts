@@ -1257,6 +1257,11 @@ class GraphandModel {
     return this._id;
   }
 
+  toPromise() {
+    const { constructor } = Object.getPrototypeOf(this);
+    return constructor.get(this._id).toPromise();
+  }
+
   refresh() {
     const { constructor } = Object.getPrototypeOf(this);
     const newItem = constructor.get(this._id, false);

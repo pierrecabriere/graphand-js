@@ -48,21 +48,12 @@ class GraphandModelPromise {
     return this.then((res) => res?.subscribe?.apply(res, arguments));
   }
 
-  toString() {
-    return this._id;
-  }
-
   update() {
     return this.then((i) => i.update?.apply(i, arguments));
   }
 
   delete() {
     return this.then((i) => i.update?.apply(i, arguments));
-  }
-
-  toPromise() {
-    // @ts-ignore
-    return new Promise(this.executor);
   }
 
   then(..._arguments) {
@@ -73,6 +64,15 @@ class GraphandModelPromise {
   catch(..._arguments) {
     this.promise = this.promise || this.toPromise();
     return this.promise.catch.apply(this.promise, _arguments);
+  }
+
+  toString() {
+    return this._id;
+  }
+
+  toPromise() {
+    // @ts-ignore
+    return new Promise(this.executor);
   }
 }
 
