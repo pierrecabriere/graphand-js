@@ -1,10 +1,10 @@
-import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
-import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
-import GraphandFieldRelation from "../utils/fields/GraphandFieldRelation";
-import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
-import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
-import GraphandFieldText from "../utils/fields/GraphandFieldText";
-import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
+import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
+import GraphandFieldSelect from "../lib/fields/GraphandFieldSelect";
+import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandModel from "../lib/GraphandModel";
 
 class Rule extends GraphandModel {
   static apiIdentifier = "rules";

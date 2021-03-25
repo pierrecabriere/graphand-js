@@ -1,8 +1,8 @@
-import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
-import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
-import GraphandFieldText from "../utils/fields/GraphandFieldText";
-import GraphandModel from "../utils/GraphandModel";
-import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
+import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
+import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
+import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandModel from "../lib/GraphandModel";
+import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 
 class EsMapping extends GraphandModel {
   static apiIdentifier = "elasticsearch";

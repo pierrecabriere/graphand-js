@@ -1,9 +1,9 @@
-import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
-import GraphandFieldRelation from "../utils/fields/GraphandFieldRelation";
-import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
-import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
-import GraphandFieldText from "../utils/fields/GraphandFieldText";
-import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
+import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
+import GraphandFieldSelect from "../lib/fields/GraphandFieldSelect";
+import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandModel from "../lib/GraphandModel";
 
 class Restriction extends GraphandModel {
   static apiIdentifier = "restrictions";

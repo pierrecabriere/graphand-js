@@ -1,7 +1,7 @@
-import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
-import GraphandFieldText from "../utils/fields/GraphandFieldText";
-import GraphandModel from "../utils/GraphandModel";
-import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
+import GraphandFieldSelect from "../lib/fields/GraphandFieldSelect";
+import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandModel from "../lib/GraphandModel";
+import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 
 const locales = [
   { value: "fr", label: "Français" },

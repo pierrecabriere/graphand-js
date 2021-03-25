@@ -1,6 +1,6 @@
-import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
-import GraphandFieldText from "../utils/fields/GraphandFieldText";
-import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
+import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandModel from "../lib/GraphandModel";
 
 class Log extends GraphandModel {
   static apiIdentifier = "logs";

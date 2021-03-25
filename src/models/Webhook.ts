@@ -1,9 +1,9 @@
-import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
-import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
-import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
-import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
-import GraphandFieldText from "../utils/fields/GraphandFieldText";
-import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
+import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
+import GraphandFieldSelect from "../lib/fields/GraphandFieldSelect";
+import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandModel from "../lib/GraphandModel";
 
 class Webhook extends GraphandModel {
   static apiIdentifier = "webhooks";
@@ -68,7 +68,7 @@ class Webhook extends GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     const modelName = `${this._id}_logs`;
     if (!constructor._client._models[modelName]) {
-      const GraphandWebhookLogsModel = require("../utils/GraphandWebhookLogsModel").default;
+      const GraphandWebhookLogsModel = require("../lib/GraphandWebhookLogsModel").default;
       const LogsModel = class extends GraphandWebhookLogsModel {
         static baseUrl = `${constructor.baseUrl}/${parent._id}/logs`;
         static queryUrl = `${constructor.baseUrl}/${parent._id}/logs`;

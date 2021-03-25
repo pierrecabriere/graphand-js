@@ -18,10 +18,10 @@ import Sockethook from "./models/Sockethook";
 import Token from "./models/Token";
 import User from "./models/User";
 import Webhook from "./models/Webhook";
-import GraphandError from "./utils/GraphandError";
-import GraphandModel from "./utils/GraphandModel";
+import GraphandError from "./lib/GraphandError";
+import GraphandModel from "./lib/GraphandModel";
 import Log from "./models/Log";
-import * as utils from "./utils";
+import * as lib from "./lib";
 
 interface ClientOptions {
   project?: string;
@@ -70,7 +70,7 @@ class Client {
 
   GraphandModel = GraphandModel.setClient(this);
 
-  static utils = utils;
+  static lib = lib;
 
   constructor(project: string | ClientOptions, options: ClientOptions = {}) {
     options = project && typeof project === "object" ? { ...project, ...options } : options;
@@ -424,7 +424,7 @@ class Client {
     _await = _await === undefined ? trigger.constructor.name === "AsyncFunction" : _await;
 
     if (!identifier) {
-      identifier = md5(trigger.toString() + action + model.scope);
+      identifier = `${action}:${model.scope}`;
     }
 
     const _trigger = async (payload, hook) => {

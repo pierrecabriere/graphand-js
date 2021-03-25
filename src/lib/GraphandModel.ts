@@ -9,6 +9,8 @@ import GraphandModelList from "./GraphandModelList";
 import GraphandModelListPromise from "./GraphandModelListPromise";
 import GraphandModelPromise from "./GraphandModelPromise";
 import ModelObserver from "./ModelObserver";
+import serialize from "../utils/serialize";
+import getUpdateFields from "../utils/getUpdateFields";
 
 class GraphandModel {
   // configurable fields
@@ -395,11 +397,35 @@ class GraphandModel {
   }
 
   static async handleUpdateCall(payload) {
+    payload = serialize(payload);
     return await this._client._axios.patch(this.baseUrl, payload);
   }
 
-  static on(event, trigger, options) {
+  static on(event, trigger, options: any = {}) {
     this._client.registerHook({ model: this, action: event, trigger, _await: options.await, ...options });
+  }
+
+  static calcField(slug, trigger, options: any = {}) {
+    const baseIdentifier = options.identifier || `${this.scope}:calcField:${slug}`;
+    const watchFields = options.watchFields ?? [slug];
+    this.on("before_create", async (payload) => {
+      // const fields = getUpdateFields(payload.req);
+      // if (!fields.find(field => watchFields.includes(field))) {
+      //   return;
+      // }
+      //
+      // const res = await trigger(payload.req, payload);
+      // payload.req = res ?? payload.req;
+    }, { await: true, identifier: `${baseIdentifier}:create` });
+    this.on("before_update", async (payload) => {
+      // const fields = getUpdateFields(payload.req.set);
+      // if (!fields.find(field => watchFields.includes(field))) {
+      //   return;
+      // }
+      //
+      // const res = await trigger(payload.req.set, payload);
+      // payload.req.set = res ?? payload.req.set;
+    }, { await: true, identifier: `${baseIdentifier}:update` });
   }
 
   static sync(force = false) {
@@ -424,8 +450,7 @@ class GraphandModel {
     return this.reinitStore();
   }
 
-  static getCacheKey(obj) {
-    const { select, populate, sort, pageSize, page, translations, query, ids } = obj;
+  static getCacheKey({ select, populate, sort, pageSize, page, translations, query, ids }) {
     return this.scope + JSON.stringify([select, populate, sort, pageSize, page, translations, query, ids]);
   }
 
@@ -559,30 +584,12 @@ class GraphandModel {
     return false;
   }
 
-  static prepareQuery(query?: any) {
-    const _decodeInstances = (object) => {
-      if (object instanceof GraphandModelList || object instanceof GraphandModelListPromise) {
-        object = object.ids;
-      } else if (object instanceof GraphandModel || object instanceof GraphandModelPromise) {
-        object = [object._id];
-      } else if (object && typeof object === "object") {
-        Object.keys(object).forEach((key) => {
-          _decodeInstances(object[key]);
-        });
-      }
-    };
-
-    _decodeInstances(query);
-  }
-
   static getList() {
     return this.query.apply(this, arguments);
   }
 
   static query(query?: any, ...params): GraphandModelList | GraphandModelListPromise {
     if (query) {
-      this.prepareQuery(query);
-
       if (Array.isArray(query)) {
         query = { ids: query };
       }
@@ -875,6 +882,8 @@ class GraphandModel {
       query = { query: { _id: query } };
     } else if (!query) {
       query = {};
+    } else {
+      query = serialize(query);
     }
 
     if (this.translatable && !query.translations && this._client._project?.locales?.length) {
@@ -951,6 +960,7 @@ class GraphandModel {
 
     let item;
     try {
+      args.payload = serialize(args.payload);
       const req = this._client._axios
         .post(this.baseUrl, args.payload, args.config)
         .then(async (res) => {
@@ -1164,6 +1174,8 @@ class GraphandModel {
       }
     } else {
       try {
+        payload = serialize(payload);
+
         // @ts-ignore
         const { data } = await this._client._axios.delete(this.baseUrl, { _data: payload });
 

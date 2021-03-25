@@ -1,13 +1,13 @@
-import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
-import GraphandFieldColor from "../utils/fields/GraphandFieldColor";
-import GraphandFieldDate from "../utils/fields/GraphandFieldDate";
-import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
-import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
-import GraphandFieldRelation from "../utils/fields/GraphandFieldRelation";
-import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
-import GraphandFieldSelect from "../utils/fields/GraphandFieldSelect";
-import GraphandFieldText from "../utils/fields/GraphandFieldText";
-import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldColor from "../lib/fields/GraphandFieldColor";
+import GraphandFieldDate from "../lib/fields/GraphandFieldDate";
+import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
+import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
+import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
+import GraphandFieldSelect from "../lib/fields/GraphandFieldSelect";
+import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandModel from "../lib/GraphandModel";
 
 class DataField extends GraphandModel {
   static apiIdentifier = "data-fields";

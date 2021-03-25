@@ -1,8 +1,8 @@
-import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
-import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
-import GraphandFieldRelation from "../utils/fields/GraphandFieldRelation";
-import GraphandFieldText from "../utils/fields/GraphandFieldText";
-import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
+import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandModel from "../lib/GraphandModel";
 
 class Role extends GraphandModel {
   static apiIdentifier = "roles";

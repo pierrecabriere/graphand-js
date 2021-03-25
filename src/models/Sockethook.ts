@@ -1,9 +1,9 @@
-import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
-import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
-import GraphandFieldScope from "../utils/fields/GraphandFieldScope";
-import GraphandFieldText from "../utils/fields/GraphandFieldText";
-import GraphandModel from "../utils/GraphandModel";
-import GraphandFieldJSON from "../utils/fields/GraphandFieldJSON";
+import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
+import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
+import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandModel from "../lib/GraphandModel";
+import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 
 class Sockethook extends GraphandModel {
   static apiIdentifier = "sockethooks";

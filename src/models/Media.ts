@@ -1,8 +1,8 @@
 import FormData from "form-data";
-import GraphandFieldBoolean from "../utils/fields/GraphandFieldBoolean";
-import GraphandFieldNumber from "../utils/fields/GraphandFieldNumber";
-import GraphandFieldText from "../utils/fields/GraphandFieldText";
-import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
+import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandModel from "../lib/GraphandModel";
 
 class Media extends GraphandModel {
   static apiIdentifier = "medias";

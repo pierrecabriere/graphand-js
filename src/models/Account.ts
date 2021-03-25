@@ -1,6 +1,6 @@
-import GraphandFieldRelation from "../utils/fields/GraphandFieldRelation";
-import GraphandFieldText from "../utils/fields/GraphandFieldText";
-import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandModel from "../lib/GraphandModel";
 import Role from "./Role";
 
 class Account extends GraphandModel {

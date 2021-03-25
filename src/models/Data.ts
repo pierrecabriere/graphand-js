@@ -1,4 +1,4 @@
-import GraphandModel from "../utils/GraphandModel";
+import GraphandModel from "../lib/GraphandModel";
 
 class Data extends GraphandModel {
   static queryFields = true;

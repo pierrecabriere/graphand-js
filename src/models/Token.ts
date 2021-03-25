@@ -1,7 +1,7 @@
-import GraphandFieldDate from "../utils/fields/GraphandFieldDate";
-import GraphandFieldRelation from "../utils/fields/GraphandFieldRelation";
-import GraphandFieldText from "../utils/fields/GraphandFieldText";
-import GraphandModel from "../utils/GraphandModel";
+import GraphandFieldDate from "../lib/fields/GraphandFieldDate";
+import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandModel from "../lib/GraphandModel";
 
 class Token extends GraphandModel {
   static apiIdentifier = "tokens";
