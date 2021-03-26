@@ -416,7 +416,7 @@ class Client {
     );
   }
 
-  async registerHook({ identifier, model, action, trigger, _await, timeout, priority }) {
+  async registerHook({ identifier, model, action, trigger, _await, timeout, priority, fields }) {
     await this.init();
     let hook;
     let socket;
@@ -474,6 +474,7 @@ class Client {
           action,
           timeout,
           priority,
+          fields,
         });
 
         console.error(`sockethook ${hook.identifier} with _id ${hook._id} registered on socket ${socket.id}`);

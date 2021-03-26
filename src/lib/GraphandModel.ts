@@ -2,6 +2,7 @@ import isEqual from "fast-deep-equal";
 import _ from "lodash";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
 import Client from "../Client";
+import serialize from "../utils/serialize";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldId from "./fields/GraphandFieldId";
 import GraphandFieldRelation from "./fields/GraphandFieldRelation";
@@ -9,8 +10,6 @@ import GraphandModelList from "./GraphandModelList";
 import GraphandModelListPromise from "./GraphandModelListPromise";
 import GraphandModelPromise from "./GraphandModelPromise";
 import ModelObserver from "./ModelObserver";
-import serialize from "../utils/serialize";
-import getUpdateFields from "../utils/getUpdateFields";
 
 class GraphandModel {
   // configurable fields
@@ -405,29 +404,6 @@ class GraphandModel {
     this._client.registerHook({ model: this, action: event, trigger, _await: options.await, ...options });
   }
 
-  static calcField(slug, trigger, options: any = {}) {
-    const baseIdentifier = options.identifier || `${this.scope}:calcField:${slug}`;
-    const watchFields = options.watchFields ?? [slug];
-    this.on("before_create", async (payload) => {
-      // const fields = getUpdateFields(payload.req);
-      // if (!fields.find(field => watchFields.includes(field))) {
-      //   return;
-      // }
-      //
-      // const res = await trigger(payload.req, payload);
-      // payload.req = res ?? payload.req;
-    }, { await: true, identifier: `${baseIdentifier}:create` });
-    this.on("before_update", async (payload) => {
-      // const fields = getUpdateFields(payload.req.set);
-      // if (!fields.find(field => watchFields.includes(field))) {
-      //   return;
-      // }
-      //
-      // const res = await trigger(payload.req.set, payload);
-      // payload.req.set = res ?? payload.req.set;
-    }, { await: true, identifier: `${baseIdentifier}:update` });
-  }
-
   static sync(force = false) {
     if (force || (this._client && !this.socketSubscription)) {
       this.setupSocket();
@@ -584,8 +560,8 @@ class GraphandModel {
     return false;
   }
 
-  static getList() {
-    return this.query.apply(this, arguments);
+  static getList(...args) {
+    return this.query.apply(this, args);
   }
 
   static query(query?: any, ...params): GraphandModelList | GraphandModelListPromise {
@@ -615,7 +591,11 @@ class GraphandModel {
       return new GraphandModelListPromise(
         async (resolve) => {
           try {
-            const { data: { data: { rows, count } } } = await _this.fetch(query, ...params);
+            const {
+              data: {
+                data: { rows, count },
+              },
+            } = await _this.fetch(query, ...params);
             const storeList = _this.listSubject.getValue();
             const list = rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
             resolve(new GraphandModelList({ model: _this, count, query }, ...list));
@@ -650,7 +630,14 @@ class GraphandModel {
       }, this);
     }
 
-    const _id = query instanceof GraphandModel ? query._id : typeof query === "object" && query.query?._id ? query.query._id : typeof query === "string" ? query : null;
+    const _id =
+      query instanceof GraphandModel
+        ? query._id
+        : typeof query === "object" && query.query?._id
+        ? query.query._id
+        : typeof query === "string"
+        ? query
+        : null;
     const item = this.getList().find((item) => item._id === _id);
 
     if (!item && fetch) {
@@ -1101,7 +1088,14 @@ class GraphandModel {
     }
 
     try {
-      await constructor.update({ ...payload, query: { _id } }, { clearCache: options.clearCache, upsert: options.upsert, hooks: false });
+      await constructor.update(
+        { ...payload, query: { _id } },
+        {
+          clearCache: options.clearCache,
+          upsert: options.upsert,
+          hooks: false,
+        },
+      );
       if (options.upsert) {
         this.assign(constructor.get(_id, false).raw, false);
       } else {
