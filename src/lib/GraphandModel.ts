@@ -928,7 +928,7 @@ class GraphandModel {
     return new ModelObserver(options, this);
   }
 
-  static async create(payload, hooks = true) {
+  static async create(payload, hooks = true, url = this.baseUrl) {
     await this.init();
 
     const config = { params: {} };
@@ -948,8 +948,9 @@ class GraphandModel {
     let item;
     try {
       args.payload = serialize(args.payload);
+      console.log(args);
       const req = this._client._axios
-        .post(this.baseUrl, args.payload, args.config)
+        .post(url, args.payload, args.config)
         .then(async (res) => {
           item = new this(res.data.data);
 

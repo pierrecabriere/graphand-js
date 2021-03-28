@@ -4,11 +4,14 @@ import GraphandModelListPromise from "../lib/GraphandModelListPromise";
 import GraphandModelPromise from "../lib/GraphandModelPromise";
 
 const _decode = (value) => {
-  if (value instanceof GraphandModelList || value instanceof GraphandModelListPromise) {
-    return value.ids;
-  } else if (value instanceof GraphandModel || value instanceof GraphandModelPromise) {
-    return value._id;
-  } else if (value && typeof value === "object") {
+  if (
+    value instanceof GraphandModelList ||
+    value instanceof GraphandModelListPromise ||
+    value instanceof GraphandModel ||
+    value instanceof GraphandModelPromise
+  ) {
+    return value.toString();
+  } else if (value && typeof value === "object" && Object.keys(value).length) {
     if (Array.isArray(value)) {
       return value.map((v) => _decode(v));
     } else {
@@ -28,7 +31,8 @@ const serialize = (payload) => {
     return {};
   }
 
-  return Object.keys(payload).reduce((final, key) => Object.assign(final, { [key]: _decode(payload[key]) }), {});
+  const res = Object.keys(payload).reduce((final, key) => Object.assign(final, { [key]: _decode(payload[key]) }), {});
+  return JSON.parse(JSON.stringify(res));
 };
 
 export default serialize;
