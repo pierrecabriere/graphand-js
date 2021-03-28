@@ -54,8 +54,19 @@ class GraphandError extends Error {
   }
 
   static parse(input) {
-    const errors = Array.isArray(input) ? input : typeof input === "object" ? [input] : typeof input === "string" ? [{ type: "GraphandError", message: input }] : [];
-    return errors.map(e => GraphandError.fromJSON(e));
+    const errors = Array.isArray(input)
+      ? input
+      : typeof input === "object"
+      ? [input]
+      : typeof input === "string"
+      ? [
+          {
+            type: "GraphandError",
+            message: input,
+          },
+        ]
+      : [];
+    return errors.map((e) => GraphandError.fromJSON(e));
   }
 
   toJSON(): any {

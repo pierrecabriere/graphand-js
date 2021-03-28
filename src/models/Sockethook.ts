@@ -19,7 +19,7 @@ class Sockethook extends GraphandModel {
     timeout: new GraphandFieldNumber({ name: "Timeout" }),
     priority: new GraphandFieldNumber({ name: "Priorité", defaultValue: 0 }),
     revision: new GraphandFieldNumber({ name: "Revision", defaultValue: 1 }),
-    hosts: new GraphandFieldJSON({  name: "Hôtes" })
+    hosts: new GraphandFieldJSON({ name: "Hôtes" }),
   };
 
   identifier;
@@ -49,7 +49,10 @@ class Sockethook extends GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     try {
       const startTime = new Date().getTime();
-      await constructor._client._axios.post(`${constructor.baseUrl}/ping`, { ip: this.ip, identifier: this.identifier });
+      await constructor._client._axios.post(`${constructor.baseUrl}/ping`, {
+        ip: this.ip,
+        identifier: this.identifier,
+      });
       return new Date().getTime() - startTime;
     } catch (e) {
       return false;

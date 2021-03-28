@@ -34,7 +34,12 @@ class Restriction extends GraphandModel {
         name: "Champs à restreindre",
         type: GraphandFieldText,
         multiple: true,
-        options: model ? Object.keys(model.fields).map((slug) => ({ value: slug, label: model.fields[slug].name || slug })) : [],
+        options: model
+          ? Object.keys(model.fields).map((slug) => ({
+              value: slug,
+              label: model.fields[slug].name || slug,
+            }))
+          : [],
       }),
       conditions: new GraphandFieldJSON({ name: "Conditions" }),
     };

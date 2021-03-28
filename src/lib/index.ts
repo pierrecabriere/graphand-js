@@ -23,5 +23,5 @@ export {
   GraphandSocketHook,
   GraphandValidationError,
   GraphandWebhookLogsModel,
-  ModelObserver
+  ModelObserver,
 };

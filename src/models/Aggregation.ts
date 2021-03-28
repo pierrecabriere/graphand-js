@@ -33,7 +33,12 @@ class Aggregation extends GraphandModel {
         name: "Champs de mise en cache",
         type: GraphandFieldText,
         multiple: true,
-        options: model ? Object.keys(model.fields).map((slug) => ({ value: slug, label: model.fields[slug].name || slug })) : [],
+        options: model
+          ? Object.keys(model.fields).map((slug) => ({
+              value: slug,
+              label: model.fields[slug].name || slug,
+            }))
+          : [],
       }),
       pipeline: new GraphandFieldJSON({ name: "Pipeline", defaultValue: [] }),
       defaultVars: new GraphandFieldJSON({ name: "Variables par défaut" }),
