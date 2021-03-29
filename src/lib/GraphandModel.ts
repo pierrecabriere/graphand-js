@@ -610,12 +610,7 @@ class GraphandModel {
     }
 
     const list = this.listSubject.getValue();
-    try {
-      return new GraphandModelList({ model: this }, ...list);
-    } catch (e) {
-      console.log("ThisIsAMarker", list);
-      return null;
-    }
+    return new GraphandModelList({ model: this }, ...list);
   }
 
   static get(query, fetch = true) {
@@ -948,7 +943,6 @@ class GraphandModel {
     let item;
     try {
       args.payload = serialize(args.payload);
-      console.log(args);
       const req = this._client._axios
         .post(url, args.payload, args.config)
         .then(async (res) => {
