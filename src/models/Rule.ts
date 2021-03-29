@@ -30,6 +30,7 @@ class Rule extends GraphandModel {
           { value: "read", label: "Lire" },
           { value: "update", label: "Modifier" },
           { value: "delete", label: "Supprimer" },
+          { value: "count", label: "Compter" },
           { value: "login", label: "Se connecter" },
           { value: "register", label: "S'inscrire" },
           { value: "execute", label: "Exécuter" },
