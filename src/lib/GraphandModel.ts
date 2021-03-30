@@ -617,7 +617,7 @@ class GraphandModel {
     return new GraphandModelList({ model: this }, ...list);
   }
 
-  static get(query, fetch = true) {
+  static get(query, fetch = true, cache = true) {
     if (!query) {
       return new GraphandModelPromise(async (resolve, reject) => {
         try {
@@ -637,15 +637,21 @@ class GraphandModel {
         : typeof query === "string"
         ? query
         : null;
-    const item = this.getList().find((item) => item._id === _id);
+
+    const item = cache && this.getList().find((item) => item._id === _id);
 
     if (!item && fetch) {
       return new GraphandModelPromise(
         async (resolve, reject) => {
           let res;
           try {
-            res = await this.fetch(query);
-            const id = res.data.data && ((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id);
+            res = await this.fetch(query, cache);
+            const data = res.data.data && ((res.data.data.rows && res.data.data.rows[0]) || res.data.data);
+            if (!cache) {
+              resolve(data && this.hydrate(data));
+            }
+
+            const id = data && data._id;
             if (id) {
               resolve(this.get(id, false));
             } else {

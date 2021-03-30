@@ -17,6 +17,7 @@ class EsMapping extends GraphandModel {
       fields: new GraphandFieldJSON({ name: "Mapping des champs" }),
       externalHost: new GraphandFieldBoolean({ name: "Utiliser un hôte externe" }),
       host: new GraphandFieldText({ name: "Hôte" }),
+      conditions: new GraphandFieldJSON({ name: "Conditions" }),
     };
   }
 
@@ -24,7 +25,7 @@ class EsMapping extends GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     const {
       data: { data },
-    } = await constructor._client._axios.post(`/elasticsearch/${this._id}/count`, query);
+    } = await constructor._client._axios.post(`/elasticsearch/${this._id}/index-count`, query);
     return data;
   }
 
