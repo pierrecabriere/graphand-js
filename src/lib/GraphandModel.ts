@@ -59,6 +59,10 @@ class GraphandModel {
     return this._listSubject;
   }
 
+  static hydrate(data: any, _fields?) {
+    return new this(data, _fields);
+  }
+
   constructor(data: any, _fields?) {
     if (data instanceof GraphandModel) {
       return data.clone();
@@ -917,6 +921,21 @@ class GraphandModel {
 
     callback && callback(res);
     return res;
+  }
+
+  static async count(query?: any, ...params): Promise<number> {
+    await this.init();
+
+    if (typeof query === "string") {
+      query = { query: { _id: query } };
+    } else if (!query) {
+      query = {};
+    } else {
+      query = serialize(query);
+    }
+
+    const { data } = await this._client._axios.post(`${this.baseUrl}/count`, query);
+    return parseInt(data.data, 10);
   }
 
   static observe(options: any = {}) {
