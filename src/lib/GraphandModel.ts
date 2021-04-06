@@ -1232,10 +1232,30 @@ class GraphandModel {
     return this;
   }
 
-  get HistoryModel() {
+  static get HistoryModel() {
+    const modelName = `${this.scope}_history`;
     const parent = this;
+    if (!this._client._models[modelName]) {
+      const GraphandHistoryModel = require("./GraphandHistoryModel").default;
+      const HistoryModel = class extends GraphandHistoryModel {
+        static baseUrl = `${parent.baseUrl}/history`;
+        static queryUrl = `${parent.baseUrl}/history`;
+
+        static get scope() {
+          return modelName;
+        }
+      };
+
+      this._client.registerModel(HistoryModel, { name: modelName });
+    }
+
+    return this._client.models[modelName];
+  }
+
+  get HistoryModel() {
     const { constructor } = Object.getPrototypeOf(this);
-    const modelName = `${this._id}_history`;
+    const modelName = `${constructor.scope}_${this._id}_history`;
+    const parent = this;
     if (!constructor._client._models[modelName]) {
       const GraphandHistoryModel = require("./GraphandHistoryModel").default;
       const HistoryModel = class extends GraphandHistoryModel {
@@ -1243,7 +1263,7 @@ class GraphandModel {
         static queryUrl = `${constructor.baseUrl}/${parent._id}/history`;
 
         static get scope() {
-          return `${constructor.scope}_history`;
+          return modelName;
         }
       };
 
