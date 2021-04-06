@@ -568,7 +568,7 @@ class GraphandModel {
     return this.query.apply(this, args);
   }
 
-  static query(query?: any, ...params): GraphandModelList | GraphandModelListPromise {
+  static query(query?: any, cache = true, ...params): GraphandModelList | GraphandModelListPromise {
     if (query) {
       if (Array.isArray(query)) {
         query = { ids: query };
@@ -599,7 +599,7 @@ class GraphandModel {
               data: {
                 data: { rows, count },
               },
-            } = await _this.fetch(query, ...params);
+            } = await _this.fetch(query, cache, ...params);
             const storeList = _this.listSubject.getValue();
             const list = rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
             resolve(new GraphandModelList({ model: _this, count, query }, ...list));

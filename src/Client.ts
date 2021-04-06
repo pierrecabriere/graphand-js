@@ -309,15 +309,15 @@ class Client {
       return Model;
     }
 
-    if (!this._models[identifier]) {
+    if (!this._models[`Data:${identifier}`]) {
       const DataClass = this.extendsModel(Data);
       const Model = class extends DataClass {
         static apiIdentifier = identifier;
       };
-      this.registerModel(Model, { ...options, name: identifier });
+      this.registerModel(Model, options);
     }
 
-    return this._models[identifier];
+    return this._models[`Data:${identifier}`];
   }
 
   getModelByScope(scope: string) {
@@ -356,7 +356,7 @@ class Client {
     return this._socket;
   }
 
-  async registerModel(Model: any, options?) {
+  registerModel(Model: any, options?) {
     if (!Model) {
       return;
     }
@@ -371,21 +371,12 @@ class Client {
 
     const _name = options.name || Model.scope;
 
-    if (options.force) {
-      Model.__registered = false;
-    } else if (this._models[_name]?.__registered) {
-      return;
-    }
-
-    if (Model.__registered) {
+    if (!options.force && (this._models[_name]?.__registered || Model.__registered)) {
       return;
     }
 
     Model.__registered = true;
-
-    if (_name) {
-      this._models[_name] = Model;
-    }
+    this._models[_name] = Model;
 
     try {
       Model.setClient(this);
@@ -398,7 +389,7 @@ class Client {
         Model._fieldsIds = options.fieldsIds;
       }
 
-      await Model.init();
+      Model.init();
     } catch (e) {}
 
     return this._models[_name];
@@ -519,7 +510,7 @@ class Client {
   }
 
   logout() {
-    this.accessToken = undefined;
+    this.accessToken = this._options.accessToken || undefined;
     Object.values(this._models).forEach((model: any) => {
       model.clearCache();
     });
