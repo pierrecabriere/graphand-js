@@ -704,167 +704,93 @@ class GraphandModel {
     return ret;
   }
 
-  static getRequest(query, hooks, cacheKey?) {
-    let request;
-    if (query?.query?._id && typeof query.query._id === "string" && Object.keys(query.query).length === 1) {
-      request = () =>
-        this._client._axios
-          .get(`${this.baseUrl}/${query.query._id}`)
-          .then(async (res) => {
-            if (res.data?.data) {
-              const populatedPaths = this.getPopulatedPaths(query.populate);
-              if (populatedPaths?.length) {
-                const fields = this.getFields(res.data.data);
-                for (const path of populatedPaths) {
-                  const field = fields[path];
-                  if (!field || !(field instanceof GraphandFieldRelation)) {
-                    continue;
-                  }
+  static async _request(query, hooks, cacheKey?) {
+    let res;
 
-                  const populatedData = _.get(res.data.data, path);
-                  if (!populatedData) {
-                    continue;
-                  }
-                  if (field.multiple && Array.isArray(populatedData)) {
-                    for (const populatedItem of populatedData) {
-                      const _item = new field.model(populatedItem);
-                      field.model.upsertStore(_item);
-                    }
+    try {
+      const isSimpleQuery =
+        query?.query?._id && typeof query.query._id === "string" && Object.keys(query).length === 1 && Object.keys(query.query).length === 1;
+      if (isSimpleQuery) {
+        const url = `${this.baseUrl}/${query.query._id}`;
+        res = await this._client._axios.get(url);
 
-                    const ids = populatedData.map((i) => i && i._id).filter(Boolean);
-                    _.set(res.data.data, path, ids);
-                  } else {
-                    const _item = new field.model(populatedData);
-                    field.model.upsertStore(_item);
-                    _.set(res.data.data, path, populatedData._id);
-                  }
-                }
+        if (res.data?.data) {
+          const item = this.get(res.data.data._id, false) || new this(res.data?.data);
+          this.upsertStore(item);
+        }
+      } else {
+        const url = this.queryUrl || `${this.baseUrl}/query`;
+        res = await this._client._axios.post(url, query);
+        const { data } = res;
+
+        const _processPopulate = (item) => {
+          const populatedPaths = this.getPopulatedPaths(query.populate);
+          if (populatedPaths?.length) {
+            const fields = this.getFields(item);
+            for (const path of populatedPaths) {
+              const field = fields[path];
+              if (!field || !(field instanceof GraphandFieldRelation)) {
+                continue;
               }
 
-              const item = this.get(res.data.data._id, false) || new this(res.data?.data);
-              this.upsertStore(item);
-            }
-
-            if (cacheKey) {
-              this.cache[cacheKey] = this.cache[cacheKey] || {};
-              this.cache[cacheKey].previous = res;
-            }
-
-            if (hooks) {
-              await this.afterQuery?.call(this, query, res);
-            }
-
-            return res;
-          })
-          .catch(async (e) => {
-            delete this.cache[cacheKey];
-
-            if (hooks) {
-              await this.afterQuery?.call(this, query, null, e);
-            }
-
-            throw e;
-          });
-    } else {
-      request = () =>
-        this._client._axios
-          .post(this.queryUrl || `${this.baseUrl}/query`, query)
-          .then(async (res) => {
-            const populatedPaths = this.getPopulatedPaths(query.populate);
-
-            if (res.data?.data?.rows) {
-              res.data.data.rows = res.data.data.rows.map((item) => {
-                if (populatedPaths?.length) {
-                  const fields = this.getFields(item);
-                  for (const path of populatedPaths) {
-                    const field = fields[path];
-                    if (!field || !(field instanceof GraphandFieldRelation)) {
-                      continue;
-                    }
-
-                    const populatedData = _.get(item, path);
-                    if (!populatedData) {
-                      continue;
-                    }
-                    if (field.multiple && Array.isArray(populatedData)) {
-                      for (const populatedItem of populatedData) {
-                        const _item = new field.model(populatedItem);
-                        field.model.upsertStore(_item);
-                      }
-
-                      const ids = populatedData.map((i) => i && i._id).filter(Boolean);
-                      _.set(item, path, ids);
-                    } else {
-                      const _item = new field.model(populatedData);
-                      field.model.upsertStore(_item);
-                      _.set(item, path, populatedData._id);
-                    }
-                  }
-                }
-
-                return new this(item);
-              });
-
-              let rows = res.data.data.rows || [res.data.data];
-              rows = rows.map((item) => (item?._id && this.get(item._id, false)) || item);
-
-              this.upsertStore(rows);
-            } else if (res.data.data && typeof res.data.data === "object") {
-              if (populatedPaths?.length) {
-                const fields = this.getFields(res.data.data);
-                for (const path of populatedPaths) {
-                  const field = fields[path];
-                  if (!field || !(field instanceof GraphandFieldRelation)) {
-                    continue;
-                  }
-
-                  const populatedData = _.get(res.data.data, path);
-                  if (!populatedData) {
-                    continue;
-                  }
-                  if (field.multiple && Array.isArray(populatedData)) {
-                    for (const populatedItem of populatedData) {
-                      const _item = new field.model(populatedItem);
-                      field.model.upsertStore(_item);
-                    }
-
-                    const ids = populatedData.map((i) => i._id);
-                    _.set(res.data.data, path, ids);
-                  } else {
-                    const _item = new field.model(populatedData);
-                    field.model.upsertStore(_item);
-                    _.set(res.data.data, path, populatedData._id);
-                  }
-                }
+              const populatedData = _.get(item, path);
+              if (!populatedData) {
+                continue;
               }
 
-              const item = this.get(res.data.data._id, false) || new this(res.data.data);
-              this.upsertStore(item);
+              let value;
+              if (field.multiple && Array.isArray(populatedData)) {
+                const _items = populatedData.map((populatedItem) => new field.model(populatedItem));
+                field.model.upsertStore(_items);
+                value = populatedData.map((i) => i && i._id).filter(Boolean);
+              } else {
+                const _item = new field.model(populatedData);
+                field.model.upsertStore(_item);
+                value = _item._id;
+              }
+
+              _.set(item, path, value);
             }
+          }
+        };
 
-            if (cacheKey) {
-              this.cache[cacheKey] = this.cache[cacheKey] || {};
-              this.cache[cacheKey].previous = res;
-            }
-
-            if (hooks) {
-              await this.afterQuery?.call(this, query, res);
-            }
-
-            return res;
-          })
-          .catch(async (e) => {
-            delete this.cache[cacheKey];
-
-            if (hooks) {
-              await this.afterQuery?.call(this, query, null, e);
-            }
-
-            throw e;
+        if (data?.data?.rows) {
+          data.data.rows = data.data.rows.map((item) => {
+            _processPopulate(item);
+            return new this(item);
           });
+
+          let rows = data.data.rows || [data.data];
+          rows = rows.map((item) => (item?._id && this.get(item._id, false)) || item);
+
+          this.upsertStore(rows);
+        } else if (data.data && typeof data.data === "object") {
+          _processPopulate(data.data);
+
+          const item = this.get(data.data._id, false) || new this(data.data);
+          this.upsertStore(item);
+        }
+      }
+    } catch (e) {
+      delete this.cache[cacheKey];
+
+      if (hooks) {
+        await this.afterQuery?.call(this, query, null, e);
+      }
+
+      throw e;
     }
 
-    return request;
+    if (cacheKey) {
+      this.cache[cacheKey] = this.cache[cacheKey] || {};
+      this.cache[cacheKey].previous = res;
+    }
+
+    if (hooks) {
+      await this.afterQuery?.call(this, query, res);
+    }
+
+    return res;
   }
 
   static async fetch(query: any, cache = true, callback?: Function, hooks = true) {
@@ -878,9 +804,9 @@ class GraphandModel {
       query = serialize(query);
     }
 
-    if (this.translatable && !query.translations && this._client._project?.locales?.length) {
-      query.translations = this._client._project?.locales;
-    }
+    // if (this.translatable && !query.translations && this._client._project?.locales?.length) {
+    //   query.translations = this._client._project?.locales;
+    // }
 
     if (
       this._client._options.autoMapQueries &&
@@ -896,19 +822,17 @@ class GraphandModel {
     }
 
     if (!cache) {
-      const createRequest = this.getRequest(query, hooks);
-      return await createRequest();
+      return await this._request(query, hooks);
     }
 
     let res;
     const cacheKey = this.getCacheKey(query);
-    const createRequest = this.getRequest(query, hooks, cacheKey);
     const cacheEntry = this.cache[cacheKey];
 
     if (!cacheEntry) {
       this.cache[cacheKey] = {
         previous: null,
-        request: createRequest(),
+        request: this._request(query, hooks, cacheKey),
       };
 
       res = await this.cache[cacheKey].request;
@@ -919,7 +843,7 @@ class GraphandModel {
       }
 
       if (!cacheEntry.request) {
-        cacheEntry.request = createRequest();
+        cacheEntry.request = this._request(query, hooks, cacheKey);
       }
 
       res = await cacheEntry.request;
@@ -1023,9 +947,9 @@ class GraphandModel {
       options,
     );
 
-    if (this.translatable && !payload.translations && this._client._project?.locales?.length) {
-      payload.translations = this._client._project?.locales;
-    }
+    // if (this.translatable && !payload.translations && this._client._project?.locales?.length) {
+    //   payload.translations = this._client._project?.locales;
+    // }
 
     if (payload.locale && payload.locale === this._client._project?.defaultLocale) {
       delete payload.locale;
@@ -1086,9 +1010,9 @@ class GraphandModel {
 
     const constructor = this.constructor as any;
 
-    if (constructor.translatable && !payload.translations && constructor._client._project?.locales?.length) {
-      payload.translations = constructor._client._project?.locales;
-    }
+    // if (constructor.translatable && !payload.translations && constructor._client._project?.locales?.length) {
+    //   payload.translations = constructor._client._project?.locales;
+    // }
 
     if (constructor.translatable && payload.locale === undefined && this._locale) {
       payload.locale = this._locale;
