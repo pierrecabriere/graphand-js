@@ -110,7 +110,7 @@ class GraphandModel {
     if (locale) {
       clone.translate(locale);
     }
-    clone._version = this._version + 1;
+    clone._version = this._version;
     return clone;
   }
 
@@ -190,16 +190,13 @@ class GraphandModel {
 
   subscribe() {
     const { constructor } = Object.getPrototypeOf(this);
-    const parent = this;
+    let prev = this.clone();
     const observable = new Observable((subscriber) => {
-      let prevRaw = _.cloneDeep(parent.raw);
-      let prevVersion = parent._version;
       constructor.listSubject.subscribe(async () => {
-        const item = await constructor.get(parent._id);
-        if (!item || item._version > prevVersion || !isEqual(item.raw, prevRaw)) {
+        const item = await constructor.get(prev._id);
+        if (!item || item._version > prev._version || !isEqual(item.raw, prev.raw)) {
           if (item) {
-            prevRaw = item.raw;
-            prevVersion = item._version;
+            prev = item.clone();
           }
           subscriber.next(item);
         }
@@ -570,26 +567,26 @@ class GraphandModel {
 
   static query(query?: any, cache = true, ...params): GraphandModelList | GraphandModelListPromise {
     if (query) {
-      if (Array.isArray(query)) {
-        query = { ids: query };
-      }
+      // if (Array.isArray(query)) {
+      //   query = { ids: query };
+      // }
 
-      if (query.ids) {
-        if (query.ids instanceof GraphandModelList || query.ids instanceof GraphandModelListPromise) {
-          query.ids = query.ids.ids;
-        } else if (query.ids instanceof GraphandModel || query.ids instanceof GraphandModelPromise) {
-          query.ids = [query.ids._id];
-        } else if (typeof query.ids === "string") {
-          query.ids = [query.ids];
-        }
-
-        if (Object.keys(query).length === 1) {
-          const list = query.ids.map((_id) => this.get(_id, false));
-          if (list.every(Boolean)) {
-            return new GraphandModelList({ model: this, count: list.length, query }, ...list);
-          }
-        }
-      }
+      // if (query.ids) {
+      //   if (query.ids instanceof GraphandModelList || query.ids instanceof GraphandModelListPromise) {
+      //     query.ids = query.ids.ids;
+      //   } else if (query.ids instanceof GraphandModel || query.ids instanceof GraphandModelPromise) {
+      //     query.ids = [query.ids._id];
+      //   } else if (typeof query.ids === "string") {
+      //     query.ids = [query.ids];
+      //   }
+      //
+      //   if (Object.keys(query).length === 1 && "ids" in query) {
+      //     const list = query.ids.map((_id) => this.get(_id, false));
+      //     if (list.every(Boolean)) {
+      //       return new GraphandModelList({ model: this, count: list.length, query }, ...list);
+      //     }
+      //   }
+      // }
 
       const _this = this;
       return new GraphandModelListPromise(
