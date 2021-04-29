@@ -1,43 +1,11 @@
-import axios, { AxiosInstance } from "axios";
-import md5 from "md5";
 import { BehaviorSubject, Subject } from "rxjs";
-import io from "socket.io-client";
-import Account from "./models/Account";
-import Aggregation from "./models/Aggregation";
 import Data from "./models/Data";
-import DataField from "./models/DataField";
-import DataModel from "./models/DataModel";
-import EsMapping from "./models/EsMapping";
-import Media from "./models/Media";
-import Module from "./models/Module";
-import Project from "./models/Project";
-import Restriction from "./models/Restriction";
-import Role from "./models/Role";
-import Rule from "./models/Rule";
 import Sockethook from "./models/Sockethook";
-import Token from "./models/Token";
-import User from "./models/User";
-import Webhook from "./models/Webhook";
-import GraphandError from "./lib/GraphandError";
 import GraphandModel from "./lib/GraphandModel";
-import Log from "./models/Log";
 import * as lib from "./lib";
-
-interface ClientOptions {
-  project?: string;
-  accessToken?: string;
-  locale?: string;
-  translations?: string[];
-  host?: string;
-  cdn?: string;
-  realtime?: boolean;
-  autoSync?: boolean;
-  autoMapQueries?: boolean;
-  ssl?: boolean;
-  unloadTimeout?: number;
-  subscribeFields?: boolean;
-  init?: boolean;
-}
+import * as models from "./models";
+import { extendsModel, setupAxios, setupSocket, verifyScopeFormat } from "./utils";
+import { ClientOptions, ClientType } from "./interfaces";
 
 const defaultOptions = {
   host: "api.graphand.io",
@@ -55,22 +23,15 @@ const defaultOptions = {
   init: true,
 };
 
-class Client {
-  _options: ClientOptions;
-  _axios: AxiosInstance;
-  private _socket: any;
-  private _initPromise;
-  private _accessToken: string;
-  private _locale: string;
-  _project: any;
-  _models: any = {};
-  socketSubject = new Subject();
-  mediasQueueSubject = new BehaviorSubject([]);
-  initialized = false;
-
-  GraphandModel = GraphandModel.setClient(this);
-
-  static lib = lib;
+class Client implements ClientType {
+  static models = models;
+  _options;
+  _axios;
+  _project;
+  socketSubject;
+  mediasQueueSubject;
+  initialized;
+  GraphandModel;
 
   constructor(project: string | ClientOptions, options: ClientOptions = {}) {
     options = project && typeof project === "object" ? { ...project, ...options } : options;
@@ -78,38 +39,13 @@ class Client {
       options.project = project;
     }
     this._options = { ...defaultOptions, ...options };
+    this.socketSubject = new Subject();
+    this.mediasQueueSubject = new BehaviorSubject([]);
+    this.initialized = false;
+    this.GraphandModel = GraphandModel.setClient(this);
+    this._models = {};
 
-    this._axios = axios.create({
-      baseURL: `${this._options.ssl ? "https" : "http"}://${this._options.project ? `${this._options.project}.` : ""}${this._options.host}`,
-    });
-
-    this._axios.interceptors.request.use((config: any) => {
-      config.data = config.data || config._data;
-      config.headers = config.headers || {};
-      if (!config.headers.Authorization) {
-        const token = this.accessToken || this._options.accessToken;
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-
-      if (/\/users/.test(config.url)) {
-        config.baseURL = `${this._options.ssl ? "https" : "http"}://${this._options.host}`;
-      }
-
-      return config;
-    });
-
-    this._axios.interceptors.response.use(
-      (r) => r,
-      (error) => {
-        try {
-          const { errors } = error.response.data;
-          error.graphandErrors = error.graphandErrors || [];
-          error.graphandErrors = error.graphandErrors.concat(errors.map((e) => GraphandError.fromJSON(e, error.response.status)));
-        } catch (e) {}
-
-        return Promise.reject(error.graphandErrors || [new GraphandError(error.message)]);
-      },
-    );
+    this._axios = setupAxios(this);
 
     if (this._options.accessToken) {
       this.accessToken = this._options.accessToken;
@@ -123,58 +59,37 @@ class Client {
       this.connectSocket();
     }
   }
+  private _initPromise;
 
-  connectSocket() {
-    if (this.socket) {
-      return this.socket;
-    }
+  _models;
 
-    this._socket = io.connect(`${this._options.ssl ? "https" : "http"}://${this._options.host}`, {
-      query: { token: this.accessToken, projectId: this._options.project },
+  get models(): any {
+    return new Proxy(this, {
+      get: function(oTarget, sKey: string) {
+        return oTarget.getGraphandModel(sKey) || oTarget.getModelByIdentifier(sKey);
+      },
     });
+  }
 
-    this._socket.on("/uploads", ({ action, payload }) => {
-      const queueItem = this.mediasQueueSubject.value.find((item) => (payload.socket ? item.socket === payload.socket : item.name === payload.name));
-      payload.status = action;
-      switch (action) {
-        case "start":
-          this.mediasQueueSubject.next(this.mediasQueueSubject.value.concat(payload));
-          break;
-        case "end":
-        case "aborted":
-        case "progress":
-          this.mediasQueueSubject.next(this.mediasQueueSubject.value.map((item) => (item === queueItem ? Object.assign(item, payload) : item)));
-          break;
-      }
-    });
+  static lib = lib;
 
-    this._socket.on("connect", () => this.socketSubject.next(this._socket));
-    this._socket.on("reconnect_error", console.log);
+  private _socket;
 
+  get socket() {
     return this._socket;
   }
 
-  disconnectSocket(triggerSubject = true) {
-    if (!this.socket) {
-      return;
-    }
+  private _accessToken;
 
-    this.socket.disconnect();
-    delete this._socket;
-
-    if (triggerSubject) {
-      this.socketSubject.next(null);
-    }
+  get accessToken() {
+    return this._accessToken;
   }
 
-  reconnectSocket() {
-    if (this.socket) {
-      this.socket.disconnect();
-      delete this._socket;
-    }
-
-    this.connectSocket();
+  set accessToken(token: string) {
+    this.setAccessToken(token);
   }
+
+  private _locale;
 
   async init(force = false) {
     if (force || !this._initPromise) {
@@ -204,103 +119,20 @@ class Client {
     return this._initPromise;
   }
 
-  extendsModel(Class) {
-    const client = this;
-    return class extends Class {
-      static _client = client;
-      static cache = {};
-      static socketSubscription = null;
-      static _fieldsIds = null;
-      static _fields = {};
-      static _fieldsSubscription = null;
-      static initialized = false;
-      static _fieldsObserver = null;
-      static __registered = false;
-      static __initialized = false;
-      static observers = new Set([]);
-      static defaultFields = true;
-      static queryPromises = {};
-      static socketTriggerSubject = new Subject();
-      static _initPromise = null;
-      static _listSubject = null;
-    };
+  get locale() {
+    return this._locale;
   }
 
-  getModel(scope, options?) {
-    try {
-      const { 1: slug } = scope.match(/^Data:(.+?)$/);
-      return this.getModelByIdentifier(slug, options);
-    } catch (e) {
-      return this.getGraphandModel(scope, options);
-    }
+  set locale(locale: string) {
+    this.setLocale(locale);
   }
 
   getModels(scopes, options?) {
     return scopes.map((scope: string) => this.getModel(scope, options));
   }
 
-  getGraphandModel(scope, options?) {
-    if (!this._models[scope]) {
-      switch (scope) {
-        case "Aggregation":
-          this._models[scope] = this.extendsModel(Aggregation);
-          break;
-        case "Module":
-          this._models[scope] = this.extendsModel(Module);
-          break;
-        case "User":
-          this._models[scope] = this.extendsModel(User);
-          break;
-        case "Project":
-          this._models[scope] = this.extendsModel(Project);
-          break;
-        case "Data":
-          this._models[scope] = this.extendsModel(Data);
-          break;
-        case "Account":
-          this._models[scope] = this.extendsModel(Account);
-          break;
-        case "Role":
-          this._models[scope] = this.extendsModel(Role);
-          break;
-        case "Rule":
-          this._models[scope] = this.extendsModel(Rule);
-          break;
-        case "Restriction":
-          this._models[scope] = this.extendsModel(Restriction);
-          break;
-        case "DataField":
-          this._models[scope] = this.extendsModel(DataField);
-          break;
-        case "DataModel":
-          this._models[scope] = this.extendsModel(DataModel);
-          break;
-        case "Media":
-          this._models[scope] = this.extendsModel(Media);
-          break;
-        case "Token":
-          this._models[scope] = this.extendsModel(Token);
-          break;
-        case "Webhook":
-          this._models[scope] = this.extendsModel(Webhook);
-          break;
-        case "Sockethook":
-          this._models[scope] = this.extendsModel(Sockethook);
-          break;
-        case "EsMapping":
-          this._models[scope] = this.extendsModel(EsMapping);
-          break;
-        case "Log":
-          this._models[scope] = this.extendsModel(Log);
-          break;
-        default:
-          break;
-      }
-
-      this.registerModel(this._models[scope], options);
-    }
-
-    return this._models[scope];
+  static createClient(options: ClientOptions) {
+    return new Client(options);
   }
 
   getModelByIdentifier(identifier: string, options = {}) {
@@ -318,42 +150,6 @@ class Client {
     }
 
     return this._models[`Data:${identifier}`];
-  }
-
-  getModelByScope(scope: string) {
-    return this.getModel(scope);
-  }
-
-  get models(): any {
-    return new Proxy(this, {
-      get: function (oTarget, sKey: string) {
-        return oTarget.getGraphandModel(sKey) || oTarget.getModelByIdentifier(sKey);
-      },
-    });
-  }
-
-  get accessToken() {
-    return this._accessToken;
-  }
-
-  set accessToken(token: string) {
-    this.setAccessToken(token);
-  }
-
-  setAccessToken(token: string) {
-    this._accessToken = token;
-
-    if (this._options.realtime) {
-      if (token) {
-        this.reconnectSocket();
-      } else {
-        this.disconnectSocket();
-      }
-    }
-  }
-
-  get socket() {
-    return this._socket;
   }
 
   registerModel(Model: any, options?) {
@@ -488,25 +284,9 @@ class Client {
     return this.models[scope];
   }
 
-  get locale() {
-    return this._locale;
-  }
-
-  set locale(locale: string) {
-    this.setLocale(locale);
-  }
-
   async getStats() {
     const { data } = await this._axios.get("/stats");
     return data && data.data;
-  }
-
-  setLocale(locale: string) {
-    this._locale = locale;
-  }
-
-  static createClient(options: ClientOptions) {
-    return new Client(options);
   }
 
   logout() {
@@ -574,6 +354,87 @@ class Client {
 
   plugin(plugin: Function, options: any = {}) {
     plugin(this, options);
+  }
+
+  /* Accessors */
+
+  connectSocket() {
+    if (this.socket) {
+      return this.socket;
+    }
+
+    this._socket = setupSocket(this);
+
+    return this._socket;
+  }
+
+  disconnectSocket(triggerSubject = true) {
+    if (!this._socket) {
+      return;
+    }
+
+    this._socket.disconnect();
+    delete this._socket;
+
+    if (triggerSubject) {
+      this.socketSubject.next(null);
+    }
+  }
+
+  reconnectSocket() {
+    if (this._socket) {
+      this._socket.disconnect();
+      delete this._socket;
+    }
+
+    this.connectSocket();
+  }
+
+  extendsModel(Class) {
+    return extendsModel(Class, this);
+  }
+
+  getModel(scope, options?) {
+    verifyScopeFormat(scope);
+
+    try {
+      const { 1: slug } = scope.match(/^Data:([a-zA-Z0-9\-_]+?)$/);
+      return this.getModelByIdentifier(slug, options);
+    } catch (e) {
+      return this.getGraphandModel(scope, options);
+    }
+  }
+
+  getGraphandModel(scope, options?) {
+    if (!this._models[scope]) {
+      const model = this.extendsModel(models[scope]);
+      this.registerModel(model, options);
+      this._models[scope] = model;
+    }
+
+    return this._models[scope];
+  }
+
+  setAccessToken(token: string) {
+    this._accessToken = token;
+
+    if (this._options.realtime) {
+      if (token) {
+        this.reconnectSocket();
+      } else {
+        this.disconnectSocket();
+      }
+    }
+  }
+
+  setLocale(locale: string) {
+    this._locale = locale;
+  }
+
+  /* Aliases */
+
+  getModelByScope(scope: string) {
+    return this.getModel(scope);
   }
 }
 

@@ -2,10 +2,10 @@ import AggregationExecutor from "../lib/AggregationExecutor";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
-import GraphandFieldSelect from "../lib/fields/GraphandFieldSelect";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 import GraphandModelPromise from "../lib/GraphandModelPromise";
+import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 
 class Aggregation extends GraphandModel {
   static apiIdentifier = "aggregations";
@@ -18,27 +18,15 @@ class Aggregation extends GraphandModel {
       name: new GraphandFieldText({ name: "Nom" }),
       description: new GraphandFieldText({ name: "Description" }),
       scope: new GraphandFieldScope({ name: "Scope" }),
-      clearCacheScope: new GraphandFieldScope({ name: "Scope de mise en cache" }),
-      clearCacheActions: new GraphandFieldSelect({
-        name: "Actions de mise en cache",
-        type: GraphandFieldText,
-        multiple: true,
-        options: [
-          { value: "create", label: "Création" },
-          { value: "update", label: "Modification" },
-          { value: "delete", label: "Suppression" },
-        ],
-      }),
-      clearCacheFields: new GraphandFieldSelect({
-        name: "Champs de mise en cache",
-        type: GraphandFieldText,
-        multiple: true,
-        options: model
-          ? Object.keys(model.fields).map((slug) => ({
-              value: slug,
-              label: model.fields[slug].name || slug,
-            }))
-          : [],
+      cache: new GraphandFieldBoolean({ name: "Activer la mise en cache" }),
+      cacheExpiredToleration: new GraphandFieldBoolean({ name: "Tolérer le cache expiré" }),
+      cacheMaxAge: new GraphandFieldNumber({ name: "Temps maximal de mise en cache" }),
+      cacheKey: new GraphandFieldJSON({
+        name: "Requête de la clé de cache",
+        fields: {
+          scope: new GraphandFieldScope({ name: "Scope" }),
+          conditions: new GraphandFieldJSON({ name: "Conditions" }),
+        },
       }),
       pipeline: new GraphandFieldJSON({ name: "Pipeline", defaultValue: [] }),
       defaultVars: new GraphandFieldJSON({ name: "Variables par défaut" }),
