@@ -406,7 +406,7 @@ class Client implements ClientType {
   }
 
   getGraphandModel(scope, options?) {
-    if (!this._models[scope]) {
+    if (!this._models[scope] && models[scope]) {
       const model = this.extendsModel(models[scope]);
       this.registerModel(model, options);
       this._models[scope] = model;

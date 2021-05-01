@@ -1,6 +1,11 @@
 import { Subject } from "rxjs";
+import GraphandModel from "../lib/GraphandModel";
 
 const extendsModel = (Class, client?) => {
+  if (!(Class?.prototype instanceof GraphandModel)) {
+    return Class;
+  }
+
   return class extends Class {
     static _client = client;
     static cache = {};
