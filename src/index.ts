@@ -36,9 +36,11 @@ import GraphandModelListPromise from "./lib/GraphandModelListPromise";
 import GraphandModelPromise from "./lib/GraphandModelPromise";
 import GraphandValidationError from "./lib/GraphandValidationError";
 import ModelObserver from "./lib/ModelObserver";
+import serialize from "./utils/serialize";
 
 export default Client;
 export {
+  serialize,
   Client,
   GraphandModel,
   GraphandField,

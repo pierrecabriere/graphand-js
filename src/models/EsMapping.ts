@@ -15,6 +15,7 @@ class EsMapping extends GraphandModel {
       description: new GraphandFieldText({ name: "Description" }),
       scope: new GraphandFieldScope({ name: "Scope" }),
       fields: new GraphandFieldJSON({ name: "Mapping des champs" }),
+      settings: new GraphandFieldJSON({ name: "Paramètres de l'index" }),
       externalHost: new GraphandFieldBoolean({ name: "Utiliser un hôte externe" }),
       host: new GraphandFieldText({ name: "Hôte" }),
       conditions: new GraphandFieldJSON({ name: "Conditions" }),

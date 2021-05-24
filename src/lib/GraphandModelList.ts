@@ -71,6 +71,10 @@ class GraphandModelList extends Array implements Array<any> {
     return observable.subscribe.apply(observable, arguments);
   }
 
+  serialize() {
+    return this.ids;
+  }
+
   toString() {
     return JSON.stringify(this.ids);
   }

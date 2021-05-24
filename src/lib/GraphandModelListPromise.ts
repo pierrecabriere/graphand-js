@@ -67,6 +67,10 @@ class GraphandModelListPromise extends GraphandModelPromise {
     return this.ids;
   }
 
+  serialize() {
+    return this.ids;
+  }
+
   toString() {
     return JSON.stringify(this.toJSON());
   }

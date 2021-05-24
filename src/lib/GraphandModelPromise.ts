@@ -70,6 +70,10 @@ class GraphandModelPromise {
     return this._id;
   }
 
+  serialize() {
+    return this._id;
+  }
+
   toPromise() {
     // @ts-ignore
     return new Promise(this.executor);

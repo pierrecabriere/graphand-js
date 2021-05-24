@@ -397,7 +397,6 @@ class GraphandModel {
   }
 
   static async handleUpdateCall(payload) {
-    payload = serialize(payload);
     return await this._client._axios.patch(this.baseUrl, payload);
   }
 
@@ -959,6 +958,7 @@ class GraphandModel {
     }
 
     try {
+      payload = serialize(payload);
       const { data } = await this.handleUpdateCall(payload);
 
       if (!data) {
@@ -1221,6 +1221,10 @@ class GraphandModel {
   }
 
   toString() {
+    return this._id;
+  }
+
+  serialize() {
     return this._id;
   }
 

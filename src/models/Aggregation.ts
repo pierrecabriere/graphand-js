@@ -18,6 +18,8 @@ class Aggregation extends GraphandModel {
       name: new GraphandFieldText({ name: "Nom" }),
       description: new GraphandFieldText({ name: "Description" }),
       scope: new GraphandFieldScope({ name: "Scope" }),
+      pipeline: new GraphandFieldJSON({ name: "Pipeline", defaultValue: [] }),
+      defaultVars: new GraphandFieldJSON({ name: "Variables par défaut" }),
       cache: new GraphandFieldBoolean({ name: "Activer la mise en cache" }),
       cacheExpiredToleration: new GraphandFieldBoolean({ name: "Tolérer le cache expiré" }),
       cacheMaxAge: new GraphandFieldNumber({ name: "Temps maximal de mise en cache" }),
@@ -28,8 +30,6 @@ class Aggregation extends GraphandModel {
           conditions: new GraphandFieldJSON({ name: "Conditions" }),
         },
       }),
-      pipeline: new GraphandFieldJSON({ name: "Pipeline", defaultValue: [] }),
-      defaultVars: new GraphandFieldJSON({ name: "Variables par défaut" }),
     };
   }
 

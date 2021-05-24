@@ -10,7 +10,7 @@ const _decode = (value) => {
     value instanceof GraphandModel ||
     value instanceof GraphandModelPromise
   ) {
-    return value.toString();
+    return value.serialize();
   } else if (value && typeof value === "object" && Object.keys(value).length) {
     if (Array.isArray(value)) {
       return value.map((v) => _decode(v));
