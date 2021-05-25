@@ -7,21 +7,21 @@ const setupSocket = (client: Client) => {
   });
 
   socket.on("/uploads", ({ action, payload }) => {
-    const queueItem = client.mediasQueueSubject.value.find((item) => (payload.socket ? item.socket === payload.socket : item.name === payload.name));
+    const queueItem = client._mediasQueueSubject.value.find((item) => (payload.socket ? item.socket === payload.socket : item.name === payload.name));
     payload.status = action;
     switch (action) {
       case "start":
-        client.mediasQueueSubject.next(client.mediasQueueSubject.value.concat(payload));
+        client._mediasQueueSubject.next(client._mediasQueueSubject.value.concat(payload));
         break;
       case "end":
       case "aborted":
       case "progress":
-        client.mediasQueueSubject.next(client.mediasQueueSubject.value.map((item) => (item === queueItem ? Object.assign(item, payload) : item)));
+        client._mediasQueueSubject.next(client._mediasQueueSubject.value.map((item) => (item === queueItem ? Object.assign(item, payload) : item)));
         break;
     }
   });
 
-  socket.on("connect", () => client.socketSubject.next(socket));
+  socket.on("connect", () => client._socketSubject.next(socket));
   socket.on("reconnect_error", console.log);
 
   return socket;

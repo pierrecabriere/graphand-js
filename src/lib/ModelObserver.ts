@@ -49,7 +49,7 @@ class ModelObserver {
     return this._current;
   }
 
-  get initialized() {
+  get _initialized() {
     return this.prevList !== undefined;
   }
 
@@ -121,7 +121,7 @@ class ModelObserver {
       });
 
       prevList = model.getList().map((i) => i.toJSON());
-      model.listSubject.subscribe(subscriptionHandler);
+      model._listSubject.subscribe(subscriptionHandler);
     });
 
     Object.keys(this.subjects).forEach((key) => {
@@ -165,7 +165,7 @@ class ModelObserver {
       this.reload();
     }, 100);
 
-    this.model.observers.add(this);
+    this.model._observers.add(this);
   }
 
   unobserve() {
@@ -173,8 +173,7 @@ class ModelObserver {
     this.loading?.complete();
     this.count?.complete();
     this.mainSubscription?.unsubscribe();
-
-    this.model.observers.delete(this);
+    this.model._observers.delete(this);
   }
 
   reload(clearCache = false) {

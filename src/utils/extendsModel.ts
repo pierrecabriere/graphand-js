@@ -1,4 +1,4 @@
-import { Subject } from "rxjs";
+import { BehaviorSubject, Subject } from "rxjs";
 import GraphandModel from "../lib/GraphandModel";
 
 const extendsModel = (Class, client?) => {
@@ -6,24 +6,24 @@ const extendsModel = (Class, client?) => {
     return Class;
   }
 
-  return class extends Class {
-    static _client = client;
-    static cache = {};
-    static socketSubscription = null;
-    static _fieldsIds = null;
-    static _fields = {};
-    static _fieldsSubscription = null;
-    static initialized = false;
-    static _fieldsObserver = null;
-    static __registered = false;
-    static __initialized = false;
-    static observers = new Set([]);
-    static defaultFields = true;
-    static queryPromises = {};
-    static socketTriggerSubject = new Subject();
-    static _initPromise = null;
-    static _listSubject = null;
-  };
+  const extended = class extends Class {};
+
+  extended._extendedAt = new Date();
+  extended._client = client;
+  extended._cache = {};
+  extended._socketSubscription = null;
+  extended._fieldsIds = null;
+  extended._fields = {};
+  extended._fieldsSubscription = null;
+  extended._initialized = false;
+  extended._fieldsObserver = null;
+  extended._registered = false;
+  extended._observers = new Set([]);
+  extended._socketTriggerSubject = new Subject();
+  extended._initPromise = null;
+  extended._listSubject = new BehaviorSubject([]);
+
+  return extended;
 };
 
 export default extendsModel;

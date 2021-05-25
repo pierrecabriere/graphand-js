@@ -20,23 +20,21 @@ class GraphandModel {
   static baseFields = {};
   static scope = null;
 
-  // private static fields
-  static _client: Client;
-  static cache = {};
-  static socketSubscription = null;
-  static _fieldsIds = null;
-  static _fields = {};
-  static _fieldsSubscription = null;
-  static initialized = false;
-  static _fieldsObserver = null;
-  static __registered = false;
-  static __initialized = false;
-  static observers = new Set([]);
-  static defaultFields = true;
-  static queryPromises = {};
-  static socketTriggerSubject = new Subject();
-  static _initPromise = null;
-  static _listSubject = null;
+  // protected static fields
+  protected static _client: Client;
+  protected static _socketSubscription;
+  protected static _fieldsIds = null;
+  protected static _fields = {};
+  protected static _cache;
+  protected static _fieldsSubscription = null;
+  protected static _initialized = false;
+  protected static _fieldsObserver;
+  protected static _registered;
+  protected static _observers;
+  protected static _socketTriggerSubject;
+  protected static _initPromise;
+  protected static _listSubject;
+  protected static _defaultFields = true;
 
   // private fields
   private _data: any = {};
@@ -50,14 +48,6 @@ class GraphandModel {
   updatedAt: Date;
 
   static modelPromise(promise: GraphandModelPromise) {}
-
-  static get listSubject() {
-    if (!this._listSubject) {
-      this._listSubject = new BehaviorSubject([]);
-    }
-
-    return this._listSubject;
-  }
 
   static hydrate(data: any, _fields?) {
     return new this(data, _fields);
@@ -192,7 +182,7 @@ class GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     let prev = this.clone();
     const observable = new Observable((subscriber) => {
-      constructor.listSubject.subscribe(async () => {
+      constructor._listSubject.subscribe(async () => {
         const item = await constructor.get(prev._id);
         if (!item || item._version > prev._version || !isEqual(item.raw, prev.raw)) {
           if (item) {
@@ -297,7 +287,7 @@ class GraphandModel {
       ...baseFields,
     };
 
-    if (this.defaultFields) {
+    if (this._defaultFields) {
       fields = {
         ...fields,
         createdBy: new GraphandFieldRelation({
@@ -329,11 +319,11 @@ class GraphandModel {
   }
 
   static async init() {
-    if (!this.__registered) {
+    if (!this._registered) {
       throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
     }
 
-    if (this.initialized) {
+    if (this._initialized) {
       return;
     }
 
@@ -352,7 +342,7 @@ class GraphandModel {
 
           Object.defineProperty(this, "name", { value: this.scope });
 
-          this.initialized = true;
+          this._initialized = true;
           resolve(true);
         } catch (e) {
           reject(e);
@@ -375,7 +365,7 @@ class GraphandModel {
         return;
       }
 
-      this.socketTriggerSubject.next({ action, payload });
+      this._socketTriggerSubject.next({ action, payload });
 
       setTimeout(() => {
         switch (action) {
@@ -405,24 +395,22 @@ class GraphandModel {
   }
 
   static sync(force = false) {
-    if (force || (this._client && !this.socketSubscription)) {
+    if (force || (this._client && !this._socketSubscription)) {
       this.setupSocket();
-      this.socketSubscription = this._client.socketSubject.subscribe((socket) => this.setupSocket(socket));
+      this._socketSubscription = this._client._socketSubject.subscribe((socket) => this.setupSocket(socket));
     }
 
     return this;
   }
 
   static unsync() {
-    this.socketSubscription.unsubscribe();
-    delete this.socketSubscription;
-    this.listSubject.unsubscribe();
-    delete this._listSubject;
+    this._socketSubscription.unsubscribe();
+    delete this._socketSubscription;
+    this._listSubject.unsubscribe();
   }
 
   static reinit() {
-    this.cache = {};
-
+    this._cache = {};
     return this.reinitStore();
   }
 
@@ -433,19 +421,19 @@ class GraphandModel {
   static clearCache(query?, clean = false) {
     if (query) {
       const cacheKey = this.getCacheKey(query);
-      if (this.cache[cacheKey]) {
+      if (this._cache[cacheKey]) {
         if (clean) {
-          delete this.cache[cacheKey];
+          delete this._cache[cacheKey];
         } else {
-          delete this.cache[cacheKey].request;
+          delete this._cache[cacheKey].request;
         }
       }
     } else {
-      Object.keys(this.cache).forEach((cacheKey: any) => {
+      Object.keys(this._cache).forEach((cacheKey: any) => {
         if (clean) {
-          delete this.cache[cacheKey];
+          delete this._cache[cacheKey];
         } else {
-          delete this.cache[cacheKey].request;
+          delete this._cache[cacheKey].request;
         }
       });
     }
@@ -460,14 +448,11 @@ class GraphandModel {
   static clearRelationsCache() {
     Object.values(this.getFields())
       .filter((field) => field instanceof GraphandFieldRelation)
-      .forEach((field) => {
-        // @ts-ignore
-        field.model && field.model.clearCache();
-      });
+      .forEach((field: any) => field.model?.clearCache());
   }
 
   static reinitStore() {
-    this.listSubject.next([]);
+    this._listSubject.next([]);
 
     return this;
   }
@@ -492,7 +477,7 @@ class GraphandModel {
 
     if (force || refresh) {
       this.clearRelationsCache();
-      this.listSubject.next(_list);
+      this._listSubject.next(_list);
       return true;
     }
 
@@ -526,7 +511,7 @@ class GraphandModel {
 
     if (refresh) {
       this.clearRelationsCache();
-      this.listSubject.next(_list);
+      this._listSubject.next(_list);
       return true;
     }
 
@@ -553,7 +538,7 @@ class GraphandModel {
 
     if (!isEqual(this.getList(), list)) {
       this.clearRelationsCache();
-      this.listSubject.next(list);
+      this._listSubject.next(list);
       return true;
     }
 
@@ -596,7 +581,7 @@ class GraphandModel {
                 data: { rows, count },
               },
             } = await _this.fetch(query, cache, ...params);
-            const storeList = _this.listSubject.getValue();
+            const storeList = _this._listSubject.getValue();
             const list = rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
             resolve(new GraphandModelList({ model: _this, count, query }, ...list));
           } catch (e) {
@@ -609,7 +594,7 @@ class GraphandModel {
       );
     }
 
-    const list = this.listSubject.getValue();
+    const list = this._listSubject.getValue();
     return new GraphandModelList({ model: this }, ...list);
   }
 
@@ -768,7 +753,7 @@ class GraphandModel {
         }
       }
     } catch (e) {
-      delete this.cache[cacheKey];
+      delete this._cache[cacheKey];
 
       if (hooks) {
         await this.afterQuery?.call(this, query, null, e);
@@ -778,8 +763,8 @@ class GraphandModel {
     }
 
     if (cacheKey) {
-      this.cache[cacheKey] = this.cache[cacheKey] || {};
-      this.cache[cacheKey].previous = res;
+      this._cache[cacheKey] = this._cache[cacheKey] || {};
+      this._cache[cacheKey].previous = res;
     }
 
     if (hooks) {
@@ -792,7 +777,9 @@ class GraphandModel {
   static async fetch(query: any, cache = true, callback?: Function, hooks = true) {
     await this.init();
 
-    if (typeof query === "string") {
+    if (Array.isArray(query)) {
+      query = { ids: query };
+    } else if (typeof query === "string") {
       query = { query: { _id: query } };
     } else if (!query) {
       query = {};
@@ -823,15 +810,15 @@ class GraphandModel {
 
     let res;
     const cacheKey = this.getCacheKey(query);
-    const cacheEntry = this.cache[cacheKey];
+    const cacheEntry = this._cache[cacheKey];
 
     if (!cacheEntry) {
-      this.cache[cacheKey] = {
+      this._cache[cacheKey] = {
         previous: null,
         request: this._request(query, hooks, cacheKey),
       };
 
-      res = await this.cache[cacheKey].request;
+      res = await this._cache[cacheKey].request;
       callback?.call(callback, res);
     } else {
       if (cacheEntry.previous) {
@@ -927,7 +914,7 @@ class GraphandModel {
   }
 
   static refreshList() {
-    this.listSubject.next(this.getList());
+    this._listSubject.next(this.getList());
   }
 
   static async update(payload, options) {

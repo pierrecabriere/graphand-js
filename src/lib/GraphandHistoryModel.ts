@@ -5,7 +5,7 @@ import GraphandFieldSelect from "./fields/GraphandFieldSelect";
 import GraphandModel from "./GraphandModel";
 
 class GraphandHistoryModel extends GraphandModel {
-  static defaultFields = false;
+  static _defaultFields = false;
 
   static get baseFields() {
     return {

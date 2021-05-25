@@ -1,11 +1,11 @@
 import { BehaviorSubject, Subject } from "rxjs";
+import { ClientOptions, ClientType } from "./interfaces";
+import * as lib from "./lib";
+import GraphandModel from "./lib/GraphandModel";
+import * as models from "./models";
 import Data from "./models/Data";
 import Sockethook from "./models/Sockethook";
-import GraphandModel from "./lib/GraphandModel";
-import * as lib from "./lib";
-import * as models from "./models";
 import { extendsModel, setupAxios, setupSocket, verifyScopeFormat } from "./utils";
-import { ClientOptions, ClientType } from "./interfaces";
 
 const defaultOptions = {
   host: "api.graphand.io",
@@ -21,17 +21,21 @@ const defaultOptions = {
   autoSync: false,
   subscribeFields: false,
   init: true,
+  models: [],
 };
 
 class Client implements ClientType {
   static models = models;
+  GraphandModel;
+
+  private _initPromise;
+  _models;
   _options;
   _axios;
   _project;
-  socketSubject;
-  mediasQueueSubject;
-  initialized;
-  GraphandModel;
+  _socketSubject;
+  _mediasQueueSubject;
+  _initialized;
 
   constructor(project: string | ClientOptions, options: ClientOptions = {}) {
     options = project && typeof project === "object" ? { ...project, ...options } : options;
@@ -39,9 +43,9 @@ class Client implements ClientType {
       options.project = project;
     }
     this._options = { ...defaultOptions, ...options };
-    this.socketSubject = new Subject();
-    this.mediasQueueSubject = new BehaviorSubject([]);
-    this.initialized = false;
+    this._socketSubject = new Subject();
+    this._mediasQueueSubject = new BehaviorSubject([]);
+    this._initialized = false;
     this.GraphandModel = GraphandModel.setClient(this);
     this._models = {};
 
@@ -59,13 +63,10 @@ class Client implements ClientType {
       this.connectSocket();
     }
   }
-  private _initPromise;
-
-  _models;
 
   get models(): any {
     return new Proxy(this, {
-      get: function(oTarget, sKey: string) {
+      get: function (oTarget, sKey: string) {
         return oTarget.getGraphandModel(sKey) || oTarget.getModelByIdentifier(sKey);
       },
     });
@@ -142,7 +143,7 @@ class Client implements ClientType {
     }
 
     if (!this._models[`Data:${identifier}`]) {
-      const DataClass = this.extendsModel(Data);
+      const DataClass = extendsModel(Data, this);
       const Model = class extends DataClass {
         static apiIdentifier = identifier;
       };
@@ -167,27 +168,23 @@ class Client implements ClientType {
 
     const _name = options.name || Model.scope;
 
-    if (!options.force && this._models[_name]?.__registered) {
-      return;
+    if (!options.force && this._models[_name]?._registered) {
+      return this._models[_name];
     }
 
-    const model = this.extendsModel(Model);
-    model.__registered = true;
-
-    this._models[_name] = model;
+    this._models[_name] = extendsModel(Model, this);
+    this._models[_name]._registered = true;
 
     try {
-      model.setClient(this);
-
       if (options.sync) {
-        model.sync();
+        this._models[_name].sync();
       }
 
       if (options.fieldsIds) {
-        model._fieldsIds = options.fieldsIds;
+        this._models[_name]._fieldsIds = options.fieldsIds;
       }
 
-      model.init();
+      this._models[_name].init();
     } catch (e) {}
 
     return this._models[_name];
@@ -273,7 +270,7 @@ class Client implements ClientType {
       }
     };
 
-    this.socketSubject.subscribe((_socket) => _register(_socket));
+    this._socketSubject.subscribe((_socket) => _register(_socket));
     this.connectSocket();
   }
 
@@ -379,7 +376,7 @@ class Client implements ClientType {
     delete this._socket;
 
     if (triggerSubject) {
-      this.socketSubject.next(null);
+      this._socketSubject.next(null);
     }
   }
 
@@ -390,10 +387,6 @@ class Client implements ClientType {
     }
 
     this.connectSocket();
-  }
-
-  extendsModel(Class) {
-    return extendsModel(Class, this);
   }
 
   getModel(scope, options?) {
@@ -408,8 +401,9 @@ class Client implements ClientType {
   }
 
   getGraphandModel(scope, options?) {
-    if (!this._models[scope] && models[scope]) {
-      this.registerModel(models[scope], options);
+    if (!this._models[scope]?._registered) {
+      const model = this._options.models.find((m) => m.scope === scope) || Object.values(models).find((m) => m.scope === scope);
+      this.registerModel(model, options);
     }
 
     return this._models[scope];
