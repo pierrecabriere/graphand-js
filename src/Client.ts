@@ -167,25 +167,27 @@ class Client implements ClientType {
 
     const _name = options.name || Model.scope;
 
-    if (!options.force && (this._models[_name]?.__registered || Model.__registered)) {
+    if (!options.force && this._models[_name]?.__registered) {
       return;
     }
 
-    Model.__registered = true;
-    this._models[_name] = Model;
+    const model = this.extendsModel(Model);
+    model.__registered = true;
+
+    this._models[_name] = model;
 
     try {
-      Model.setClient(this);
+      model.setClient(this);
 
       if (options.sync) {
-        Model.sync();
+        model.sync();
       }
 
       if (options.fieldsIds) {
-        Model._fieldsIds = options.fieldsIds;
+        model._fieldsIds = options.fieldsIds;
       }
 
-      Model.init();
+      model.init();
     } catch (e) {}
 
     return this._models[_name];
@@ -407,9 +409,7 @@ class Client implements ClientType {
 
   getGraphandModel(scope, options?) {
     if (!this._models[scope] && models[scope]) {
-      const model = this.extendsModel(models[scope]);
-      this.registerModel(model, options);
-      this._models[scope] = model;
+      this.registerModel(models[scope], options);
     }
 
     return this._models[scope];
