@@ -64,7 +64,11 @@ class Client implements ClientType {
   get models(): any {
     return new Proxy(this, {
       get: function (oTarget, sKey: string) {
-        return oTarget.getGraphandModel(sKey) || oTarget.getModelByIdentifier(sKey);
+        try {
+          return oTarget.getGraphandModel(sKey)
+        } catch (e) {
+          return oTarget.getModelByIdentifier(sKey);
+        }
       },
     });
   }
@@ -133,12 +137,12 @@ class Client implements ClientType {
     return new Client(options);
   }
 
-  getModelByIdentifier(identifier: string, options = {}) {
+  getModelByIdentifier(identifier: string, options: any = {}) {
     const scope = `Data:${identifier}`;
     if (!this._models[scope]) {
       let model = this._options.models.find((m: any) => m.scope === scope);
       if (model) {
-        model = class extends model {};
+        options.extend = options.extend ?? true;
       } else {
         model = class extends Data {};
         model.apiIdentifier = identifier;
@@ -416,12 +420,20 @@ class Client implements ClientType {
     }
   }
 
-  getGraphandModel(scope, options?) {
+  getGraphandModel(scope, options: any = {}) {
     if (!this._models[scope]?._registeredAt) {
-      const model = this._options.models.find((m) => m.scope === scope) || Object.values(models).find((m) => m.scope === scope);
+      let model = this._options.models.find((m) => m.scope === scope);
       if (model) {
-        this.registerModel(class extends model {}, options);
+        options.extend = options.extend ?? true;
+      } else {
+        model = Object.values(models).find((m) => m.scope === scope);
+        if (!model) {
+          throw new Error(`Model ${scope} not found`);
+        }
+        model = class extends model {};
       }
+
+      this.registerModel(model, options);
     }
 
     return this._models[scope];
