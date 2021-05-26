@@ -29,7 +29,7 @@ class GraphandModel {
   protected static _fieldsSubscription = null;
   protected static _initialized = false;
   protected static _fieldsObserver;
-  protected static _registered;
+  protected static _registeredAt;
   protected static _observers;
   protected static _socketTriggerSubject;
   protected static _initPromise;
@@ -54,6 +54,12 @@ class GraphandModel {
   }
 
   constructor(data: any, _fields?) {
+    const { constructor } = Object.getPrototypeOf(this);
+
+    if (!constructor._registeredAt || !constructor._client) {
+      throw new Error(`Model ${constructor.scope} is not register. Please use Client.registerModel() before`);
+    }
+
     if (data instanceof GraphandModel) {
       return data.clone();
     }
@@ -63,7 +69,6 @@ class GraphandModel {
     this._id = data._id;
     this._data = data;
 
-    const { constructor } = Object.getPrototypeOf(this);
     this._fields = _fields || constructor.getFields() || {};
     this.reloadFields();
 
@@ -319,7 +324,7 @@ class GraphandModel {
   }
 
   static async init() {
-    if (!this._registered) {
+    if (!this._registeredAt || !this._client) {
       throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
     }
 
@@ -448,7 +453,10 @@ class GraphandModel {
   static clearRelationsCache() {
     Object.values(this.getFields())
       .filter((field) => field instanceof GraphandFieldRelation)
-      .forEach((field: any) => field.model?.clearCache());
+      .forEach((field: any) => {
+        const model = typeof field.model === "string" ? this._client.getModel(field.model) : field.model;
+        model?.clearCache();
+      });
   }
 
   static reinitStore() {
@@ -1133,11 +1141,6 @@ class GraphandModel {
   delete(options) {
     const constructor = this.constructor as any;
     return constructor.delete(this, options);
-  }
-
-  static setClient(client) {
-    this._client = client;
-    return this;
   }
 
   static get HistoryModel() {

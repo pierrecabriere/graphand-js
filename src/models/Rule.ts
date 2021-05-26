@@ -15,7 +15,7 @@ class Rule extends GraphandModel {
     return {
       role: new GraphandFieldRelation({
         name: "Rôle",
-        model: this._client.models.Role,
+        model: "Role",
         multiple: false,
       }),
       scope: new GraphandFieldScope({

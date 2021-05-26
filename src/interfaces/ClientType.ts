@@ -8,5 +8,4 @@ export interface ClientType {
   _project: any;
   _socketSubject: Subject<any>;
   _mediasQueueSubject: BehaviorSubject<any>;
-  GraphandModel: any;
 }

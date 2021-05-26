@@ -1,11 +1,10 @@
 import { BehaviorSubject, Subject } from "rxjs";
 import { ClientOptions, ClientType } from "./interfaces";
 import * as lib from "./lib";
-import GraphandModel from "./lib/GraphandModel";
 import * as models from "./models";
 import Data from "./models/Data";
 import Sockethook from "./models/Sockethook";
-import { extendsModel, setupAxios, setupSocket, verifyScopeFormat } from "./utils";
+import { setupAxios, setupSocket, verifyScopeFormat } from "./utils";
 
 const defaultOptions = {
   host: "api.graphand.io",
@@ -26,7 +25,6 @@ const defaultOptions = {
 
 class Client implements ClientType {
   static models = models;
-  GraphandModel;
 
   private _initPromise;
   _models;
@@ -46,7 +44,6 @@ class Client implements ClientType {
     this._socketSubject = new Subject();
     this._mediasQueueSubject = new BehaviorSubject([]);
     this._initialized = false;
-    this.GraphandModel = GraphandModel.setClient(this);
     this._models = {};
 
     this._axios = setupAxios(this);
@@ -137,20 +134,20 @@ class Client implements ClientType {
   }
 
   getModelByIdentifier(identifier: string, options = {}) {
-    const Model = Object.values(this._models).find((m: any) => m.apiIdentifier === identifier);
-    if (Model) {
-      return Model;
+    const scope = `Data:${identifier}`;
+    if (!this._models[scope]) {
+      let model = this._options.models.find((m: any) => m.scope === scope);
+      if (model) {
+        model = class extends model {};
+      } else {
+        model = class extends Data {};
+        model.apiIdentifier = identifier;
+      }
+
+      this.registerModel(model, options);
     }
 
-    if (!this._models[`Data:${identifier}`]) {
-      const DataClass = extendsModel(Data, this);
-      const Model = class extends DataClass {
-        static apiIdentifier = identifier;
-      };
-      this.registerModel(Model, options);
-    }
-
-    return this._models[`Data:${identifier}`];
+    return this._models[scope];
   }
 
   registerModel(Model: any, options?) {
@@ -159,21 +156,36 @@ class Client implements ClientType {
     }
 
     if (!Model.scope) {
-      console.warn(`You registered a Model without scope`, Model);
-      return null;
+      throw new Error(`You tried to register a Model without scope`);
     }
 
-    options = Object.assign({}, { sync: undefined, name: undefined, force: false, fieldsIds: undefined }, options);
+    options = Object.assign({}, { sync: undefined, name: undefined, force: false, fieldsIds: undefined, extend: false }, options);
     options.sync = options.sync ?? this._options.autoSync;
+
+    if (Model._registeredAt && Model._client !== this) {
+      if (!options.force && !options.extend) {
+        throw new Error(`You tried to register a Model already registered on another client. Use force option and extend to prevent overriding`);
+      } else if (options.extend) {
+        Model = class extends Model {};
+      }
+    }
 
     const _name = options.name || Model.scope;
 
-    if (!options.force && this._models[_name]?._registered) {
-      return this._models[_name];
-    }
-
-    this._models[_name] = extendsModel(Model, this);
-    this._models[_name]._registered = true;
+    this._models[_name] = Model;
+    this._models[_name]._client = this;
+    this._models[_name]._cache = {};
+    this._models[_name]._socketSubscription = null;
+    this._models[_name]._fieldsIds = null;
+    this._models[_name]._fields = {};
+    this._models[_name]._fieldsSubscription = null;
+    this._models[_name]._initialized = false;
+    this._models[_name]._fieldsObserver = null;
+    this._models[_name]._observers = new Set([]);
+    this._models[_name]._socketTriggerSubject = new Subject();
+    this._models[_name]._initPromise = null;
+    this._models[_name]._listSubject = new BehaviorSubject([]);
+    this._models[_name]._registeredAt = new Date();
 
     try {
       if (options.sync) {
@@ -390,6 +402,10 @@ class Client implements ClientType {
   }
 
   getModel(scope, options?) {
+    if (typeof scope === "object" && scope?.scope) {
+      scope = scope.scope;
+    }
+
     verifyScopeFormat(scope);
 
     try {
@@ -401,9 +417,11 @@ class Client implements ClientType {
   }
 
   getGraphandModel(scope, options?) {
-    if (!this._models[scope]?._registered) {
+    if (!this._models[scope]?._registeredAt) {
       const model = this._options.models.find((m) => m.scope === scope) || Object.values(models).find((m) => m.scope === scope);
-      this.registerModel(model, options);
+      if (model) {
+        this.registerModel(class extends model {}, options);
+      }
     }
 
     return this._models[scope];

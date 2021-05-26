@@ -29,12 +29,12 @@ class Account extends GraphandModel {
       }),
       user: new GraphandFieldRelation({
         name: "Utilisateur graphand",
-        model: this._client.models.User,
+        model: "User",
         multiple: false,
       }),
       role: new GraphandFieldRelation({
         name: "Role",
-        model: this._client.models.Role,
+        model: "Role",
         multiple: false,
       }),
     };

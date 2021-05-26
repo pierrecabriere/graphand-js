@@ -50,7 +50,6 @@ class DataField extends GraphandModel {
   }
 
   async toGraphandField() {
-    const { constructor } = Object.getPrototypeOf(this);
     const { name, type, configuration } = this;
     switch (type) {
       case "Text":
@@ -60,7 +59,7 @@ class DataField extends GraphandModel {
         return new GraphandFieldRelation({
           ...configuration,
           name,
-          model: constructor._client.getModelByScope(configuration.ref),
+          model: configuration.ref,
           query: configuration.initialQuery,
         });
       case "Date":
