@@ -1,8 +1,8 @@
-import * as models from "../models";
 import GraphandError from "../lib/GraphandError";
+import * as models from "../models";
 
 const verifyScopeFormat = (scope: string) => {
-  if (models[scope]) {
+  if (Object.values(models).find((m) => m.scope === scope)) {
     return true;
   }
 

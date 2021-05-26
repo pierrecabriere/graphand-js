@@ -246,7 +246,7 @@ class GraphandModel {
   }
 
   static setPrototypeFields() {
-    const fields = this.fields;
+    const fields = this.getFields();
 
     const properties = Object.keys(fields).reduce((final, slug) => {
       const field = fields[slug];
@@ -284,7 +284,7 @@ class GraphandModel {
       });
     }
 
-    const baseFields = typeof this.baseFields === "function" ? this.baseFields(item) : this.baseFields;
+    const baseFields = typeof this.baseFields === "function" ? this.baseFields.bind(this)(item) : this.baseFields;
 
     let fields = {
       _id: new GraphandFieldId(),
@@ -339,7 +339,7 @@ class GraphandModel {
 
           if (this.queryFields && this._client._options.project) {
             const query = this._fieldsIds || { query: { scope: this.scope } };
-            const list = await this._client.models.DataField.getList(query);
+            const list = await this._client.getModel("DataField").getList(query);
             const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
             this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
             this.setPrototypeFields();

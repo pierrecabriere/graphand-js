@@ -2,6 +2,7 @@ import Account from "./Account";
 import Aggregation from "./Aggregation";
 import Data from "./Data";
 import DataField from "./DataField";
+import DataModel from "./DataModel";
 import EsMapping from "./EsMapping";
 import Log from "./Log";
 import Media from "./Media";
@@ -20,6 +21,7 @@ export {
   Aggregation,
   Data,
   DataField,
+  DataModel,
   EsMapping,
   Log,
   Media,

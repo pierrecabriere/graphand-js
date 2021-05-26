@@ -13,7 +13,7 @@ class Account extends GraphandModel {
   firstname;
   lastname;
 
-  static get baseFields() {
+  static baseFields() {
     return {
       firstname: new GraphandFieldText({
         name: "Prénom",
@@ -29,12 +29,12 @@ class Account extends GraphandModel {
       }),
       user: new GraphandFieldRelation({
         name: "Utilisateur graphand",
-        model: "User",
+        model: this._client.getModel("User"),
         multiple: false,
       }),
       role: new GraphandFieldRelation({
         name: "Role",
-        model: "Role",
+        model: this._client.getModel("Role"),
         multiple: false,
       }),
     };

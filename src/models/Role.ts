@@ -12,7 +12,7 @@ class Role extends GraphandModel {
   static baseFields(item) {
     const inherits = new GraphandFieldRelation({
       name: "Rôles parents",
-      model: "Role",
+      model: this._client.getModel("Role"),
       multiple: true,
     });
 
@@ -40,17 +40,17 @@ class Role extends GraphandModel {
       inherits,
       modules: new GraphandFieldRelation({
         name: "Applications",
-        model: "Module",
+        model: this._client.getModel("Module"),
         multiple: true,
       }),
       sidebarModules: new GraphandFieldRelation({
         name: "Applications de la sidebar",
-        model: "Module",
+        model: this._client.getModel("Module"),
         multiple: true,
       }),
       menuModules: new GraphandFieldRelation({
         name: "Applications du menu",
-        model: "Module",
+        model: this._client.getModel("Module"),
         multiple: true,
       }),
     };

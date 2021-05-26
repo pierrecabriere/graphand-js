@@ -15,7 +15,7 @@ class Restriction extends GraphandModel {
     return {
       role: new GraphandFieldRelation({
         name: "Rôle",
-        model: "Role",
+        model: this._client.getModel("Role"),
         multiple: false,
       }),
       scope: new GraphandFieldScope({

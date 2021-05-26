@@ -12,8 +12,7 @@ class GraphandFieldRelation extends GraphandField {
       return;
     }
 
-    const { constructor } = Object.getPrototypeOf(from);
-    const model = typeof this.model === "string" ? constructor._client.getModel(this.model) : this.model;
+    const model = this.model;
     if (this.multiple) {
       const ids = typeof value === "string" ? [value] : value.filter(Boolean).map((v) => v._id || v) || [];
       return model.getList({ ids });
