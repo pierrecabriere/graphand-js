@@ -5,7 +5,10 @@ class GraphandFieldScope extends GraphandFieldSelect {
   options = [];
 
   setter(value) {
-    verifyScopeFormat(value);
+    if (value !== undefined && value !== null) {
+      verifyScopeFormat(value);
+    }
+
     return value;
   }
 }
