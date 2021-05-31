@@ -1,6 +1,6 @@
 import isEqual from "fast-deep-equal";
 import _ from "lodash";
-import { BehaviorSubject, Observable, Subject } from "rxjs";
+import { Observable } from "rxjs";
 import Client from "../Client";
 import serialize from "../utils/serialize";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
@@ -10,6 +10,7 @@ import GraphandModelList from "./GraphandModelList";
 import GraphandModelListPromise from "./GraphandModelListPromise";
 import GraphandModelPromise from "./GraphandModelPromise";
 import ModelObserver from "./ModelObserver";
+import { ObjectID } from 'bson';
 
 class GraphandModel {
   // configurable fields
@@ -53,7 +54,7 @@ class GraphandModel {
     return new this(data, _fields);
   }
 
-  constructor(data: any, _fields?) {
+  constructor(data: any = {}, _fields?) {
     const { constructor } = Object.getPrototypeOf(this);
 
     if (!constructor._registeredAt || !constructor._client) {
@@ -66,10 +67,12 @@ class GraphandModel {
 
     data = Object.assign({}, data);
 
-    this._id = data._id;
+    this._id = data._id || `_${new ObjectID().toString()}`;
+
     this._data = data;
 
     this._fields = _fields || constructor.getFields() || {};
+
     this.reloadFields();
 
     Object.defineProperty(this, "_data", { enumerable: false });
@@ -200,6 +203,10 @@ class GraphandModel {
     return observable.subscribe.apply(observable, arguments);
   }
 
+  isTemporary() {
+    return this._id.startsWith("_");
+  }
+
   get raw() {
     return this._data;
   }
@@ -220,7 +227,7 @@ class GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     this._fields = constructor.getFields(this) || {};
 
-    const properties = Object.keys(this._fields).reduce((final, slug) => {
+    const properties = Object.keys(this._fields).filter(slug => slug !== "_id").reduce((final, slug) => {
       const field = this._fields[slug];
       if (field.assign === false) {
         return final;
@@ -248,7 +255,7 @@ class GraphandModel {
   static setPrototypeFields() {
     const fields = this.getFields();
 
-    const properties = Object.keys(fields).reduce((final, slug) => {
+    const properties = Object.keys(fields).filter(slug => slug !== "_id").reduce((final, slug) => {
       const field = fields[slug];
       if (field.assign === false) {
         return final;
@@ -1023,17 +1030,23 @@ class GraphandModel {
       this.assign(payload.set);
     }
 
+    if (this.isTemporary()) {
+      console.warn("You tried to update a temporary (with no _id) document");
+      return this;
+    }
+
     try {
-      await constructor.update(
-        { ...payload, query: { _id } },
-        {
-          clearCache: options.clearCache,
-          upsert: options.upsert,
-          hooks: false,
-        },
-      );
+        await constructor.update(
+          { ...payload, query: { _id } },
+          {
+            clearCache: options.clearCache,
+            upsert: options.upsert,
+            hooks: false,
+          },
+        );
+
       if (options.upsert) {
-        this.assign(constructor.get(_id, false).raw, false);
+        this.assign(constructor.get(_id, false)?.raw, false);
       } else {
         this.assign(null, false);
       }
