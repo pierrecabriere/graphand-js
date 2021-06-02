@@ -12,4 +12,6 @@ export interface ClientOptions {
   unloadTimeout?: number;
   subscribeFields?: boolean;
   init?: boolean;
+  initFields?: boolean;
+  models?: any[]
 }

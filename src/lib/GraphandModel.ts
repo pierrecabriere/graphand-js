@@ -19,7 +19,7 @@ class GraphandModel {
   static baseUrl = null;
   static queryUrl = null;
   static baseFields = {};
-  static scope = null;
+  static scope = "GraphandModelAbstract";
 
   // protected static fields
   protected static _client: Client;
@@ -217,7 +217,8 @@ class GraphandModel {
     }
 
     if (!this._fieldsObserver && this._client._options.project) {
-      this._fieldsObserver = this._client.models.DataField.observe().query({ scope: this.scope });
+      const query = this._fieldsIds || { query: { scope: this.scope } };
+      this._fieldsObserver = this._client.getModel("DataField").observe(query);
     }
 
     return this._fieldsObserver;
@@ -279,6 +280,10 @@ class GraphandModel {
   }
 
   static getFields(item?) {
+    if (!this._registeredAt || !this._client) {
+      throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
+    }
+
     if (this.queryFields && !this._fieldsSubscription && this._client._options.subscribeFields) {
       this._fieldsSubscription = this.fieldsObserver?.list.subscribe(async (list) => {
         const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
@@ -299,12 +304,13 @@ class GraphandModel {
       ...baseFields,
     };
 
+
     if (this._defaultFields) {
       fields = {
         ...fields,
         createdBy: new GraphandFieldRelation({
           name: "Créé par",
-          model: this._client.models.Account,
+          model: this._client.getModel("Account"),
           multiple: false,
         }),
         createdAt: new GraphandFieldDate({
@@ -313,7 +319,7 @@ class GraphandModel {
         }),
         updatedBy: new GraphandFieldRelation({
           name: "Modifié par",
-          model: this._client.models.Account,
+          model: this._client.getModel("Account"),
           multiple: false,
         }),
         updatedAt: new GraphandFieldDate({
@@ -335,6 +341,8 @@ class GraphandModel {
       throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
     }
 
+    Object.defineProperty(this, "name", { value: this.scope });
+
     if (this._initialized) {
       return;
     }
@@ -342,19 +350,20 @@ class GraphandModel {
     if (!this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
         try {
-          await this._client.init();
+          if (this.queryFields) {
+            await this._client.init();
 
-          if (this.queryFields && this._client._options.project) {
-            const query = this._fieldsIds || { query: { scope: this.scope } };
-            const list = await this._client.getModel("DataField").getList(query);
-            const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
-            this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
-            this.setPrototypeFields();
+            if (this.queryFields && this._client._options.project) {
+              const query = this._fieldsIds || { query: { scope: this.scope } };
+              const list = await this._client.getModel("DataField").getList(query);
+              const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
+              this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
+              this.setPrototypeFields();
+            }
           }
 
-          Object.defineProperty(this, "name", { value: this.scope });
-
           this._initialized = true;
+
           resolve(true);
         } catch (e) {
           reject(e);
@@ -566,26 +575,26 @@ class GraphandModel {
 
   static query(query?: any, cache = true, ...params): GraphandModelList | GraphandModelListPromise {
     if (query) {
-      // if (Array.isArray(query)) {
-      //   query = { ids: query };
-      // }
+      if (Array.isArray(query)) {
+        query = { ids: query };
+      }
 
-      // if (query.ids) {
-      //   if (query.ids instanceof GraphandModelList || query.ids instanceof GraphandModelListPromise) {
-      //     query.ids = query.ids.ids;
-      //   } else if (query.ids instanceof GraphandModel || query.ids instanceof GraphandModelPromise) {
-      //     query.ids = [query.ids._id];
-      //   } else if (typeof query.ids === "string") {
-      //     query.ids = [query.ids];
-      //   }
-      //
-      //   if (Object.keys(query).length === 1 && "ids" in query) {
-      //     const list = query.ids.map((_id) => this.get(_id, false));
-      //     if (list.every(Boolean)) {
-      //       return new GraphandModelList({ model: this, count: list.length, query }, ...list);
-      //     }
-      //   }
-      // }
+      if (query.ids) {
+        if (query.ids instanceof GraphandModelList || query.ids instanceof GraphandModelListPromise) {
+          query.ids = query.ids.ids;
+        } else if (query.ids instanceof GraphandModel || query.ids instanceof GraphandModelPromise) {
+          query.ids = [query.ids._id];
+        } else if (typeof query.ids === "string") {
+          query.ids = [query.ids];
+        }
+
+        if ("ids" in query && Object.keys(query).length === 1) {
+          const list = query.ids.map((_id) => this.get(_id, false));
+          if (list.every(Boolean)) {
+            return new GraphandModelList({ model: this, count: list.length, query }, ...list);
+          }
+        }
+      }
 
       const _this = this;
       return new GraphandModelListPromise(

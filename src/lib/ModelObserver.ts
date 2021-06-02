@@ -1,5 +1,5 @@
 import isEqual from "fast-deep-equal";
-import { Observable, Subject, Subscription } from "rxjs";
+import { BehaviorSubject, Observable, Subject, Subscription } from "rxjs";
 
 class ModelObserver {
   select: Function;
@@ -57,7 +57,8 @@ class ModelObserver {
     this.model = model;
 
     this.subjects = Object.keys(this._current).reduce((result: any, key: string) => {
-      Object.assign(result, { [key]: new Subject() });
+      Object.assign(result, { [key]: new BehaviorSubject(options[key]) });
+      Object.assign(this._current, { [key]: options[key] });
       return result;
     }, {});
 
@@ -69,10 +70,9 @@ class ModelObserver {
       const refresh = async () => {
         subscriber.next({ loading: true });
         try {
-          const { data } = await model.fetch(this.current);
-          const rows = data.data?.rows || [data.data];
-          ids = rows.map((item) => item._id);
-          triggerSubscription({ loading: false, count: data.data.count });
+          const list = await model.getList(this.current);
+          ids = list.ids;
+          triggerSubscription({ loading: false, count: list.count });
         } catch (e) {
           triggerSubscription({ loading: false });
         }
@@ -109,13 +109,15 @@ class ModelObserver {
 
         subject.subscribe({
           next: (v: any) => {
-            if (v !== undefined) {
-              Object.assign(this._current, { [key]: v });
-            } else {
-              delete this._current[key];
+            if (!isEqual(v, this._current[key])) {
+              if (v !== undefined) {
+                Object.assign(this._current, { [key]: v });
+              } else {
+                delete this._current[key];
+              }
+              this.subjectTimeout && clearTimeout(this.subjectTimeout);
+              this.subjectTimeout = setTimeout(() => refresh());
             }
-            this.subjectTimeout && clearTimeout(this.subjectTimeout);
-            this.subjectTimeout = setTimeout(() => refresh());
           },
         });
       });
@@ -155,15 +157,7 @@ class ModelObserver {
       }
     });
 
-    Object.keys(this.subjects).forEach((key) => {
-      if (options[key] !== undefined && options[key] !== this.current[key]) {
-        this[key](options[key]);
-      }
-    });
-
-    setTimeout(() => {
-      this.reload();
-    }, 100);
+    setTimeout(() => this.reload());
 
     this.model._observers.add(this);
   }

@@ -20,6 +20,7 @@ const defaultOptions = {
   autoSync: false,
   subscribeFields: false,
   init: true,
+  initModels: false,
   models: [],
 };
 
@@ -97,10 +98,12 @@ class Client implements ClientType {
     if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
         if (this._options.project) {
+          const Project = this.getModel("Project");
+
           try {
             const { data } = await this._axios.get("/projects/current");
             this._project = data.data;
-            this.models.Project.upsertStore(new this.models.Project(this._project));
+            Project.upsertStore(new Project(this._project));
             if (!this.locale) {
               this.locale = this._options.locale || this._project.defaultLocale;
             }
@@ -113,6 +116,14 @@ class Client implements ClientType {
         } else {
           this._project = null;
         }
+
+          if (this._options.initModels) {
+            const dataModels = await this.getModel("DataModel").getList({});
+            const scopes = ["Account", "Media"].concat(dataModels.map(m => `Data:${m.slug}`));
+            await this.registerModels(this._options.models.concat(scopes));
+          } else {
+            await this.registerModels(this._options.models);
+          }
 
         resolve(true);
       });
@@ -159,7 +170,9 @@ class Client implements ClientType {
       return;
     }
 
-    if (!Model.scope) {
+    Model = typeof Model === "string" ? this.getModel(Model) : Model;
+
+    if (!Model || !Model.scope) {
       throw new Error(`You tried to register a Model without scope`);
     }
 
@@ -180,7 +193,7 @@ class Client implements ClientType {
     this._models[_name]._client = this;
     this._models[_name]._cache = {};
     this._models[_name]._socketSubscription = null;
-    this._models[_name]._fieldsIds = null;
+    this._models[_name]._fieldsIds = options.fieldsIds;
     this._models[_name]._fields = {};
     this._models[_name]._fieldsSubscription = null;
     this._models[_name]._initialized = false;
@@ -208,7 +221,7 @@ class Client implements ClientType {
 
   async registerModels(modelsList, options?) {
     const scopes = modelsList.map((model) => (typeof model === "string" ? model : model.scope));
-    const fields = await this.models.DataField.getList({ query: { scope: { $in: scopes } } });
+    const fields = await this.getModel("DataField").getList({ query: { scope: { $in: scopes } } });
     await Promise.all(
       modelsList.map(async (model) => {
         const scope = typeof model === "string" ? model : model.scope;
