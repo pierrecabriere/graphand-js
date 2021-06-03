@@ -1,5 +1,7 @@
 import isEqual from "fast-deep-equal";
-import { BehaviorSubject, Observable, Subject, Subscription } from "rxjs";
+import { BehaviorSubject, Observable, Subscription } from "rxjs";
+
+const defaultOptions = { page: 1 };
 
 class ModelObserver {
   select: Function;
@@ -53,7 +55,9 @@ class ModelObserver {
     return this.prevList !== undefined;
   }
 
-  constructor(options, model) {
+  constructor(options = {}, model) {
+    options = Object.assign({}, defaultOptions, options);
+
     this.model = model;
 
     this.subjects = Object.keys(this._current).reduce((result: any, key: string) => {
@@ -128,7 +132,7 @@ class ModelObserver {
 
       Object.assign(this, {
         [key]: (v) => {
-          setTimeout(() => subject.next(v));
+          subject.next(v)
           return this;
         },
       });
@@ -154,7 +158,7 @@ class ModelObserver {
       }
     });
 
-    setTimeout(() => this.reload());
+    // this.reload();
 
     this.model._observers.add(this);
   }

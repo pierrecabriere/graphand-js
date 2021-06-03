@@ -97,35 +97,39 @@ class Client implements ClientType {
   async init(force = false) {
     if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
-        // if (this._options.project) {
-        //   const Project = this.getModel("Project");
-        //
-        //   try {
-        //     const { data } = await this._axios.get("/projects/current");
-        //     this._project = data.data;
-        //     Project.upsertStore(new Project(this._project));
-        //     if (!this.locale) {
-        //       this.locale = this._options.locale || this._project.defaultLocale;
-        //     }
-        //   } catch (e) {
-        //     delete this._initPromise;
-        //     console.error(e);
-        //     reject("Impossible to init project");
-        //     return;
-        //   }
-        // } else {
-        //   this._project = null;
-        // }
+        try {
+          // if (this._options.project) {
+          //   const Project = this.getModel("Project");
+          //
+          //   try {
+          //     const { data } = await this._axios.get("/projects/current");
+          //     this._project = data.data;
+          //     Project.upsertStore(new Project(this._project));
+          //     if (!this.locale) {
+          //       this.locale = this._options.locale || this._project.defaultLocale;
+          //     }
+          //   } catch (e) {
+          //     delete this._initPromise;
+          //     console.error(e);
+          //     reject("Impossible to init project");
+          //     return;
+          //   }
+          // } else {
+          //   this._project = null;
+          // }
 
-        if (this._options.initModels) {
-          const dataModels = await this.getModel("DataModel").getList({});
-          const scopes = ["Account", "Media"].concat(dataModels.map(m => `Data:${m.slug}`));
-          await this.registerModels(this._options.models.concat(scopes));
-        } else {
-          await this.registerModels(this._options.models);
+          if (this._options.initModels) {
+            const dataModels = await this.getModel("DataModel").getList({});
+            const scopes = ["Account", "Media"].concat(dataModels.map(m => `Data:${m.slug}`));
+            await this.registerModels(this._options.models.concat(scopes));
+          } else {
+            await this.registerModels(this._options.models);
+          }
+
+          resolve(true);
+        } catch (e) {
+          reject(e);
         }
-
-        resolve(true);
       });
     }
 
@@ -181,7 +185,8 @@ class Client implements ClientType {
 
     if (Model._registeredAt && Model._client !== this) {
       if (!options.force && !options.extend) {
-        throw new Error(`You tried to register a Model already registered on another client. Use force option and extend to prevent overriding`);
+        console.error(`You tried to register a Model already registered on another client. Use force option and extend to prevent overriding`);
+        return Model;
       } else if (options.extend) {
         Model = class extends Model {};
       }

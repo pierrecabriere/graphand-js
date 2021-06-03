@@ -1,13 +1,38 @@
-class GraphandModelPromise {
+import GraphandModel from "./GraphandModel";
+
+const _propertiesMiddleware = (fromModel, toModel, middleware) => {
+  const fromKeys = Object.getOwnPropertyNames(fromModel.prototype);
+  const toKeys = Object.getOwnPropertyNames(toModel.prototype);
+  const patchKeys = fromKeys.filter((key) => !toKeys.includes(key) && typeof fromModel.prototype[key] === "function");
+
+  const patch = {};
+  patchKeys.forEach((key) => {
+    patch[key] = function() {
+      return middleware(this, fromModel.prototype[key], arguments);
+    }
+  })
+
+  return Object.assign(toModel.prototype, patch);
+};
+
+class GraphandModelPromise extends Promise<any> implements Promise<any> {
   executor: Function;
   cached;
   model;
   promise?;
   query;
+  then;
 
+  // @ts-ignore
   constructor(executor, model, query?, cached = false) {
+    super(() => null);
+
     this.executor = executor;
     this.cached = cached;
+
+    if (!model || !(model.prototype instanceof GraphandModel)) {
+      throw new Error("Please provide a valid model");
+    }
 
     this.model = model;
     this.query = query || {};
@@ -36,34 +61,8 @@ class GraphandModelPromise {
     return typeof _id === "string" ? _id : null;
   }
 
-  translate(locale) {
-    if (locale) {
-      return this.then((res) => res?.translate?.call(res, locale));
-    }
-
-    return this;
-  }
-
   subscribe() {
     return this.then((res) => res?.subscribe?.apply(res, arguments));
-  }
-
-  update() {
-    return this.then((i) => i.update?.apply(i, arguments));
-  }
-
-  delete() {
-    return this.then((i) => i.update?.apply(i, arguments));
-  }
-
-  then(..._arguments) {
-    this.promise = this.promise || this.toPromise();
-    return this.promise.then.apply(this.promise, _arguments);
-  }
-
-  catch(..._arguments) {
-    this.promise = this.promise || this.toPromise();
-    return this.promise.catch.apply(this.promise, _arguments);
   }
 
   toString() {
@@ -79,5 +78,10 @@ class GraphandModelPromise {
     return new Promise(this.executor);
   }
 }
+
+_propertiesMiddleware(Promise, GraphandModelPromise, (item, fn, args) => {
+  item.promise = item.promise || item.toPromise();
+  return fn.apply(item.promise, args);
+});
 
 export default GraphandModelPromise;

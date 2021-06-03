@@ -61,6 +61,10 @@ class GraphandModel {
       throw new Error(`Model ${constructor.scope} is not register. Please use Client.registerModel() before`);
     }
 
+    if (!constructor._initialized) {
+      console.warn(`Model ${constructor.scope} is not initialized yet. You should wait Model.init() berore create instances`);
+    }
+
     if (data instanceof GraphandModel) {
       return data.clone();
     }
@@ -292,7 +296,6 @@ class GraphandModel {
       ...baseFields,
     };
 
-
     if (this._defaultFields) {
       fields = {
         ...fields,
@@ -324,18 +327,18 @@ class GraphandModel {
     return this.getFields();
   }
 
-  static async init() {
+  static async init(force = false) {
     if (!this._registeredAt || !this._client) {
       throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
     }
-
-    Object.defineProperty(this, "name", { value: this.scope });
 
     if (this._initialized) {
       return;
     }
 
-    if (!this._initPromise) {
+    Object.defineProperty(this, "name", { value: this.scope });
+
+    if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
         try {
           if (this.queryFields) {
@@ -569,33 +572,40 @@ class GraphandModel {
     return false;
   }
 
-  static getList(...args) {
-    return this.query.apply(this, args);
+  static getList(query?: any, ...args) {
+    if (!query) {
+      const list = this._listSubject.getValue();
+      return new GraphandModelList({ model: this }, ...list);
+    }
+
+    return this.query.apply(this, arguments);
   }
 
-  static query(query?: any, cache = true, ...params): GraphandModelList | GraphandModelListPromise {
-    if (query) {
-      if (Array.isArray(query)) {
-        query = { ids: query };
+  static query(query: any, fetch = true, cache = true, ...fetchParams): GraphandModelList | GraphandModelListPromise {
+    if (Array.isArray(query)) {
+      query = { ids: query };
+    }
+
+    let list;
+
+    if (query.ids) {
+      if (query.ids instanceof GraphandModelList || query.ids instanceof GraphandModelListPromise) {
+        query.ids = query.ids.ids;
+      } else if (query.ids instanceof GraphandModel || query.ids instanceof GraphandModelPromise) {
+        query.ids = [query.ids._id];
+      } else if (typeof query.ids === "string") {
+        query.ids = [query.ids];
       }
 
-      if (query.ids) {
-        if (query.ids instanceof GraphandModelList || query.ids instanceof GraphandModelListPromise) {
-          query.ids = query.ids.ids;
-        } else if (query.ids instanceof GraphandModel || query.ids instanceof GraphandModelPromise) {
-          query.ids = [query.ids._id];
-        } else if (typeof query.ids === "string") {
-          query.ids = [query.ids];
-        }
-
-        if ("ids" in query && Object.keys(query).length === 1) {
-          const list = query.ids.map((_id) => this.get(_id, false));
-          if (list.every(Boolean)) {
-            return new GraphandModelList({ model: this, count: list.length, query }, ...list);
-          }
+      if (cache && "ids" in query && Object.keys(query).length === 1) {
+        const cacheList = query.ids.map((_id) => this.get(_id, false));
+        if (cacheList.every(Boolean)) {
+          list = new GraphandModelList({ model: this, count: cacheList.length, query }, ...cacheList);
         }
       }
+    }
 
+    if (!list && fetch) {
       const _this = this;
       return new GraphandModelListPromise(
         async (resolve) => {
@@ -604,25 +614,24 @@ class GraphandModel {
               data: {
                 data: { rows, count },
               },
-            } = await _this.fetch(query, cache, ...params);
+            } = await _this.fetch(query, cache, ...fetchParams);
             const storeList = _this._listSubject.getValue();
             const list = rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
-            resolve(new GraphandModelList({ model: _this, count, query }, ...list));
+            return resolve(new GraphandModelList({ model: _this, count, query }, ...list));
           } catch (e) {
             console.error(e);
-            resolve([]);
+            return resolve(new GraphandModelList({ model: _this, query }));
           }
         },
-        this,
+        _this,
         query,
       );
     }
 
-    const list = this._listSubject.getValue();
-    return new GraphandModelList({ model: this }, ...list);
+    return fetch ? new GraphandModelListPromise((resolve) => resolve(list), this, query) : list;
   }
 
-  static get(query, fetch = true, cache = true) {
+  static get(query, fetch = true, cache = true, ...fetchParams) {
     if (!query) {
       return new GraphandModelPromise(async (resolve, reject) => {
         try {
@@ -640,8 +649,8 @@ class GraphandModel {
         : typeof query === "object" && query.query?._id
         ? query.query._id
         : typeof query === "string"
-        ? query
-        : null;
+          ? query
+          : null;
 
     const item = cache && this.getList().find((item) => item._id === _id);
 
@@ -650,7 +659,7 @@ class GraphandModel {
         async (resolve, reject) => {
           let res;
           try {
-            res = await this.fetch(query, cache);
+            res = await this.fetch(query, cache, ...fetchParams);
             const data = res.data.data && ((res.data.data.rows && res.data.data.rows[0]) || res.data.data);
             if (!cache) {
               resolve(data && this.hydrate(data));
@@ -713,8 +722,7 @@ class GraphandModel {
     let res;
 
     try {
-      const isSimpleQuery =
-        query?.query?._id && typeof query.query._id === "string" && Object.keys(query).length === 1 && Object.keys(query.query).length === 1;
+      const isSimpleQuery = typeof query?.query?._id === "string" && Object.keys(query).length === 1 && Object.keys(query.query).length === 1;
       if (isSimpleQuery) {
         const url = `${this.baseUrl}/${query.query._id}`;
         res = await this._client._axios.get(url);
