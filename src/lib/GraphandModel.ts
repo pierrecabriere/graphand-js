@@ -73,16 +73,16 @@ class GraphandModel {
 
     this._fields = _fields || constructor.getFields() || {};
 
-    this.reloadFields();
-
     Object.defineProperty(this, "_data", { enumerable: false });
     Object.defineProperty(this, "_locale", { enumerable: false });
     Object.defineProperty(this, "_version", { enumerable: false });
     Object.defineProperty(this, "_fields", { enumerable: false });
 
-    if (constructor.queryFields) {
-      constructor.fieldsObserver?.list.subscribe(() => this.reloadFields());
+    if (constructor.queryFields && constructor._client._options.subscribeFields) {
+      constructor.init().then(() => constructor.fieldsObserver?.list.subscribe(() => this.reloadFields()));
     }
+
+    this.reloadFields();
   }
 
   translate(locale) {
@@ -217,7 +217,7 @@ class GraphandModel {
     }
 
     if (!this._fieldsObserver && this._client._options.project) {
-      const query = this._fieldsIds || { query: { scope: this.scope } };
+      const query = this._fieldsIds ? { ids: this._fieldsIds } : { query: { scope: this.scope } };
       this._fieldsObserver = this._client.getModel("DataField").observe(query);
     }
 
@@ -284,18 +284,6 @@ class GraphandModel {
       throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
     }
 
-    if (this.queryFields && !this._fieldsSubscription && this._client._options.subscribeFields) {
-      this._fieldsSubscription = this.fieldsObserver?.list.subscribe(async (list) => {
-        const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
-        const fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
-        if (!isEqual(this._fields, fields)) {
-          this._fields = fields;
-          this.setPrototypeFields();
-          this.fieldsObserver.list.next(list);
-        }
-      });
-    }
-
     const baseFields = typeof this.baseFields === "function" ? this.baseFields.bind(this)(item) : this.baseFields;
 
     let fields = {
@@ -353,8 +341,20 @@ class GraphandModel {
           if (this.queryFields) {
             await this._client.init();
 
-            if (this.queryFields && this._client._options.project) {
-              const query = this._fieldsIds || { query: { scope: this.scope } };
+            // if (!this._fieldsSubscription && this._client._options.subscribeFields) {
+            //   this._fieldsSubscription = this.fieldsObserver?.list.subscribe(async (list) => {
+            //     const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
+            //     const fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
+            //     if (!isEqual(this._fields, fields)) {
+            //       this._fields = fields;
+            //       this.setPrototypeFields();
+            //       // this.fieldsObserver.list.next(list);
+            //     }
+            //   });
+            // }
+
+            if (this._client._options.project) {
+              const query = this._fieldsIds ? { ids: this._fieldsIds } : { query: { scope: this.scope } };
               const list = await this._client.getModel("DataField").getList(query);
               const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
               this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});

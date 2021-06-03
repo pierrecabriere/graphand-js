@@ -10,9 +10,9 @@ class ModelObserver {
   translations: Function;
   query: Function;
 
-  list = new Subject();
-  loading = new Subject();
-  count = new Subject();
+  list = new BehaviorSubject([]);
+  loading = new BehaviorSubject(false);
+  count = new BehaviorSubject(0);
 
   subjectTimeout;
   reloadTimeout;
@@ -58,7 +58,6 @@ class ModelObserver {
 
     this.subjects = Object.keys(this._current).reduce((result: any, key: string) => {
       Object.assign(result, { [key]: new BehaviorSubject(options[key]) });
-      Object.assign(this._current, { [key]: options[key] });
       return result;
     }, {});
 
@@ -109,15 +108,13 @@ class ModelObserver {
 
         subject.subscribe({
           next: (v: any) => {
-            if (!isEqual(v, this._current[key])) {
-              if (v !== undefined) {
-                Object.assign(this._current, { [key]: v });
-              } else {
-                delete this._current[key];
-              }
-              this.subjectTimeout && clearTimeout(this.subjectTimeout);
-              this.subjectTimeout = setTimeout(() => refresh());
+            if (v !== undefined) {
+              Object.assign(this._current, { [key]: v });
+            } else {
+              delete this._current[key];
             }
+            this.subjectTimeout && clearTimeout(this.subjectTimeout);
+            this.subjectTimeout = setTimeout(() => refresh());
           },
         });
       });
