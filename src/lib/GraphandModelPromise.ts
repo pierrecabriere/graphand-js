@@ -15,7 +15,7 @@ const _propertiesMiddleware = (fromModel, toModel, middleware) => {
   return Object.assign(toModel.prototype, patch);
 };
 
-class GraphandModelPromise extends Promise<any> implements Promise<any> {
+class GraphandModelPromise {
   executor: Function;
   cached;
   model;
@@ -25,8 +25,6 @@ class GraphandModelPromise extends Promise<any> implements Promise<any> {
 
   // @ts-ignore
   constructor(executor, model, query?, cached = false) {
-    super(() => null);
-
     this.executor = executor;
     this.cached = cached;
 

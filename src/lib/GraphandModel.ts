@@ -628,7 +628,8 @@ class GraphandModel {
       );
     }
 
-    return fetch ? new GraphandModelListPromise((resolve) => resolve(list), this, query) : list;
+    return list;
+    // return fetch ? new GraphandModelListPromise((resolve) => resolve(list), this, query) : list;
   }
 
   static get(query, fetch = true, cache = true, ...fetchParams) {
@@ -680,7 +681,8 @@ class GraphandModel {
       );
     }
 
-    return fetch ? new GraphandModelPromise((resolve) => resolve(item), this, item._id, true) : item;
+    return item;
+    // return fetch ? new GraphandModelPromise((resolve) => resolve(item), this, item._id, true) : item;
   }
 
   static getPopulatedPaths(populateQuery) {

@@ -158,7 +158,7 @@ class ModelObserver {
       }
     });
 
-    // this.reload();
+    this.reload();
 
     this.model._observers.add(this);
   }

@@ -24,9 +24,15 @@ class GraphandModelList extends Array implements Array<any> {
   count;
   _query;
 
+  map;
+
   constructor({ model, count, query }: { model?; count?; query? }, ...elements) {
     if (!elements?.length) {
       elements = [];
+    }
+
+    if (!model || !(model.prototype instanceof GraphandModel)) {
+      throw new Error("Please provide a valid model");
     }
 
     super(...elements);
@@ -67,17 +73,11 @@ class GraphandModelList extends Array implements Array<any> {
   }
 
   clone(concatWith?: GraphandModel | GraphandModelPromise | GraphandModelList | GraphandModelListPromise) {
-    const elements = concatWith ? this.toArray().concat(concatWith) : this.toArray();
-    return new GraphandModelList(this, ...elements);
+    return new GraphandModelList({ model: this.model, count: this.count, query: this.query }, ...this.toArray().concat(concatWith));
   }
 
   // @ts-ignore
   concat(concatWith?: GraphandModel | GraphandModelPromise | GraphandModelList | GraphandModelListPromise) {
-    // @ts-ignore
-    if (!(concatWith instanceof GraphandModel) && !(concatWith instanceof GraphandModelPromise) && !(concatWith instanceof GraphandModelList) && !(concatWith instanceof GraphandModelListPromise)) {
-      return Array.prototype.concat.apply(this, arguments);
-    }
-
     if (!concatWith) {
       return this.clone();
     } else if (typeof concatWith !== "object") {
@@ -122,9 +122,15 @@ class GraphandModelList extends Array implements Array<any> {
     return this.ids;
   }
 
+  toJSON() {
+    return JSON.stringify(this.toArray());
+  }
+
   toString() {
     return JSON.stringify(this.ids);
   }
 }
+
+_propertiesMiddleware(Array, GraphandModelList, (item, fn, args) => fn.apply(item.toArray(), args));
 
 export default GraphandModelList;
