@@ -7,10 +7,10 @@ const _propertiesMiddleware = (fromModel, toModel, middleware) => {
 
   const patch = {};
   patchKeys.forEach((key) => {
-    patch[key] = function() {
+    patch[key] = function () {
       return middleware(this, fromModel.prototype[key], arguments);
-    }
-  })
+    };
+  });
 
   return Object.assign(toModel.prototype, patch);
 };
@@ -28,14 +28,16 @@ class GraphandModelPromise {
     this.executor = executor;
     this.cached = cached;
 
-    if (!model || !(model.prototype instanceof GraphandModel)) {
-      throw new Error("Please provide a valid model");
-    }
+    // if (!model || !(model.prototype instanceof GraphandModel)) {
+    //   throw new Error("Please provide a valid model");
+    // }
 
     this.model = model;
     this.query = query || {};
 
-    model.modelPromise(this);
+    if (model) {
+      model.modelPromise(this);
+    }
 
     Object.defineProperty(this, "executor", { enumerable: false });
     Object.defineProperty(this, "cached", { enumerable: false });

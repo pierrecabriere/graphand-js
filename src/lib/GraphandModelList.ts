@@ -1,23 +1,7 @@
 import isEqual from "fast-deep-equal";
 import { Observable } from "rxjs";
-import GraphandModelListPromise from "./GraphandModelListPromise";
 import GraphandModel from "./GraphandModel";
-import GraphandModelPromise from "./GraphandModelPromise";
-
-const _propertiesMiddleware = (fromModel, toModel, middleware) => {
-  const fromKeys = Object.getOwnPropertyNames(fromModel.prototype);
-  const toKeys = Object.getOwnPropertyNames(toModel.prototype);
-  const patchKeys = fromKeys.filter((key) => !toKeys.includes(key) && typeof fromModel.prototype[key] === "function");
-
-  const patch = {};
-  patchKeys.forEach((key) => {
-    patch[key] = function() {
-      return middleware(this, fromModel.prototype[key], arguments, key);
-    }
-  })
-
-  return Object.assign(toModel.prototype, patch);
-};
+import GraphandModelListPromise from "./GraphandModelListPromise";
 
 class GraphandModelList extends Array implements Array<any> {
   _model;
@@ -27,6 +11,11 @@ class GraphandModelList extends Array implements Array<any> {
   constructor({ model, count, query }: { model?; count?; query? }, ...elements) {
     if (!elements?.length) {
       elements = [];
+    }
+
+    if (!model) {
+      // @ts-ignore
+      return super(...elements);
     }
 
     super(...elements);
@@ -41,7 +30,9 @@ class GraphandModelList extends Array implements Array<any> {
   }
 
   get ids() {
-    return this.map((item) => item?._id || item).filter(Boolean);
+    return this.toArray()
+      .map((item) => item?._id || item)
+      .filter(Boolean);
   }
 
   get model() {
@@ -66,35 +57,9 @@ class GraphandModelList extends Array implements Array<any> {
     return new Array(...this);
   }
 
-  clone(concatWith?: GraphandModel | GraphandModelPromise | GraphandModelList | GraphandModelListPromise) {
+  clone(concatWith?: GraphandModel | GraphandModelList) {
     const elements = concatWith ? this.toArray().concat(concatWith) : this.toArray();
     return new GraphandModelList(this, ...elements);
-  }
-
-  // @ts-ignore
-  concat(concatWith?: GraphandModel | GraphandModelPromise | GraphandModelList | GraphandModelListPromise) {
-    // @ts-ignore
-    if (!(concatWith instanceof GraphandModel) && !(concatWith instanceof GraphandModelPromise) && !(concatWith instanceof GraphandModelList) && !(concatWith instanceof GraphandModelListPromise)) {
-      return Array.prototype.concat.apply(this, arguments);
-    }
-
-    if (!concatWith) {
-      return this.clone();
-    } else if (typeof concatWith !== "object") {
-      concatWith = new this.model({ _id: concatWith });
-    }
-
-    const clone = this.clone(concatWith);
-
-    const concatIds = "ids" in concatWith ? concatWith.ids : [concatWith._id];
-    clone.query.ids = clone.query.ids || [];
-    clone.query.ids = clone.query.ids.concat(concatIds);
-
-    if ("query" in concatWith && concatWith.query.query) {
-      clone.query.query = clone.query.query ? { $or: [clone.query.query, concatWith.query.query] } : concatWith.query.query;
-    }
-
-    return clone;
   }
 
   subscribe() {

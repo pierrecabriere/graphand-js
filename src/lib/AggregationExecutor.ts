@@ -1,5 +1,6 @@
 import Client from "../Client";
 import Aggregation from "../models/Aggregation";
+import { serialize } from "../utils";
 
 class AggregationExecutor {
   _id: string;
@@ -52,8 +53,8 @@ class AggregationExecutor {
     return `${this._id}:${typeof key === "string" ? key : JSON.stringify(key)}`;
   }
 
-  async _exec () {
-    const { data } = await this.client._axios.post(`/aggregations/${this._id}/execute`, this.vars);
+  async _exec() {
+    const { data } = await this.client._axios.post(`/aggregations/${this._id}/execute`, serialize(this.vars));
     this.res = data;
     return data;
   }
@@ -67,11 +68,10 @@ class AggregationExecutor {
         constructor.cache[this.cacheKey] = new Promise((resolve, reject) => this._exec().then(resolve).catch(reject));
       }
 
-      return await constructor.cache[this.cacheKey] || {};
+      return (await constructor.cache[this.cacheKey]) || {};
     }
 
-
-    return await this._exec() || {};
+    return (await this._exec()) || {};
   }
 }
 
