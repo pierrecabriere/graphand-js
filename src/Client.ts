@@ -121,9 +121,9 @@ class Client implements ClientType {
           if (this._options.initModels) {
             const dataModels = await this.getModel("DataModel").getList({});
             const scopes = ["Account", "Media"].concat(dataModels.map(m => `Data:${m.slug}`));
-            await this.registerModels(this._options.models.concat(scopes));
+            await this.registerModels(this._options.models.concat(scopes), { extend: true });
           } else {
-            await this.registerModels(this._options.models);
+            await this.registerModels(this._options.models, { extend: true });
           }
 
           resolve(true);
@@ -183,16 +183,16 @@ class Client implements ClientType {
     options = Object.assign({}, { sync: undefined, name: undefined, force: false, fieldsIds: undefined, extend: false }, options);
     options.sync = options.sync ?? this._options.autoSync;
 
+    const _name = options.name || Model.scope;
+
     if (Model._registeredAt && Model._client !== this) {
       if (!options.force && !options.extend) {
-        console.error(`You tried to register a Model already registered on another client. Use force option and extend to prevent overriding`);
+        console.error(`You tried to register a Model already registered on another client. Use force option and extend to prevent overriding`, _name);
         return Model;
       } else if (options.extend) {
         Model = class extends Model {};
       }
     }
-
-    const _name = options.name || Model.scope;
 
     this._models[_name] = Model;
     this._models[_name]._client = this;
@@ -224,7 +224,7 @@ class Client implements ClientType {
     return this._models[_name];
   }
 
-  async registerModels(modelsList, options?) {
+  async registerModels(modelsList, options: any = {}) {
     const scopes = modelsList.map((model) => (typeof model === "string" ? model : model.scope));
     const fields = await this.getModel("DataField").getList({ query: { scope: { $in: scopes } } });
     await Promise.all(
@@ -306,15 +306,6 @@ class Client implements ClientType {
 
     this._socketSubject.subscribe((_socket) => _register(_socket));
     this.connectSocket();
-  }
-
-  getModelFromScope(scope: string, wait = false) {
-    if (/^Data:/.test(scope)) {
-      const { 1: slug } = scope.match(/^Data:(.+?)$/);
-      return this.getModelByIdentifier(slug);
-    }
-
-    return this.models[scope];
   }
 
   async getStats() {
@@ -471,12 +462,6 @@ class Client implements ClientType {
 
   setLocale(locale: string) {
     this._locale = locale;
-  }
-
-  /* Aliases */
-
-  getModelByScope(scope: string) {
-    return this.getModel(scope);
   }
 }
 

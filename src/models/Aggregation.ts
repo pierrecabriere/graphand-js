@@ -12,8 +12,7 @@ class Aggregation extends GraphandModel {
   static baseUrl = "/aggregations";
   static scope = "Aggregation";
 
-  static baseFields(values) {
-    const model = values && this._client.getModelFromScope(values.clearCacheScope);
+  static baseFields() {
     return {
       name: new GraphandFieldText({ name: "Nom" }),
       description: new GraphandFieldText({ name: "Description" }),

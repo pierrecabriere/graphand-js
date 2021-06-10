@@ -11,7 +11,7 @@ class Restriction extends GraphandModel {
   static scope = "Restriction";
 
   static baseFields(values) {
-    const model = values && this._client.getModelFromScope(values.scope);
+    const model = values && this._client.getModel(values.scope);
     return {
       role: new GraphandFieldRelation({
         name: "Rôle",
