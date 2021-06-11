@@ -36,7 +36,7 @@ class GraphandModelPromise {
     this.query = query || {};
 
     if (model) {
-      model.modelPromise(this);
+      model.modelPromise?.call(model, this);
     }
 
     Object.defineProperty(this, "executor", { enumerable: false });
