@@ -62,6 +62,10 @@ class GraphandModelList extends Array implements Array<any> {
     return new GraphandModelList(this, ...elements);
   }
 
+  reload() {
+    return this.model.getList(this.query);
+  }
+
   subscribe() {
     if (!this.model) {
       return;

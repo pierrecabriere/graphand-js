@@ -3,12 +3,20 @@ import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
+import GraphandModelPromise from "../lib/GraphandModelPromise";
+
+const defaultLinkOptions = {
+  private: false,
+  fit: "contain",
+};
 
 class Media extends GraphandModel {
   static apiIdentifier = "medias";
   static baseUrl = "/medias";
   static scope = "Media";
   static queryFields = true;
+
+  static universalPrototypeMethods = ["getUrl"];
 
   static baseFields = {
     name: new GraphandFieldText({ name: "Nom" }),
@@ -41,6 +49,17 @@ class Media extends GraphandModel {
     };
 
     args.payload = formData;
+  }
+
+  getUrl(opts: any = {}) {
+    opts = Object.assign({}, defaultLinkOptions, opts);
+    const client = this instanceof GraphandModelPromise ? this.model._client : Object.getPrototypeOf(this).constructor._client;
+    const scope = opts.private ? "private" : "public";
+    let url = `https://cdn.graphand.io/${scope}/${client._options.project}/${this._id}?fit=${opts.fit}`;
+    if (opts.w > 0) url += `&w=${opts.w}`;
+    if (opts.h > 0) url += `&h=${opts.h}`;
+
+    return url;
   }
 }
 

@@ -1,5 +1,4 @@
 import Client from "../Client";
-import Aggregation from "../models/Aggregation";
 import { serialize } from "../utils";
 
 class AggregationExecutor {
@@ -19,10 +18,10 @@ class AggregationExecutor {
     }
   }
 
-  constructor(aggregation: Aggregation, options: { _id?: string; vars?: any; client?: Client }) {
-    this._id = options._id ?? aggregation._id;
+  constructor(options: { _id?: string; vars?: any; client?: Client }) {
+    this._id = options._id;
     this.vars = options.vars;
-    this.client = options.client ?? Object.getPrototypeOf(aggregation).constructor._client;
+    this.client = options.client;
   }
 
   cache(key?: string) {

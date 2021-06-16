@@ -66,7 +66,7 @@ class Client implements ClientType {
     return new Proxy(this, {
       get: function (oTarget, sKey: string) {
         try {
-          return oTarget.getGraphandModel(sKey)
+          return oTarget.getGraphandModel(sKey);
         } catch (e) {
           return oTarget.getModelByIdentifier(sKey);
         }
@@ -120,7 +120,7 @@ class Client implements ClientType {
 
           if (this._options.initModels) {
             const dataModels = await this.getModel("DataModel").getList({});
-            const scopes = ["Account", "Media"].concat(dataModels.map(m => `Data:${m.slug}`));
+            const scopes = ["Account", "Media"].concat(dataModels.map((m) => `Data:${m.slug}`));
             await this.registerModels(this._options.models.concat(scopes), { extend: true });
           } else {
             await this.registerModels(this._options.models, { extend: true });

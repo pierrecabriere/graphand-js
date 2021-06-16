@@ -1,3 +1,4 @@
+import { ObjectID } from "bson";
 import isEqual from "fast-deep-equal";
 import _ from "lodash";
 import { Observable } from "rxjs";
@@ -10,7 +11,6 @@ import GraphandModelList from "./GraphandModelList";
 import GraphandModelListPromise from "./GraphandModelListPromise";
 import GraphandModelPromise from "./GraphandModelPromise";
 import ModelObserver from "./ModelObserver";
-import { ObjectID } from 'bson';
 
 class GraphandModel {
   // configurable fields
@@ -48,7 +48,7 @@ class GraphandModel {
   createdAt: Date;
   updatedAt: Date;
 
-  static modelPromise(promise: GraphandModelPromise) {}
+  static universalPrototypeMethods = [];
 
   static hydrate(data: any, _fields?) {
     return new this(data, _fields);
@@ -228,59 +228,85 @@ class GraphandModel {
     return this._fieldsObserver;
   }
 
-  reloadFields() {
-    const { constructor } = Object.getPrototypeOf(this);
-    this._fields = constructor.getFields(this) || {};
-
-    const properties = Object.keys(this._fields).filter(slug => slug !== "_id").reduce((final, slug) => {
-      const field = this._fields[slug];
-      if (field.assign === false) {
-        return final;
-      }
-
-      final[slug] = {
-        enumerable: true,
-        configurable: true,
-        get: function () {
-          return this.get(slug);
-        },
-        set(v) {
-          return this.set(slug, v);
-        },
-      };
-
-      return final;
-    }, {});
-
-    Object.defineProperties(this, properties);
-
-    return this._fields;
-  }
-
   static setPrototypeFields() {
     const fields = this.getFields();
 
-    const properties = Object.keys(fields).filter(slug => slug !== "_id").reduce((final, slug) => {
-      const field = fields[slug];
-      if (field.assign === false) {
+    const properties = Object.keys(fields)
+      .filter((slug) => slug !== "_id")
+      .reduce((final, slug) => {
+        const field = fields[slug];
+        if (field.assign === false) {
+          return final;
+        }
+
+        final[slug] = {
+          enumerable: true,
+          configurable: true,
+          get: function () {
+            return this.get(slug);
+          },
+          set(v) {
+            return this.set(slug, v);
+          },
+        };
+
         return final;
-      }
-
-      final[slug] = {
-        enumerable: true,
-        configurable: true,
-        get: function () {
-          return this.get(slug);
-        },
-        set(v) {
-          return this.set(slug, v);
-        },
-      };
-
-      return final;
-    }, {});
+      }, {});
 
     Object.defineProperties(this.prototype, properties);
+  }
+
+  static get(query, fetch = true, cache = true, ...fetchParams) {
+    if (!query) {
+      return new GraphandModelPromise(async (resolve, reject) => {
+        try {
+          const res = await this.fetch(null);
+          resolve(this.get((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id, false));
+        } catch (e) {
+          reject(e);
+        }
+      }, this);
+    }
+
+    const _id =
+      query instanceof GraphandModel
+        ? query._id
+        : typeof query === "object" && query.query?._id
+        ? query.query._id
+        : typeof query === "string"
+        ? query
+        : null;
+
+    const item = cache && this.getList().find((item) => item._id === _id);
+
+    if (!item && fetch) {
+      return new GraphandModelPromise(
+        async (resolve, reject) => {
+          let res;
+          try {
+            res = await this.fetch(query, cache, ...fetchParams);
+            const data = res.data.data && ((res.data.data.rows && res.data.data.rows[0]) || res.data.data);
+            if (!cache) {
+              resolve(data && this.hydrate(data));
+            }
+
+            const id = data && data._id;
+            if (id) {
+              resolve(this.get(id, false));
+            } else {
+              resolve(null);
+            }
+          } catch (e) {
+            reject(e);
+          }
+        },
+        this,
+        query,
+      );
+    }
+
+    return item;
+    // return fetch ? new GraphandModelPromise((resolve) => resolve(item), this, item._id, true) : item;
   }
 
   static getFields(item?) {
@@ -632,57 +658,35 @@ class GraphandModel {
     // return fetch ? new GraphandModelListPromise((resolve) => resolve(list), this, query) : list;
   }
 
-  static get(query, fetch = true, cache = true, ...fetchParams) {
-    if (!query) {
-      return new GraphandModelPromise(async (resolve, reject) => {
-        try {
-          const res = await this.fetch(null);
-          resolve(this.get((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id, false));
-        } catch (e) {
-          reject(e);
+  reloadFields() {
+    const { constructor } = Object.getPrototypeOf(this);
+    this._fields = constructor.getFields(this) || {};
+
+    const properties = Object.keys(this._fields)
+      .filter((slug) => slug !== "_id")
+      .reduce((final, slug) => {
+        const field = this._fields[slug];
+        if (field.assign === false) {
+          return final;
         }
-      }, this);
-    }
 
-    const _id =
-      query instanceof GraphandModel
-        ? query._id
-        : typeof query === "object" && query.query?._id
-        ? query.query._id
-        : typeof query === "string"
-          ? query
-          : null;
+        final[slug] = {
+          enumerable: true,
+          configurable: true,
+          get: function () {
+            return this.get(slug);
+          },
+          set(v) {
+            return this.set(slug, v);
+          },
+        };
 
-    const item = cache && this.getList().find((item) => item._id === _id);
+        return final;
+      }, {});
 
-    if (!item && fetch) {
-      return new GraphandModelPromise(
-        async (resolve, reject) => {
-          let res;
-          try {
-            res = await this.fetch(query, cache, ...fetchParams);
-            const data = res.data.data && ((res.data.data.rows && res.data.data.rows[0]) || res.data.data);
-            if (!cache) {
-              resolve(data && this.hydrate(data));
-            }
+    Object.defineProperties(this, properties);
 
-            const id = data && data._id;
-            if (id) {
-              resolve(this.get(id, false));
-            } else {
-              resolve(null);
-            }
-          } catch (e) {
-            reject(e);
-          }
-        },
-        this,
-        query,
-      );
-    }
-
-    return item;
-    // return fetch ? new GraphandModelPromise((resolve) => resolve(item), this, item._id, true) : item;
+    return this._fields;
   }
 
   static getPopulatedPaths(populateQuery) {
@@ -1055,14 +1059,14 @@ class GraphandModel {
     }
 
     try {
-        await constructor.update(
-          { ...payload, query: { _id } },
-          {
-            clearCache: options.clearCache,
-            upsert: options.upsert,
-            hooks: false,
-          },
-        );
+      await constructor.update(
+        { ...payload, query: { _id } },
+        {
+          clearCache: options.clearCache,
+          upsert: options.upsert,
+          hooks: false,
+        },
+      );
 
       if (options.upsert) {
         this.assign(constructor.get(_id, false)?.raw, false);

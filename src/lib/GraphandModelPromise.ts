@@ -1,5 +1,3 @@
-import GraphandModel from "./GraphandModel";
-
 const _propertiesMiddleware = (fromModel, toModel, middleware) => {
   const fromKeys = Object.getOwnPropertyNames(fromModel.prototype);
   const toKeys = Object.getOwnPropertyNames(toModel.prototype);
@@ -36,16 +34,15 @@ class GraphandModelPromise {
     this.query = query || {};
 
     if (model) {
-      model.modelPromise?.call(model, this);
+      model.universalPrototypeMethods.forEach((slug) => {
+        this[slug] = model.prototype[slug].bind(this);
+      });
     }
 
     Object.defineProperty(this, "executor", { enumerable: false });
     Object.defineProperty(this, "cached", { enumerable: false });
     Object.defineProperty(this, "model", { enumerable: false });
 
-    if (this._id) {
-      Object.defineProperty(this, "_id", { enumerable: true, value: this._id });
-    }
     if (this._id) {
       Object.defineProperty(this, "_id", { enumerable: true, value: this._id });
       Object.defineProperty(this, "query", { enumerable: false });

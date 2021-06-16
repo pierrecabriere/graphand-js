@@ -1,16 +1,18 @@
 import AggregationExecutor from "../lib/AggregationExecutor";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
+import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 import GraphandModelPromise from "../lib/GraphandModelPromise";
-import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 
 class Aggregation extends GraphandModel {
   static apiIdentifier = "aggregations";
   static baseUrl = "/aggregations";
   static scope = "Aggregation";
+
+  static universalPrototypeMethods = ["execute"];
 
   static baseFields() {
     return {
@@ -32,20 +34,13 @@ class Aggregation extends GraphandModel {
     };
   }
 
-  execute(vars) {
-    return new AggregationExecutor(this, { vars });
-  }
-
   static execute(_id, vars) {
-    return new AggregationExecutor(undefined, { _id, vars, client: this._client });
+    return new AggregationExecutor({ _id, vars, client: this._client });
   }
 
-  static modelPromise(promise: GraphandModelPromise) {
-    const _this = this;
-    // @ts-ignore
-    promise.execute = function (vars) {
-      return new AggregationExecutor(undefined, { _id: promise._id, vars, client: _this._client });
-    };
+  execute(vars) {
+    const client = this instanceof GraphandModelPromise ? this.model._client : Object.getPrototypeOf(this).constructor._client;
+    return new AggregationExecutor({ _id: this._id, vars, client });
   }
 }
 
