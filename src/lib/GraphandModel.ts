@@ -83,10 +83,10 @@ class GraphandModel {
     Object.defineProperty(this, "_fields", { enumerable: false });
 
     if (constructor.queryFields && constructor._client._options.subscribeFields) {
-      constructor.init().then(() => constructor.fieldsObserver?.list.subscribe(() => this.reloadFields()));
+      constructor.init().then(() => constructor.fieldsObserver?.list.subscribe(() => constructor.setPrototypeFields(this)));
     }
 
-    this.reloadFields();
+    constructor.setPrototypeFields(this);
   }
 
   translate(locale) {
@@ -116,10 +116,11 @@ class GraphandModel {
     return clone;
   }
 
-  get(slug, decode = false, _locale = this._locale, fallback = true) {
+  get(slug, decode = false, _locale = this._locale, fallback = true, fields = null) {
     const { constructor } = Object.getPrototypeOf(this);
 
-    const field = this._fields[slug];
+    fields = fields ?? constructor.getFields(this);
+    const field = fields[slug];
     if (!field) {
       return undefined;
     }
@@ -148,8 +149,11 @@ class GraphandModel {
     return value;
   }
 
-  set(slug, value) {
-    const field = this._fields[slug];
+  set(slug, value, fields = null) {
+    const { constructor } = Object.getPrototypeOf(this);
+
+    fields = fields ?? constructor.getFields(this);
+    const field = fields[slug];
 
     if (field?.setter) {
       value = field.setter(value, this);
@@ -228,9 +232,8 @@ class GraphandModel {
     return this._fieldsObserver;
   }
 
-  static setPrototypeFields() {
-    const fields = this.getFields();
-
+  static setPrototypeFields(assignTo = undefined) {
+    const fields = this.getFields(assignTo);
     const properties = Object.keys(fields)
       .filter((slug) => slug !== "_id")
       .reduce((final, slug) => {
@@ -243,17 +246,18 @@ class GraphandModel {
           enumerable: true,
           configurable: true,
           get: function () {
-            return this.get(slug);
+            return this.get(slug, undefined, undefined, undefined, fields);
           },
           set(v) {
-            return this.set(slug, v);
+            return this.set(slug, v, fields);
           },
         };
 
         return final;
       }, {});
 
-    Object.defineProperties(this.prototype, properties);
+    assignTo = assignTo ?? this.prototype;
+    Object.defineProperties(assignTo, properties);
   }
 
   static get(query, fetch = true, cache = true, ...fetchParams) {
@@ -387,9 +391,10 @@ class GraphandModel {
               const list = await this._client.getModel("DataField").getList(query);
               const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
               this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
-              this.setPrototypeFields();
             }
           }
+
+          this.setPrototypeFields();
 
           this._initialized = true;
 
@@ -660,33 +665,35 @@ class GraphandModel {
 
   reloadFields() {
     const { constructor } = Object.getPrototypeOf(this);
-    this._fields = constructor.getFields(this) || {};
 
-    const properties = Object.keys(this._fields)
-      .filter((slug) => slug !== "_id")
-      .reduce((final, slug) => {
-        const field = this._fields[slug];
-        if (field.assign === false) {
-          return final;
-        }
-
-        final[slug] = {
-          enumerable: true,
-          configurable: true,
-          get: function () {
-            return this.get(slug);
-          },
-          set(v) {
-            return this.set(slug, v);
-          },
-        };
-
-        return final;
-      }, {});
-
-    Object.defineProperties(this, properties);
-
-    return this._fields;
+    constructor.setPrototypeFields(this);
+    // this._fields = constructor.getFields(this) || {};
+    //
+    // const properties = Object.keys(this._fields)
+    //   .filter((slug) => slug !== "_id")
+    //   .reduce((final, slug) => {
+    //     const field = this._fields[slug];
+    //     if (field.assign === false) {
+    //       return final;
+    //     }
+    //
+    //     final[slug] = {
+    //       enumerable: true,
+    //       configurable: true,
+    //       get: function () {
+    //         return this.get(slug);
+    //       },
+    //       set(v) {
+    //         return this.set(slug, v);
+    //       },
+    //     };
+    //
+    //     return final;
+    //   }, {});
+    //
+    // Object.defineProperties(this, properties);
+    //
+    // return this._fields;
   }
 
   static getPopulatedPaths(populateQuery) {
