@@ -94,6 +94,10 @@ class GraphandModelList extends Array implements Array<any> {
   toString() {
     return JSON.stringify(this.ids);
   }
+
+  toJSON() {
+    return this.map((i) => i.toJSON?.apply(i) || i);
+  }
 }
 
 export default GraphandModelList;

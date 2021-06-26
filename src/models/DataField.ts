@@ -49,7 +49,7 @@ class DataField extends GraphandModel {
     };
   }
 
-  async toGraphandField() {
+  toGraphandField() {
     const { constructor } = Object.getPrototypeOf(this);
     const { name, type, configuration } = this;
     switch (type) {

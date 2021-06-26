@@ -199,7 +199,7 @@ class Client implements ClientType {
     this._models[_name]._cache = {};
     this._models[_name]._socketSubscription = null;
     this._models[_name]._fieldsIds = options.fieldsIds;
-    this._models[_name]._fields = {};
+    this._models[_name]._dataFields = {};
     this._models[_name]._fieldsSubscription = null;
     this._models[_name]._initialized = false;
     this._models[_name]._fieldsObserver = null;

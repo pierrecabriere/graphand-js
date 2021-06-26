@@ -25,7 +25,7 @@ class GraphandModel {
   protected static _client: Client;
   protected static _socketSubscription;
   protected static _fieldsIds = null;
-  protected static _fields = {};
+  protected static _dataFields = {};
   protected static _cache;
   protected static _fieldsSubscription = null;
   protected static _initialized = false;
@@ -50,11 +50,11 @@ class GraphandModel {
 
   static universalPrototypeMethods = [];
 
-  static hydrate(data: any, _fields?) {
-    return new this(data, _fields);
+  static hydrate(data: any, fields?) {
+    return new this(data, fields);
   }
 
-  constructor(data: any = {}, _fields?) {
+  constructor(data: any = {}, fields?) {
     const { constructor } = Object.getPrototypeOf(this);
 
     if (!constructor._registeredAt || !constructor._client) {
@@ -75,18 +75,18 @@ class GraphandModel {
 
     this._data = data;
 
-    this._fields = _fields || constructor.getFields() || {};
+    this._fields = fields || constructor.getFields(this) || {};
 
     Object.defineProperty(this, "_data", { enumerable: false });
     Object.defineProperty(this, "_locale", { enumerable: false });
     Object.defineProperty(this, "_version", { enumerable: false });
     Object.defineProperty(this, "_fields", { enumerable: false });
 
-    if (constructor.queryFields && constructor._client._options.subscribeFields) {
-      constructor.init().then(() => constructor.fieldsObserver?.list.subscribe(() => constructor.setPrototypeFields(this)));
-    }
+    // if (constructor.queryFields && constructor._client._options.subscribeFields) {
+    //   constructor.init().then(() => constructor.fieldsObserver?.list.subscribe(() => constructor.setPrototypeFields(this)));
+    // }
 
-    constructor.setPrototypeFields(this);
+    constructor.setPrototypeFields(this, this._fields);
   }
 
   translate(locale) {
@@ -116,7 +116,7 @@ class GraphandModel {
     return clone;
   }
 
-  get(slug, decode = false, _locale = this._locale, fallback = true, fields = null) {
+  get(slug, decode = false, _locale = this._locale, fallback = true, fields?: any) {
     const { constructor } = Object.getPrototypeOf(this);
 
     fields = fields ?? constructor.getFields(this);
@@ -149,7 +149,7 @@ class GraphandModel {
     return value;
   }
 
-  set(slug, value, fields = null) {
+  set(slug, value, fields?: any) {
     const { constructor } = Object.getPrototypeOf(this);
 
     fields = fields ?? constructor.getFields(this);
@@ -232,8 +232,8 @@ class GraphandModel {
     return this._fieldsObserver;
   }
 
-  static setPrototypeFields(assignTo = undefined) {
-    const fields = this.getFields(assignTo);
+  static setPrototypeFields(assignTo?: any, fields?: any) {
+    fields = fields ?? this.getFields(assignTo);
     const properties = Object.keys(fields)
       .filter((slug) => slug !== "_id")
       .reduce((final, slug) => {
@@ -264,6 +264,7 @@ class GraphandModel {
     if (!query) {
       return new GraphandModelPromise(async (resolve, reject) => {
         try {
+          await this.init();
           const res = await this.fetch(null);
           resolve(this.get((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id, false));
         } catch (e) {
@@ -288,6 +289,7 @@ class GraphandModel {
         async (resolve, reject) => {
           let res;
           try {
+            await this.init();
             res = await this.fetch(query, cache, ...fetchParams);
             const data = res.data.data && ((res.data.data.rows && res.data.data.rows[0]) || res.data.data);
             if (!cache) {
@@ -310,7 +312,6 @@ class GraphandModel {
     }
 
     return item;
-    // return fetch ? new GraphandModelPromise((resolve) => resolve(item), this, item._id, true) : item;
   }
 
   static getFields(item?) {
@@ -322,7 +323,7 @@ class GraphandModel {
 
     let fields = {
       _id: new GraphandFieldId(),
-      ...this._fields,
+      ...this._dataFields,
       ...baseFields,
     };
 
@@ -387,10 +388,7 @@ class GraphandModel {
             // }
 
             if (this._client._options.project) {
-              const query = this._fieldsIds ? { ids: this._fieldsIds } : { query: { scope: this.scope } };
-              const list = await this._client.getModel("DataField").getList(query);
-              const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
-              this._fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
+              await this.setDataFields();
             }
           }
 
@@ -406,6 +404,17 @@ class GraphandModel {
     }
 
     return this._initPromise;
+  }
+
+  static async setDataFields(fields?: any) {
+    fields = fields ?? (await this.getDataFields());
+    const graphandFields = fields.map((field) => field.toGraphandField());
+    this._dataFields = fields.reduce((final, field, index) => Object.assign(final, { [field.slug]: graphandFields[index] }), {});
+  }
+
+  static async getDataFields() {
+    const query = this._fieldsIds ? { ids: this._fieldsIds } : { query: { scope: this.scope } };
+    return await this._client.getModel("DataField").getList(query);
   }
 
   private static setupSocket(socket?) {
@@ -641,6 +650,7 @@ class GraphandModel {
       return new GraphandModelListPromise(
         async (resolve) => {
           try {
+            await this.init();
             const {
               data: {
                 data: { rows, count },
@@ -660,7 +670,6 @@ class GraphandModel {
     }
 
     return list;
-    // return fetch ? new GraphandModelListPromise((resolve) => resolve(list), this, query) : list;
   }
 
   reloadFields() {
@@ -820,8 +829,6 @@ class GraphandModel {
   }
 
   static async fetch(query: any, cache = true, callback?: Function, hooks = true) {
-    await this.init();
-
     if (Array.isArray(query)) {
       query = { ids: query };
     } else if (typeof query === "string") {
@@ -882,8 +889,6 @@ class GraphandModel {
   }
 
   static async count(query?: any, ...params): Promise<number> {
-    await this.init();
-
     if (typeof query === "string") {
       query = { query: { _id: query } };
     } else if (!query) {
@@ -1283,6 +1288,49 @@ class GraphandModel {
   static afterUpdate;
   static beforeDelete;
   static afterDelete;
+
+  // experimental
+
+  static async serializeModel() {
+    const dataFields = await this.getDataFields();
+    return JSON.stringify({
+      fieldsIds: this._fieldsIds,
+      fields: dataFields.toJSON(),
+    });
+  }
+
+  static rebuildModel(serial) {
+    if (!this._registeredAt || !this._client) {
+      throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
+    }
+
+    const DataField = this._client.getModel("DataField");
+
+    const { fields, fieldsIds } = JSON.parse(serial);
+    this._fieldsIds = fieldsIds;
+
+    const dataFields = fields.map((f) => DataField.hydrate(f));
+    this.setDataFields(dataFields);
+  }
+
+  static async serializeFromId(_id) {
+    await this.init();
+
+    const [res, modelSerial] = await Promise.all([this.fetch(_id).then((r) => JSON.stringify(r.data.data)), this.serializeModel()]);
+
+    return {
+      res,
+      modelSerial,
+    };
+  }
+
+  static rebuildFromSerial(serial) {
+    const { res, modelSerial } = serial;
+
+    this.rebuildModel(modelSerial);
+    const data = JSON.parse(res);
+    return this.hydrate(data);
+  }
 }
 
 export default GraphandModel;
