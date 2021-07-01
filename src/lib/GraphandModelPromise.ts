@@ -66,7 +66,7 @@ class GraphandModelPromise {
     return this._id;
   }
 
-  serialize() {
+  encodeQuery() {
     return this._id;
   }
 

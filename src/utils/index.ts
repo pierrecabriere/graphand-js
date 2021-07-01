@@ -1,6 +1,6 @@
-import serialize from "./serialize";
+import encodeQuery from "./encodeQuery";
 import setupAxios from "./setupAxios";
 import setupSocket from "./setupSocket";
 import verifyScopeFormat from "./verifyScopeFormat";
 
-export { serialize, setupAxios, setupSocket, verifyScopeFormat };
+export { encodeQuery, setupAxios, setupSocket, verifyScopeFormat };

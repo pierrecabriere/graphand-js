@@ -185,12 +185,22 @@ class Client implements ClientType {
 
     const _name = options.name || Model.scope;
 
-    if (Model._registeredAt && Model._client !== this) {
-      if (!options.force && !options.extend) {
-        console.error(`You tried to register a Model already registered on another client. Use force option and extend to prevent overriding`, _name);
-        return Model;
-      } else if (options.extend) {
-        Model = class extends Model {};
+    if (Model._registeredAt) {
+      if (Model._client === this) {
+        if (!options.force) {
+          console.error(`You tried to register a Model already registered on the same client. Use force option to prevent overriding`, _name);
+          return Model;
+        }
+      } else {
+        if (!options.force && !options.extend) {
+          console.error(
+            `You tried to register a Model already registered on another client. Use force option and extend to prevent overriding`,
+            _name,
+          );
+          return Model;
+        } else if (options.extend) {
+          Model = class extends Model {};
+        }
       }
     }
 

@@ -1,21 +1,4 @@
 import Client from "./Client";
-import Account from "./models/Account";
-import Aggregation from "./models/Aggregation";
-import Data from "./models/Data";
-import DataField from "./models/DataField";
-import DataModel from "./models/DataModel";
-import EsMapping from "./models/EsMapping";
-import Media from "./models/Media";
-import Module from "./models/Module";
-import Project from "./models/Project";
-import Restriction from "./models/Restriction";
-import Role from "./models/Role";
-import Rule from "./models/Rule";
-import Sockethook from "./models/Sockethook";
-import Token from "./models/Token";
-import User from "./models/User";
-import Webhook from "./models/Webhook";
-import Log from "./models/Log";
 import AggregationExecutor from "./lib/AggregationExecutor";
 import GraphandFieldBoolean from "./lib/fields/GraphandFieldBoolean";
 import GraphandFieldColor from "./lib/fields/GraphandFieldColor";
@@ -36,11 +19,28 @@ import GraphandModelListPromise from "./lib/GraphandModelListPromise";
 import GraphandModelPromise from "./lib/GraphandModelPromise";
 import GraphandValidationError from "./lib/GraphandValidationError";
 import ModelObserver from "./lib/ModelObserver";
-import serialize from "./utils/serialize";
+import Account from "./models/Account";
+import Aggregation from "./models/Aggregation";
+import Data from "./models/Data";
+import DataField from "./models/DataField";
+import DataModel from "./models/DataModel";
+import EsMapping from "./models/EsMapping";
+import Log from "./models/Log";
+import Media from "./models/Media";
+import Module from "./models/Module";
+import Project from "./models/Project";
+import Restriction from "./models/Restriction";
+import Role from "./models/Role";
+import Rule from "./models/Rule";
+import Sockethook from "./models/Sockethook";
+import Token from "./models/Token";
+import User from "./models/User";
+import Webhook from "./models/Webhook";
+import encodeQuery from "./utils/encodeQuery";
 
 export default Client;
 export {
-  serialize,
+  encodeQuery,
   Client,
   GraphandModel,
   GraphandField,

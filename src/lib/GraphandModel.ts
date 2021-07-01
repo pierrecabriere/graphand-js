@@ -3,7 +3,7 @@ import isEqual from "fast-deep-equal";
 import _ from "lodash";
 import { Observable } from "rxjs";
 import Client from "../Client";
-import serialize from "../utils/serialize";
+import encodeQuery from "../utils/encodeQuery";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldId from "./fields/GraphandFieldId";
 import GraphandFieldRelation from "./fields/GraphandFieldRelation";
@@ -51,7 +51,31 @@ class GraphandModel {
   static universalPrototypeMethods = [];
 
   static hydrate(data: any, fields?) {
+    data = data ?? {};
+
+    const Model = !data.__scope || data.__scope === this.scope ? this : this._client.getModel(data.__scope);
+
+    switch (data.__type) {
+      case "GraphandModelList":
+        return GraphandModelList.hydrate(data, Model);
+      case "GraphandModel":
+        return new Model(data.__payload, fields);
+      default:
+        break;
+    }
+
+    if (Array.isArray(data)) {
+      const list = data.map((i) => new this(i, fields));
+      return new GraphandModelList({ model: this }, ...list);
+    }
+
     return new this(data, fields);
+  }
+
+  serialize() {
+    const { constructor } = Object.getPrototypeOf(this);
+
+    return { __type: "GraphandModel", __scope: constructor.scope, __payload: this._data };
   }
 
   constructor(data: any = {}, fields?) {
@@ -836,7 +860,7 @@ class GraphandModel {
     } else if (!query) {
       query = {};
     } else {
-      query = serialize(query);
+      query = encodeQuery(query);
     }
 
     // if (this.translatable && !query.translations && this._client._project?.locales?.length) {
@@ -894,7 +918,7 @@ class GraphandModel {
     } else if (!query) {
       query = {};
     } else {
-      query = serialize(query);
+      query = encodeQuery(query);
     }
 
     const { data } = await this._client._axios.post(`${this.baseUrl}/count`, query);
@@ -924,28 +948,19 @@ class GraphandModel {
 
     let item;
     try {
-      args.payload = serialize(args.payload);
-      const req = this._client._axios
-        .post(url, args.payload, args.config)
-        .then(async (res) => {
-          item = new this(res.data.data);
+      args.payload = encodeQuery(args.payload);
+      const req = this._client._axios.post(url, args.payload, args.config).then(async (res) => {
+        item = new this(res.data.data);
 
-          this.clearCache();
-          this.upsertStore(item);
+        this.clearCache();
+        this.upsertStore(item, true);
 
-          if (hooks) {
-            await this.afterCreate?.call(this, item, null, args);
-          }
+        if (hooks) {
+          await this.afterCreate?.call(this, item, null, args);
+        }
 
-          return item;
-        })
-        .catch(async (e) => {
-          if (hooks) {
-            await this.afterCreate?.call(this, null, e, args);
-          }
-
-          throw e;
-        });
+        return item;
+      });
 
       const middlewareData = await this.middlewareCreate?.call(this, args, req);
       if (middlewareData !== undefined) {
@@ -995,7 +1010,7 @@ class GraphandModel {
     }
 
     try {
-      payload = serialize(payload);
+      payload = encodeQuery(payload);
       const { data } = await this.handleUpdateCall(payload);
 
       if (!data) {
@@ -1152,7 +1167,7 @@ class GraphandModel {
       }
     } else {
       try {
-        payload = serialize(payload);
+        payload = encodeQuery(payload);
 
         // @ts-ignore
         const { data } = await this._client._axios.delete(this.baseUrl, { _data: payload });
@@ -1262,7 +1277,7 @@ class GraphandModel {
     return this._id;
   }
 
-  serialize() {
+  encodeQuery() {
     return this._id;
   }
 

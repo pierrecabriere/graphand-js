@@ -73,13 +73,12 @@ class GraphandModelList extends Array implements Array<any> {
 
     const _this = this;
     const observable = new Observable((subscriber) => {
-      let prevRaw = _this.map((item) => item.raw);
+      let prevSerial = _this.toArray().map((item) => item.serialize());
       _this.model._listSubject.subscribe(async (_list) => {
-        const query = _this.query || { ids: _this.ids };
-        const list = await _this.model.getList(query);
-        const raw = list.map((item) => item?.raw);
-        if (prevRaw.length !== raw.length || !isEqual(raw, prevRaw)) {
-          prevRaw = raw;
+        const list = await _this.model.getList(_this.query);
+        const serial = list.toArray().map((item) => item.serialize());
+        if (prevSerial.length !== serial.length || !isEqual(serial, prevSerial)) {
+          prevSerial = serial;
           subscriber.next(list);
         }
       });
@@ -87,7 +86,7 @@ class GraphandModelList extends Array implements Array<any> {
     return observable.subscribe.apply(observable, arguments);
   }
 
-  serialize() {
+  encodeQuery() {
     return this.ids;
   }
 
@@ -97,6 +96,29 @@ class GraphandModelList extends Array implements Array<any> {
 
   toJSON() {
     return this.map((i) => i.toJSON?.apply(i) || i);
+  }
+
+  static hydrate(data: any, model: any) {
+    data = data ?? {};
+
+    if (Array.isArray(data)) {
+      const list = data.map((i) => new model(i));
+      return new this({ model }, ...list);
+    }
+
+    const { __count: count, __query: query, __payload } = data;
+    const items = __payload ? __payload.map((i) => model.hydrate(i)) : [];
+    return new this({ model, count, query }, ...items);
+  }
+
+  serialize() {
+    return {
+      __type: "GraphandModelList",
+      __scope: this.model.scope,
+      __count: this.count,
+      __query: this.query,
+      __payload: this.map((i) => i.serialize?.apply(i) || i),
+    };
   }
 }
 

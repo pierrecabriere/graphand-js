@@ -10,19 +10,19 @@ const _decode = (value) => {
     value instanceof GraphandModel ||
     value instanceof GraphandModelPromise
   ) {
-    return value.serialize();
+    return value.encodeQuery();
   } else if (value && typeof value === "object" && Object.keys(value).length) {
     if (Array.isArray(value)) {
       return value.map((v) => _decode(v));
     } else {
-      return serialize(value);
+      return encodeQuery(value);
     }
   }
 
   return value;
 };
 
-const serialize = (payload) => {
+const encodeQuery = (payload) => {
   if (payload.constructor.name === "FormData") {
     return payload;
   }
@@ -35,4 +35,4 @@ const serialize = (payload) => {
   return JSON.parse(JSON.stringify(res));
 };
 
-export default serialize;
+export default encodeQuery;
