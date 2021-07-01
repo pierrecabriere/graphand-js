@@ -66,24 +66,25 @@ class GraphandModelList extends Array implements Array<any> {
     return this.model.getList(this.query);
   }
 
-  subscribe() {
+  subscribe(...args) {
     if (!this.model) {
       return;
     }
 
     const _this = this;
     const observable = new Observable((subscriber) => {
-      let prevSerial = _this.toArray().map((item) => item.serialize());
+      let prevSerial = _this.map((item) => JSON.stringify(item.serialize?.apply(item)));
       _this.model._listSubject.subscribe(async (_list) => {
         const list = await _this.model.getList(_this.query);
-        const serial = list.toArray().map((item) => item.serialize());
+        const serial = list.map((item) => JSON.stringify(item.serialize?.apply(item)));
         if (prevSerial.length !== serial.length || !isEqual(serial, prevSerial)) {
           prevSerial = serial;
           subscriber.next(list);
         }
       });
     });
-    return observable.subscribe.apply(observable, arguments);
+
+    return observable.subscribe.apply(observable, args);
   }
 
   encodeQuery() {
