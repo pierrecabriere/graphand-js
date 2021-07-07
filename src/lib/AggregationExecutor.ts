@@ -20,7 +20,7 @@ class AggregationExecutor {
 
   constructor(options: { _id?: string; vars?: any; client?: Client }) {
     this._id = options._id;
-    this.vars = options.vars;
+    this.vars = options.vars ?? {};
     this.client = options.client;
   }
 

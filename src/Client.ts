@@ -22,6 +22,7 @@ const defaultOptions = {
   init: true,
   initModels: false,
   models: [],
+  cache: true,
 };
 
 class Client implements ClientType {
@@ -182,6 +183,7 @@ class Client implements ClientType {
 
     options = Object.assign({}, { sync: undefined, name: undefined, force: false, fieldsIds: undefined, extend: false }, options);
     options.sync = options.sync ?? this._options.autoSync;
+    options.cache = options.cache ?? this._options.cache;
 
     const _name = options.name || Model.scope;
 
@@ -216,7 +218,7 @@ class Client implements ClientType {
     this._models[_name]._observers = new Set([]);
     this._models[_name]._socketTriggerSubject = new Subject();
     this._models[_name]._initPromise = null;
-    this._models[_name]._listSubject = new BehaviorSubject([]);
+    this._models[_name]._listSubject = options.cache ? new BehaviorSubject([]) : null;
     this._models[_name]._registeredAt = new Date();
 
     try {
