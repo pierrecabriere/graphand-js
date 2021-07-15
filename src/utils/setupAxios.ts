@@ -1,5 +1,5 @@
-import Client from "../Client";
 import axios from "axios";
+import Client from "../Client";
 import GraphandError from "../lib/GraphandError";
 
 const setupAxios = (client: Client) => {
@@ -31,6 +31,7 @@ const setupAxios = (client: Client) => {
         error.graphandErrors = error.graphandErrors || [];
         error.graphandErrors = error.graphandErrors.concat(errors.map((e) => GraphandError.fromJSON(e, error.response.status)));
       } catch (e) {
+        console.log(error.response);
       }
 
       return Promise.reject(error.graphandErrors || [new GraphandError(error.message)]);

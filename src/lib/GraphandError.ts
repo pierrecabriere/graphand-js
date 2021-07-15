@@ -49,7 +49,7 @@ class GraphandError extends Error {
         return new GraphandValidationError(input.message, input.field, input.code);
       case "GraphandError":
       default:
-        return new GraphandError(input.message, input.code, status, input.target);
+        return new GraphandError(input.message, input.code, status ?? input.status, input.target);
     }
   }
 
@@ -75,6 +75,7 @@ class GraphandError extends Error {
       message: this.message,
       code: this.code,
       target: this.target,
+      status: this.status,
     };
   }
 }

@@ -1306,8 +1306,11 @@ class GraphandModel {
 
   // experimental
 
-  static async serializeModel() {
+  static async serializeModel(clearCache = true) {
     const dataFields = await this.getDataFields();
+    if (clearCache) {
+      this.clearCache();
+    }
     return JSON.stringify({
       fieldsIds: this._fieldsIds,
       fields: dataFields.toJSON(),

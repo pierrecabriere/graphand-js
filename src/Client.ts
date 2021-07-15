@@ -272,7 +272,7 @@ class Client implements ClientType {
               resolver.catch(reject);
             }
           });
-          this._axios.post(`/sockethooks/${hook._id}/end`, res ?? payload);
+          await this._axios.post(`/sockethooks/${hook._id}/end`, res ?? payload);
         } catch (e) {
           console.error(e);
           this._axios.post(`/sockethooks/${hook._id}/throw`, e);
