@@ -40,12 +40,9 @@ class DataField extends GraphandModel {
           { value: "JSON", label: "JSON" },
         ],
       }),
-      configuration: new GraphandFieldJSON({
-        name: "Configuration",
-      }),
-      scope: new GraphandFieldScope({
-        name: "Scope",
-      }),
+      exclude: new GraphandFieldBoolean({ name: "Exclure", defaultValue: false }),
+      configuration: new GraphandFieldJSON({ name: "Configuration" }),
+      scope: new GraphandFieldScope({ name: "Scope" }),
     };
   }
 

@@ -638,7 +638,7 @@ class GraphandModel {
 
   static getList(query?: any, ...args) {
     if (!query) {
-      const list = this._listSubject.getValue();
+      const list = this._listSubject.getValue().filter(Boolean);
       return new GraphandModelList({ model: this }, ...list);
     }
 
@@ -946,27 +946,28 @@ class GraphandModel {
       }
     }
 
-    let item;
+    let inserted;
     try {
       args.payload = encodeQuery(args.payload);
       const req = this._client._axios.post(url, args.payload, args.config).then(async (res) => {
-        item = new this(res.data.data);
+        const { data } = res.data;
+        const inserted = Array.isArray(data) ? data.map((i) => new this(i)) : data ? new this(data) : data;
 
         this.clearCache();
-        this.upsertStore(item, true);
+        this.upsertStore(inserted, true);
 
         if (hooks) {
-          await this.afterCreate?.call(this, item, null, args);
+          await this.afterCreate?.call(this, inserted, null, args);
         }
 
-        return item;
+        return inserted;
       });
 
       const middlewareData = await this.middlewareCreate?.call(this, args, req);
       if (middlewareData !== undefined) {
         return middlewareData;
       }
-      item = await req;
+      inserted = await req;
     } catch (e) {
       if (hooks) {
         await this.afterCreate?.call(this, null, e, args);
@@ -975,7 +976,7 @@ class GraphandModel {
       throw e;
     }
 
-    return item;
+    return inserted;
   }
 
   static refreshList() {

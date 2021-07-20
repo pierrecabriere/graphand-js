@@ -31,7 +31,14 @@ const encodeQuery = (payload) => {
     return {};
   }
 
-  const res = Object.keys(payload).reduce((final, key) => Object.assign(final, { [key]: _decode(payload[key]) }), {});
+  let res;
+
+  if (Array.isArray(payload)) {
+    res = payload.map((row) => _decode(row));
+  } else {
+    res = Object.keys(payload).reduce((final, key) => Object.assign(final, { [key]: _decode(payload[key]) }), {});
+  }
+
   return JSON.parse(JSON.stringify(res));
 };
 
