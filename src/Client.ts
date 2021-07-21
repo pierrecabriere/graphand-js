@@ -23,6 +23,7 @@ const defaultOptions = {
   initModels: false,
   models: [],
   cache: true,
+  plugins: [],
 };
 
 class Client implements ClientType {
@@ -60,6 +61,10 @@ class Client implements ClientType {
 
     if (this._options.realtime) {
       this.connectSocket();
+    }
+
+    if (this._options.plugins?.length) {
+      this._options.plugins.forEach((plugin) => this.plugin(plugin));
     }
   }
 
@@ -145,7 +150,7 @@ class Client implements ClientType {
     this.setLocale(locale);
   }
 
-  getModels(scopes, options?) {
+  getModels(scopes, options: any = {}) {
     return scopes.map((scope: string) => this.getModel(scope, options));
   }
 
@@ -170,7 +175,7 @@ class Client implements ClientType {
     return this._models[scope];
   }
 
-  registerModel(Model: any, options?) {
+  registerModel(Model: any, options: any = {}) {
     if (!Model) {
       return;
     }
@@ -426,8 +431,8 @@ class Client implements ClientType {
     this.connectSocket();
   }
 
-  getModel(scope, options?) {
-    if (typeof scope === "object" && scope?.scope) {
+  getModel(scope, options: any = {}) {
+    if (scope?.scope) {
       scope = scope.scope;
     }
 
