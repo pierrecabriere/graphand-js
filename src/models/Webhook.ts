@@ -1,7 +1,6 @@
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
-import GraphandFieldSelect from "../lib/fields/GraphandFieldSelect";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
@@ -27,9 +26,8 @@ class Webhook extends GraphandModel {
       name: new GraphandFieldText({ name: "Nom" }),
       description: new GraphandFieldText({ name: "Description" }),
       endpoint: new GraphandFieldText({ name: "Url" }),
-      method: new GraphandFieldSelect({
+      method: new GraphandFieldText({
         name: "Méthode",
-        type: GraphandFieldText,
         options: [
           { value: "get", label: "GET" },
           { value: "post", label: "POST" },
@@ -41,9 +39,8 @@ class Webhook extends GraphandModel {
       scope: new GraphandFieldScope({
         name: "Scope",
       }),
-      actions: new GraphandFieldSelect({
+      actions: new GraphandFieldText({
         name: "Actions",
-        type: GraphandFieldText,
         multiple: true,
         options: [
           { value: "before_create", label: "before_create" },

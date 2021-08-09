@@ -1,4 +1,3 @@
-import GraphandFieldSelect from "../lib/fields/GraphandFieldSelect";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
@@ -18,12 +17,12 @@ class Project extends GraphandModel {
     return {
       name: new GraphandFieldText({ name: "Nom" }),
       slug: new GraphandFieldText({ name: "Identifiant" }),
-      locales: new GraphandFieldSelect({
+      locales: new GraphandFieldText({
         name: "Langues",
         multiple: true,
         options: locales,
       }),
-      defaultLocale: new GraphandFieldSelect({
+      defaultLocale: new GraphandFieldText({
         name: "Langue par défaut",
         options: locales,
       }),

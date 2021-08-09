@@ -8,7 +8,6 @@ import GraphandFieldJSON from "./lib/fields/GraphandFieldJSON";
 import GraphandFieldNumber from "./lib/fields/GraphandFieldNumber";
 import GraphandFieldRelation from "./lib/fields/GraphandFieldRelation";
 import GraphandFieldScope from "./lib/fields/GraphandFieldScope";
-import GraphandFieldSelect from "./lib/fields/GraphandFieldSelect";
 import GraphandFieldText from "./lib/fields/GraphandFieldText";
 import GraphandError from "./lib/GraphandError";
 import GraphandField from "./lib/GraphandField";
@@ -50,7 +49,6 @@ export {
   GraphandFieldRelation,
   GraphandFieldDate,
   GraphandFieldBoolean,
-  GraphandFieldSelect,
   GraphandFieldJSON,
   GraphandFieldColor,
   Account as GraphandModelAccount,

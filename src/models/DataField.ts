@@ -5,7 +5,6 @@ import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
-import GraphandFieldSelect from "../lib/fields/GraphandFieldSelect";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
@@ -27,9 +26,8 @@ class DataField extends GraphandModel {
       slug: new GraphandFieldText({
         name: "Identifiant",
       }),
-      type: new GraphandFieldSelect({
+      type: new GraphandFieldText({
         name: "Type",
-        type: GraphandFieldText,
         options: [
           { value: "Text", label: "Texte" },
           { value: "Number", label: "Nombre" },

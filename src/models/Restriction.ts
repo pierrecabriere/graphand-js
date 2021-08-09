@@ -1,7 +1,6 @@
 import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
-import GraphandFieldSelect from "../lib/fields/GraphandFieldSelect";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
@@ -21,7 +20,7 @@ class Restriction extends GraphandModel {
       scope: new GraphandFieldScope({
         name: "Scope",
       }),
-      actions: new GraphandFieldSelect({
+      actions: new GraphandFieldText({
         name: "Actions",
         type: GraphandFieldText,
         multiple: true,
@@ -30,9 +29,8 @@ class Restriction extends GraphandModel {
           { value: "update", label: "Modifier" },
         ],
       }),
-      fields: new GraphandFieldSelect({
+      fields: new GraphandFieldText({
         name: "Champs à restreindre",
-        type: GraphandFieldText,
         multiple: true,
         options: model
           ? Object.keys(model.fields).map((slug) => ({

@@ -1,7 +1,7 @@
-import GraphandFieldSelect from "./GraphandFieldSelect";
 import verifyScopeFormat from "../../utils/verifyScopeFormat";
+import GraphandFieldText from "./GraphandFieldText";
 
-class GraphandFieldScope extends GraphandFieldSelect {
+class GraphandFieldScope extends GraphandFieldText {
   options = [];
 
   setter(value) {

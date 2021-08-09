@@ -1,8 +1,8 @@
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldJSON from "./fields/GraphandFieldJSON";
 import GraphandFieldRelation from "./fields/GraphandFieldRelation";
-import GraphandFieldSelect from "./fields/GraphandFieldSelect";
 import GraphandModel from "./GraphandModel";
+import GraphandFieldText from "./fields/GraphandFieldText";
 
 class GraphandHistoryModel extends GraphandModel {
   static _defaultFields = false;
@@ -16,7 +16,7 @@ class GraphandHistoryModel extends GraphandModel {
         name: "Date",
         time: true,
       }),
-      kind: new GraphandFieldSelect({
+      kind: new GraphandFieldText({
         name: "Opération",
         options: [
           { value: "create", label: "Création" },
