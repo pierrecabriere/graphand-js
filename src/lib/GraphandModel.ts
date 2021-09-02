@@ -222,8 +222,8 @@ class GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     let prev = this.clone();
     const observable = new Observable((subscriber) => {
-      constructor._listSubject.subscribe(async () => {
-        const item = await constructor.get(prev._id);
+      constructor._listSubject.subscribe(async (list) => {
+        const item = prev.isTemporary() ? list.find((i) => i._id === prev._id) : await constructor.get(prev._id);
         if (!item || item._version > prev._version || !isEqual(item.raw, prev.raw)) {
           if (item) {
             prev = item.clone();
@@ -1082,7 +1082,7 @@ class GraphandModel {
     }
 
     if (this.isTemporary()) {
-      console.warn("You tried to update a temporary (with no _id) document");
+      console.warn("You tried to update a temporary document");
       return this;
     }
 
