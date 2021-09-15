@@ -30,9 +30,7 @@ const setupAxios = (client: Client) => {
         const { errors } = error.response.data;
         error.graphandErrors = error.graphandErrors || [];
         error.graphandErrors = error.graphandErrors.concat(errors.map((e) => GraphandError.fromJSON(e, error.response.status)));
-      } catch (e) {
-        console.log(error.response);
-      }
+      } catch (e) {}
 
       return Promise.reject(error.graphandErrors || [new GraphandError(error.message)]);
     },

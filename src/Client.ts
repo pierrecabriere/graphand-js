@@ -64,7 +64,14 @@ class Client implements ClientType {
     }
 
     if (this._options.plugins?.length) {
-      this._options.plugins.forEach((plugin) => this.plugin(plugin));
+      this._options.plugins.forEach((plugin) => {
+        if (Array.isArray(plugin)) {
+          const [_plugin, options] = plugin;
+          this.plugin(_plugin, options);
+        } else {
+          this.plugin(plugin);
+        }
+      });
     }
   }
 
@@ -393,8 +400,12 @@ class Client implements ClientType {
     return this.create.apply(this, arguments);
   }
 
-  plugin(plugin: Function, options: any = {}) {
-    plugin(this, options);
+  plugin(_plugin: Function, options: any = {}) {
+    if (typeof _plugin !== "function") {
+      return;
+    }
+
+    _plugin.apply(this, [this, options]);
   }
 
   /* Accessors */
