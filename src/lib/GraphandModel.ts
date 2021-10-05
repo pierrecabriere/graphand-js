@@ -36,6 +36,7 @@ class GraphandModel {
   protected static _initPromise;
   protected static _listSubject;
   protected static _defaultFields = true;
+  protected static _socketOptions;
 
   // private fields
   private _data: any = {};
@@ -453,6 +454,13 @@ class GraphandModel {
         return;
       }
 
+      if (typeof this._socketOptions?.handleSocketTrigger === "function") {
+        const res = await this._socketOptions.handleSocketTrigger({ action, payload });
+        if (res === false) {
+          return;
+        }
+      }
+
       this._socketTriggerSubject.next({ action, payload });
 
       setTimeout(() => {
@@ -482,7 +490,10 @@ class GraphandModel {
     this._client.registerHook({ model: this, action: event, trigger, _await: options.await, ...options });
   }
 
-  static sync(force = false) {
+  static sync(opts: any = {}) {
+    let force = typeof opts === "boolean" ? opts : opts.force ?? false;
+    this._socketOptions = opts;
+
     if (force || (this._client && !this._socketSubscription)) {
       this.setupSocket();
       this._socketSubscription = this._client._socketSubject.subscribe((socket) => this.setupSocket(socket));
