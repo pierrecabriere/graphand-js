@@ -48,6 +48,8 @@ class GraphandModel {
   _id: string;
   createdAt: Date;
   updatedAt: Date;
+  createdBy: Account;
+  updatedBy: Account;
 
   static universalPrototypeMethods = [];
 

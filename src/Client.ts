@@ -202,7 +202,6 @@ class Client implements ClientType {
     if (Model._registeredAt) {
       if (Model._client === this) {
         if (!options.force) {
-          console.error(`You tried to register a Model already registered on the same client. Use force option to prevent overriding`, _name);
           return Model;
         }
       } else {
