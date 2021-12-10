@@ -37,6 +37,7 @@ class Client implements ClientType {
   _socketSubject;
   _mediasQueueSubject;
   _initialized;
+  _socket;
 
   constructor(project: string | ClientOptions, options: ClientOptions = {}) {
     options = project && typeof project === "object" ? { ...project, ...options } : options;
@@ -89,8 +90,6 @@ class Client implements ClientType {
 
   static lib = lib;
 
-  private _socket;
-
   get socket() {
     return this._socket;
   }
@@ -131,12 +130,14 @@ class Client implements ClientType {
           //   this._project = null;
           // }
 
-          if (this._options.initModels) {
-            const dataModels = await this.getModel("DataModel").getList({});
-            const scopes = ["Account", "Media"].concat(dataModels.map((m) => `Data:${m.slug}`));
-            await this.registerModels(this._options.models.concat(scopes), { extend: true });
-          } else {
-            await this.registerModels(this._options.models, { extend: true });
+          if (this._options.project) {
+            if (this._options.initModels) {
+              const dataModels = await this.getModel("DataModel").getList({});
+              const scopes = ["Account", "Media"].concat(dataModels.map((m) => `Data:${m.slug}`));
+              await this.registerModels(this._options.models.concat(scopes), { extend: true });
+            } else {
+              await this.registerModels(this._options.models, { extend: true });
+            }
           }
 
           resolve(true);
@@ -167,12 +168,15 @@ class Client implements ClientType {
 
   getModelByIdentifier(identifier: string, options: any = {}) {
     const scope = `Data:${identifier}`;
+
     if (!this._models[scope]) {
       let model = this._options.models.find((m: any) => m.scope === scope);
       if (model) {
         options.extend = options.extend ?? true;
       } else {
-        model = class extends Data {};
+        const DataConstructor = this._options.models.find((m: any) => m.scope === "Data") || Data;
+        model = class extends DataConstructor {};
+        model._registeredAt = null;
         model.apiIdentifier = identifier;
       }
 
@@ -187,10 +191,16 @@ class Client implements ClientType {
       return;
     }
 
-    Model = typeof Model === "string" ? this.getModel(Model) : Model;
+    if (typeof Model === "string") {
+      Model = this.getModel(Model);
+    }
 
     if (!Model || !Model.scope) {
       throw new Error(`You tried to register a Model without scope`);
+    }
+
+    if (Model.abstract) {
+      return;
     }
 
     options = Object.assign({}, { sync: undefined, name: undefined, force: false, fieldsIds: undefined, extend: false }, options);
@@ -242,7 +252,9 @@ class Client implements ClientType {
       }
 
       this._models[_name].init();
-    } catch (e) {}
+    } catch (e) {
+      console.error(e);
+    }
 
     return this._models[_name];
   }

@@ -16,6 +16,7 @@ class DataField extends GraphandModel {
   name;
   slug;
   type;
+  exclude;
   configuration;
 
   static get baseFields() {
@@ -46,28 +47,29 @@ class DataField extends GraphandModel {
 
   toGraphandField() {
     const { constructor } = Object.getPrototypeOf(this);
-    const { name, type, configuration } = this;
+    const { name, type, exclude, configuration } = this;
     switch (type) {
       case "Text":
       default:
-        return new GraphandFieldText({ ...configuration, name, type });
+        return new GraphandFieldText({ ...configuration, exclude, name, type });
       case "Relation":
         return new GraphandFieldRelation({
           ...configuration,
+          exclude,
           name,
           model: constructor._client.getModel(configuration.ref),
           query: configuration.initialQuery,
         });
       case "Date":
-        return new GraphandFieldDate({ ...configuration, name });
+        return new GraphandFieldDate({ ...configuration, exclude, name });
       case "Boolean":
-        return new GraphandFieldBoolean({ ...configuration, name });
+        return new GraphandFieldBoolean({ ...configuration, exclude, name });
       case "Number":
-        return new GraphandFieldNumber({ ...configuration, name });
+        return new GraphandFieldNumber({ ...configuration, exclude, name });
       case "Color":
-        return new GraphandFieldColor({ ...configuration, name });
+        return new GraphandFieldColor({ ...configuration, exclude, name });
       case "JSON":
-        return new GraphandFieldJSON({ ...configuration, name });
+        return new GraphandFieldJSON({ ...configuration, exclude, name });
     }
   }
 }

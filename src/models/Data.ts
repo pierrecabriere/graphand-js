@@ -5,11 +5,11 @@ class Data extends GraphandModel {
   static apiIdentifier;
 
   static get scope() {
-    return `Data:${this.apiIdentifier}`;
+    return this.apiIdentifier ? `Data:${this.apiIdentifier}` : "Data";
   }
 
   static get baseUrl() {
-    return `/data/${this.apiIdentifier}`;
+    return this.apiIdentifier ? `/data/${this.apiIdentifier}` : null;
   }
 }
 

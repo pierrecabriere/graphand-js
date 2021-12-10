@@ -287,7 +287,7 @@ class GraphandModel {
     Object.defineProperties(assignTo, properties);
   }
 
-  static get(query, fetch = true, cache = true, ...fetchParams) {
+  static get(query, fetch = true, cache = true) {
     if (!query) {
       return new GraphandModelPromise(async (resolve, reject) => {
         try {
@@ -317,7 +317,7 @@ class GraphandModel {
           let res;
           try {
             await this.init();
-            res = await this.fetch(query, cache, ...fetchParams);
+            res = await this.fetch(query, { cache });
             const data = res.data.data && ((res.data.data.rows && res.data.data.rows[0]) || res.data.data);
             if (!cache) {
               resolve(data && this.hydrate(data));
@@ -649,7 +649,7 @@ class GraphandModel {
     return false;
   }
 
-  static getList(query?: any, ...args) {
+  static getList(query?: any) {
     if (!query) {
       const list = this._listSubject.getValue().filter(Boolean);
       return new GraphandModelList({ model: this }, ...list);
@@ -658,10 +658,18 @@ class GraphandModel {
     return this.query.apply(this, arguments);
   }
 
-  static query(query: any, fetch = true, cache = true, ...fetchParams): GraphandModelList | GraphandModelListPromise {
+  static query(
+    query: any,
+    opts: { fetch: boolean; cache: boolean; syncSocket: boolean } | boolean = true,
+  ): GraphandModelList | GraphandModelListPromise {
     if (Array.isArray(query)) {
       query = { ids: query };
     }
+
+    const defaultOptions = { fetch: true, cache: true, syncSocket: this._client._options.realtime && this._socketSubscription };
+    opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { fetch: opts });
+
+    const { fetch, cache, syncSocket } = opts;
 
     let list;
 
@@ -683,25 +691,22 @@ class GraphandModel {
     }
 
     if (!list && fetch) {
-      const _this = this;
       return new GraphandModelListPromise(
         async (resolve) => {
           try {
             await this.init();
-            const {
-              data: {
-                data: { rows, count },
-              },
-            } = await _this.fetch(query, cache, ...fetchParams);
-            const storeList = _this._listSubject.getValue();
-            const list = rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
-            return resolve(new GraphandModelList({ model: _this, count, query }, ...list));
+            const { data } = await this.fetch(query, { cache, sync: syncSocket });
+            const storeList = this._listSubject.getValue();
+            const list = data.data.rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
+            const graphandList = new GraphandModelList({ model: this, count: data.data.count, query, socketPath: data.data.socketPath }, ...list);
+
+            return resolve(graphandList);
           } catch (e) {
             console.error(e);
-            return resolve(new GraphandModelList({ model: _this, query }));
+            return resolve(new GraphandModelList({ model: this, query }));
           }
         },
-        _this,
+        this,
         query,
       );
     }
@@ -777,6 +782,58 @@ class GraphandModel {
     return ret;
   }
 
+  static _handleRequestResult(data, query) {
+    const _processPopulate = (item) => {
+      const populatedPaths = this.getPopulatedPaths(query.populate);
+      if (populatedPaths?.length) {
+        const fields = this.getFields(item);
+        for (const path of populatedPaths) {
+          const field = fields[path];
+          if (!field || !(field instanceof GraphandFieldRelation)) {
+            continue;
+          }
+
+          const populatedData = _.get(item, path);
+          if (!populatedData) {
+            continue;
+          }
+
+          let value;
+          if (field.multiple && Array.isArray(populatedData)) {
+            const _items = populatedData.map((populatedItem) => new field.model(populatedItem));
+            field.model.upsertStore(_items);
+            value = populatedData.map((i) => i && i._id).filter(Boolean);
+          } else {
+            const _item = new field.model(populatedData);
+            field.model.upsertStore(_item);
+            value = _item._id;
+          }
+
+          _.set(item, path, value);
+        }
+      }
+    };
+
+    if (data?.rows) {
+      data.rows = data.rows.map((item) => {
+        _processPopulate(item);
+        return new this(item);
+      });
+
+      let rows = data.rows || [data];
+      rows = rows.map((item) => (item?._id && this.get(item._id, false)) || new this(item));
+
+      this.upsertStore(rows);
+      return rows;
+    } else if (data && typeof data === "object") {
+      _processPopulate(data);
+
+      const item = this.get(data._id, false) || new this(data);
+      this.upsertStore(item);
+      return [item];
+    }
+  }
+
   static async _request(query, hooks, cacheKey?) {
     let res;
 
@@ -795,53 +852,7 @@ class GraphandModel {
         res = await this._client._axios.post(url, query);
         const { data } = res;
 
-        const _processPopulate = (item) => {
-          const populatedPaths = this.getPopulatedPaths(query.populate);
-          if (populatedPaths?.length) {
-            const fields = this.getFields(item);
-            for (const path of populatedPaths) {
-              const field = fields[path];
-              if (!field || !(field instanceof GraphandFieldRelation)) {
-                continue;
-              }
-
-              const populatedData = _.get(item, path);
-              if (!populatedData) {
-                continue;
-              }
-
-              let value;
-              if (field.multiple && Array.isArray(populatedData)) {
-                const _items = populatedData.map((populatedItem) => new field.model(populatedItem));
-                field.model.upsertStore(_items);
-                value = populatedData.map((i) => i && i._id).filter(Boolean);
-              } else {
-                const _item = new field.model(populatedData);
-                field.model.upsertStore(_item);
-                value = _item._id;
-              }
-
-              _.set(item, path, value);
-            }
-          }
-        };
-
-        if (data?.data?.rows) {
-          data.data.rows = data.data.rows.map((item) => {
-            _processPopulate(item);
-            return new this(item);
-          });
-
-          let rows = data.data.rows || [data.data];
-          rows = rows.map((item) => (item?._id && this.get(item._id, false)) || item);
-
-          this.upsertStore(rows);
-        } else if (data.data && typeof data.data === "object") {
-          _processPopulate(data.data);
-
-          const item = this.get(data.data._id, false) || new this(data.data);
-          this.upsertStore(item);
-        }
+        this._handleRequestResult(data.data, query);
       }
     } catch (e) {
       delete this._cache[cacheKey];
@@ -865,7 +876,7 @@ class GraphandModel {
     return res;
   }
 
-  static async fetch(query: any, cache = true, callback?: Function, hooks = true) {
+  static async fetch(query: any, opts: boolean | any = true) {
     if (Array.isArray(query)) {
       query = { ids: query };
     } else if (typeof query === "string") {
@@ -875,6 +886,16 @@ class GraphandModel {
     } else {
       query = encodeQuery(query);
     }
+
+    const defaultOptions = {
+      cache: true,
+      callback: undefined,
+      hooks: true,
+      sync: false,
+    };
+
+    opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { cache: opts });
+    const { cache, callback, hooks, sync } = opts;
 
     // if (this.translatable && !query.translations && this._client._project?.locales?.length) {
     //   query.translations = this._client._project?.locales;
@@ -887,6 +908,10 @@ class GraphandModel {
       Object.keys(query.query._id).length === 1
     ) {
       query.ids = query.query._id.$in;
+    }
+
+    if (sync && this._client._socket) {
+      query.socket = this._client._socket.id;
     }
 
     if (hooks) {
@@ -1028,7 +1053,7 @@ class GraphandModel {
       const { data } = await this.handleUpdateCall(payload);
 
       if (!data) {
-        return;
+        return data;
       }
 
       const items = data.data.rows.map((item) => new this(item));
@@ -1046,6 +1071,8 @@ class GraphandModel {
       if (options.hooks) {
         await this.afterUpdate?.call(this, items, null, payload);
       }
+
+      return items;
     } catch (e) {
       if (options.hooks) {
         await this.afterUpdate?.call(this, null, e, payload);

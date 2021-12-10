@@ -7,8 +7,12 @@ class GraphandModelList extends Array implements Array<any> {
   _model;
   count;
   _query;
+  _observable;
+  _socketSub;
+  _storeSub;
+  _socketPath;
 
-  constructor({ model, count, query }: { model?; count?; query? }, ...elements) {
+  constructor({ model, count, query, socketPath }: { model?; count?; query?; socketPath? }, ...elements) {
     if (!elements?.length) {
       elements = [];
     }
@@ -27,6 +31,10 @@ class GraphandModelList extends Array implements Array<any> {
     Object.defineProperty(this, "_model", { enumerable: false });
     Object.defineProperty(this, "count", { enumerable: false });
     Object.defineProperty(this, "_query", { enumerable: false });
+
+    if (socketPath) {
+      this.syncSocket(socketPath);
+    }
   }
 
   get ids() {
@@ -64,24 +72,55 @@ class GraphandModelList extends Array implements Array<any> {
 
   async reload() {
     const list = await this.model.getList(this.query);
-    if (this.length > list.length) {
-      this.splice(list.length, this.length - list.length);
-    }
-    Object.assign(this, list);
+    this.splice(0, this.length, ...list);
     this.count = list.count;
     return list;
   }
 
-  subscribe(...args) {
-    if (!this.model) {
+  syncSocket(socketPath?) {
+    if (this._observable) {
       return;
     }
 
-    const _this = this;
-    const observable = new Observable((subscriber) => {
-      let prevSerial = _this.map((item) => JSON.stringify(item.serialize?.apply(item)));
-      _this.model._listSubject.subscribe(async (_list) => {
-        const list = await _this.model.getList(_this.query);
+    this._observable = new Observable((subscriber) => {
+      const _registerSocket = (_socket, _path?) => {
+        if (!_path) {
+          return this.model
+            .fetch(this.query, { cache: false, sync: true })
+            .then(({ data }) => _registerSocket(_socket, data.data.socketPath))
+            .catch((e) => console.error(e));
+        }
+
+        this._socketPath = _path;
+        return _socket.on(_path, (data) => {
+          const list = this.model._handleRequestResult(data, this.query);
+          this.splice(0, this.length, ...list);
+          this.count = data.count || 0;
+
+          subscriber.next(this);
+        });
+      };
+
+      this._socketSub = this.model._client._socketSubject.subscribe((_socket) => _registerSocket(_socket, !this._socketPath && socketPath));
+
+      if (this.model._client._socket) {
+        _registerSocket(this.model._client._socket, socketPath);
+      }
+
+      this.model._client.connectSocket();
+    });
+  }
+
+  syncStore() {
+    if (this._observable) {
+      return;
+    }
+
+    this._socketPath = false;
+    this._observable = new Observable((subscriber) => {
+      let prevSerial = this.map((item) => JSON.stringify(item.serialize?.apply(item)));
+      this._storeSub = this.model._listSubject.subscribe(async (_list) => {
+        const list = await this.model.getList(this.query, { syncSocket: false });
         const serial = list.map((item) => JSON.stringify(item.serialize?.apply(item)));
         if (prevSerial.length !== serial.length || !isEqual(serial, prevSerial)) {
           prevSerial = serial;
@@ -89,8 +128,30 @@ class GraphandModelList extends Array implements Array<any> {
         }
       });
     });
+  }
 
-    return observable.subscribe.apply(observable, args);
+  subscribe(opts?) {
+    const defaultOptions = { syncSocket: false };
+    opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : {});
+
+    if (!this._observable) {
+      opts.syncSocket ? this.syncSocket() : this.syncStore();
+    }
+
+    const sub = this._observable.subscribe.apply(this._observable, arguments);
+    const unsubscribe = sub.unsubscribe;
+    sub.unsubscribe = function () {
+      unsubscribe();
+      this.unsync();
+    };
+  }
+
+  unsync() {
+    this._storeSub?.unsubscribe();
+    this._socketSub?.unsubscribe();
+    this.model._client._socket?.off(this._socketPath);
+    this._socketPath = false;
+    delete this._observable;
   }
 
   encodeQuery() {

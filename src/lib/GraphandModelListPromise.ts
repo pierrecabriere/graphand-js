@@ -75,20 +75,6 @@ class GraphandModelListPromise extends GraphandModelPromise {
       return;
     }
 
-    const _this = this;
-    const observable = new Observable((subscriber) => {
-      let prevRaw = null;
-      _this.model._listSubject.subscribe(async () => {
-        const query = _this.query || { ids: _this.ids };
-        const list = await _this.model.getList(query);
-        const raw = list.map((item) => item?.raw);
-        if (!isEqual(raw, prevRaw)) {
-          prevRaw = raw;
-          subscriber.next(list);
-        }
-      });
-    });
-    this._subscription = observable.subscribe.apply(observable, arguments);
     return this.then((res) => {
       this._subscription.unsubscribe();
       return res?.subscribe?.apply(res, arguments);

@@ -3,6 +3,7 @@ import GraphandModel from "./GraphandModel";
 class GraphandField {
   name;
   defaultValue;
+  exclude;
   configuration;
 
   constructor(data?: any) {
