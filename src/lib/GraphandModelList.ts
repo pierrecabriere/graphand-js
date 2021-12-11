@@ -98,7 +98,7 @@ class GraphandModelList extends Array implements Array<any> {
         return _socket.on(_path, (data) => {
           const list = this.model._handleRequestResult(data, this.query);
           const cacheKey = this.model.getCacheKey(this.query);
-          if (this.model._cache[cacheKey].previous?.data) {
+          if (this.model._cache && this.model._cache[cacheKey]?.previous?.data) {
             this.model._cache[cacheKey].previous.data.data = data;
           }
           prevSerial = list.map((item) => JSON.stringify(item.serialize?.apply(item)));
@@ -128,7 +128,7 @@ class GraphandModelList extends Array implements Array<any> {
 
             subscriber.next(list);
           }
-        }, 100);
+        }, 500);
       });
 
       if (this.model._client._socket) {
