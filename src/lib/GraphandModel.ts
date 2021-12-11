@@ -515,8 +515,8 @@ class GraphandModel {
     return this.reinitStore();
   }
 
-  static getCacheKey({ select, populate, sort, pageSize, page, translations, query, ids }) {
-    return this.scope + JSON.stringify([select, populate, sort, pageSize, page, translations, query, ids]);
+  static getCacheKey({ select, populate, sort, pageSize, page, translations, query, ids, count }) {
+    return this.scope + JSON.stringify([select, populate, sort, pageSize, page, translations, query, ids, count]);
   }
 
   static clearCache(query?, clean = false) {

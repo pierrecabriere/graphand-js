@@ -2,7 +2,8 @@ import io from "socket.io-client";
 import Client from "../Client";
 
 const setupSocket = (client: Client) => {
-  const socket = io.connect(`${client._options.ssl ? "https" : "http"}://${client._options.host}`, {
+  const endpoint = `${client._options.ssl ? "https" : "http"}://${client._options.host}`;
+  const socket = io.connect(endpoint, {
     query: { token: client.accessToken, projectId: client._options.project },
   });
 

@@ -83,6 +83,9 @@ class GraphandModelList extends Array implements Array<any> {
     }
 
     this._observable = new Observable((subscriber) => {
+      let prevSerial = this.toArray().map((item) => JSON.stringify(item.serialize?.apply(item)));
+      let storeTimeout;
+
       const _registerSocket = (_socket, _path?) => {
         if (!_path) {
           return this.model
@@ -94,6 +97,12 @@ class GraphandModelList extends Array implements Array<any> {
         this._socketPath = _path;
         return _socket.on(_path, (data) => {
           const list = this.model._handleRequestResult(data, this.query);
+          const cacheKey = this.model.getCacheKey(this.query);
+          if (this.model._cache[cacheKey].previous?.data) {
+            this.model._cache[cacheKey].previous.data.data = data;
+          }
+          prevSerial = list.map((item) => JSON.stringify(item.serialize?.apply(item)));
+
           this.splice(0, this.length, ...list);
           this.count = data.count || 0;
 
@@ -102,6 +111,21 @@ class GraphandModelList extends Array implements Array<any> {
       };
 
       this._socketSub = this.model._client._socketSubject.subscribe((_socket) => _registerSocket(_socket, !this._socketPath && socketPath));
+
+      this._storeSub = this.model._listSubject.subscribe(async (_list) => {
+        if (storeTimeout) {
+          clearTimeout(storeTimeout);
+        }
+
+        storeTimeout = setTimeout(async () => {
+          const list = (await this.model.getList(this.query, { syncSocket: false })).toArray();
+          const serial = list.map((item) => JSON.stringify(item.serialize?.apply(item)));
+          if (prevSerial.length !== serial.length || !isEqual(serial, prevSerial)) {
+            prevSerial = serial;
+            subscriber.next(list);
+          }
+        }, 100);
+      });
 
       if (this.model._client._socket) {
         _registerSocket(this.model._client._socket, socketPath);
@@ -141,7 +165,7 @@ class GraphandModelList extends Array implements Array<any> {
     const sub = this._observable.subscribe.apply(this._observable, arguments);
     const unsubscribe = sub.unsubscribe;
     sub.unsubscribe = function () {
-      unsubscribe();
+      unsubscribe.apply(sub);
       this.unsync();
     };
   }
