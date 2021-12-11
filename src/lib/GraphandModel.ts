@@ -666,7 +666,8 @@ class GraphandModel {
       query = { ids: query };
     }
 
-    const defaultOptions = { fetch: true, cache: true, syncSocket: this._client._options.realtime && this._socketSubscription };
+    // const defaultOptions = { fetch: true, cache: true, syncSocket: this._client._options.realtime && this._socketSubscription };
+    const defaultOptions = { fetch: true, cache: true, syncSocket: false };
     opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { fetch: opts });
 
     const { fetch, cache, syncSocket } = opts;
