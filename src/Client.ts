@@ -24,6 +24,7 @@ const defaultOptions = {
   models: [],
   cache: true,
   plugins: [],
+  socketOptions: {},
 };
 
 class Client implements ClientType {

@@ -121,7 +121,13 @@ class GraphandModelList extends Array implements Array<any> {
         });
       };
 
-      this._socketSub = this.model._client._socketSubject.subscribe((_socket) => _registerSocket(_socket, !this._socketPath && socketPath));
+      this._socketSub = this.model._client._socketSubject.subscribe((_socket) => {
+        if (_socket) {
+          _registerSocket(_socket, !this._socketPath && socketPath);
+        } else {
+          this.unsync();
+        }
+      });
 
       this._storeSub = this.model._listSubject.subscribe(async (_list) => {
         const newList =
