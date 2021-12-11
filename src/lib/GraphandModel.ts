@@ -824,13 +824,11 @@ class GraphandModel {
       rows = rows.map((item) => (item?._id && this.get(item._id, false)) || new this(item));
 
       this.upsertStore(rows);
-      return rows;
     } else if (data && typeof data === "object") {
       _processPopulate(data);
 
       const item = this.get(data._id, false) || new this(data);
       this.upsertStore(item);
-      return [item];
     }
   }
 

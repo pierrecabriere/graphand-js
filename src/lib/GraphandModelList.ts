@@ -83,15 +83,18 @@ class GraphandModelList extends Array implements Array<any> {
     }
 
     this._observable = new Observable((subscriber) => {
-      let storeTimeout;
+      let prevSerial = this.toArray().map((item) => JSON.stringify(item.serialize?.apply(item)));
 
       const _registerSocket = (_socket, _path?) => {
         if (!_path) {
           return this.model
             .fetch(this.query, { cache: false, sync: true })
             .then(({ data }) => {
-              const list = this.model._handleRequestResult(data, this.query);
+              this.model._handleRequestResult(data.data, this.query);
+              const storeList = this.model._listSubject.getValue();
+              const list = data.data.rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
 
+              prevSerial = list.map((item) => JSON.stringify(item.serialize?.apply(item)));
               this.splice(0, this.length, ...list);
               this.count = data.count;
 
@@ -102,12 +105,15 @@ class GraphandModelList extends Array implements Array<any> {
 
         this._socketPath = _path;
         return _socket.on(_path, (data) => {
-          const list = this.model._handleRequestResult(data, this.query);
+          this.model._handleRequestResult(data, this.query);
+          const storeList = this.model._listSubject.getValue();
+          const list = data.rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
           const cacheKey = this.model.getCacheKey(this.query);
           if (this.model._cache && this.model._cache[cacheKey]?.previous?.data) {
             this.model._cache[cacheKey].previous.data.data = data;
           }
 
+          prevSerial = list.map((item) => JSON.stringify(item.serialize?.apply(item)));
           this.splice(0, this.length, ...list);
           this.count = data.count;
 
@@ -116,6 +122,19 @@ class GraphandModelList extends Array implements Array<any> {
       };
 
       this._socketSub = this.model._client._socketSubject.subscribe((_socket) => _registerSocket(_socket, !this._socketPath && socketPath));
+
+      this._storeSub = this.model._listSubject.subscribe(async (_list) => {
+        const newList =
+          this.toArray()
+            .map((row) => _list.find((item) => item._id === row._id))
+            .filter((r) => r) || [];
+
+        if (newList.length !== this.length || !isEqual(this.toArray(), newList)) {
+          console.log("ok");
+          this.splice(0, this.length, ...newList);
+          subscriber.next(this);
+        }
+      });
 
       if (this.model._client._socket) {
         _registerSocket(this.model._client._socket, socketPath);
@@ -132,13 +151,18 @@ class GraphandModelList extends Array implements Array<any> {
 
     this._socketPath = false;
     this._observable = new Observable((subscriber) => {
-      let prevSerial = this.map((item) => JSON.stringify(item.serialize?.apply(item)));
-      this._storeSub = this.model._listSubject.subscribe(async (_list) => {
+      let prevSerial = this.toArray().map((item) => JSON.stringify(item.serialize?.apply(item)));
+      this._storeSub = this.model._listSubject.subscribe(async () => {
         const list = await this.model.getList(this.query, { syncSocket: false });
-        const serial = list.map((item) => JSON.stringify(item.serialize?.apply(item)));
+        const listArray = list.toArray();
+        const serial = listArray.map((item) => JSON.stringify(item.serialize?.apply(item)));
         if (prevSerial.length !== serial.length || !isEqual(serial, prevSerial)) {
           prevSerial = serial;
-          subscriber.next(list);
+
+          this.splice(0, this.length, ...listArray);
+          this.count = list.count;
+
+          subscriber.next(this);
         }
       });
     });
