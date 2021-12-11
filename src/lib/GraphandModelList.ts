@@ -117,12 +117,6 @@ class GraphandModelList extends Array implements Array<any> {
 
       this._socketSub = this.model._client._socketSubject.subscribe((_socket) => _registerSocket(_socket, !this._socketPath && socketPath));
 
-      this._storeSub = this.model._listSubject.subscribe(async (_list) => {
-        if (storeTimeout) {
-          clearTimeout(storeTimeout);
-        }
-      });
-
       if (this.model._client._socket) {
         _registerSocket(this.model._client._socket, socketPath);
       }
