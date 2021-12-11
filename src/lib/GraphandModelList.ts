@@ -130,7 +130,6 @@ class GraphandModelList extends Array implements Array<any> {
             .filter((r) => r) || [];
 
         if (newList.length !== this.length || !isEqual(this.toArray(), newList)) {
-          console.log("ok");
           this.splice(0, this.length, ...newList);
           subscriber.next(this);
         }
