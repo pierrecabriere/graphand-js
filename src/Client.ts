@@ -212,6 +212,7 @@ class Client implements ClientType {
     if (Model._registeredAt) {
       if (Model._client === this) {
         if (!options.force) {
+          Model._fieldsIds = options.fieldsIds;
           return Model;
         }
       } else {
@@ -246,11 +247,11 @@ class Client implements ClientType {
       if (options.sync) {
         this._models[_name].sync();
       }
+    } catch (e) {
+      console.error(e);
+    }
 
-      if (options.fieldsIds) {
-        this._models[_name]._fieldsIds = options.fieldsIds;
-      }
-
+    try {
       this._models[_name].init();
     } catch (e) {
       console.error(e);
@@ -261,7 +262,7 @@ class Client implements ClientType {
 
   async registerModels(modelsList, options: any = {}) {
     const scopes = modelsList.map((model) => (typeof model === "string" ? model : model.scope));
-    const fields = await this.getModel("DataField").getList({ query: { scope: { $in: scopes } } });
+    const fields = (await this.getModel("DataField").getList({ query: { scope: { $in: scopes } }, pageSize: 1000 })).toArray();
     await Promise.all(
       modelsList.map(async (model) => {
         const scope = typeof model === "string" ? model : model.scope;
