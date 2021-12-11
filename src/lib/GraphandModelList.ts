@@ -83,14 +83,20 @@ class GraphandModelList extends Array implements Array<any> {
     }
 
     this._observable = new Observable((subscriber) => {
-      let prevSerial = this.toArray().map((item) => JSON.stringify(item.serialize?.apply(item)));
       let storeTimeout;
 
       const _registerSocket = (_socket, _path?) => {
         if (!_path) {
           return this.model
             .fetch(this.query, { cache: false, sync: true })
-            .then(({ data }) => _registerSocket(_socket, data.data.socketPath))
+            .then(({ data }) => {
+              const list = this.model._handleRequestResult(data, this.query);
+
+              this.splice(0, this.length, ...list);
+              this.count = data.count;
+
+              _registerSocket(_socket, data.data.socketPath);
+            })
             .catch((e) => console.error(e));
         }
 
@@ -101,7 +107,6 @@ class GraphandModelList extends Array implements Array<any> {
           if (this.model._cache && this.model._cache[cacheKey]?.previous?.data) {
             this.model._cache[cacheKey].previous.data.data = data;
           }
-          prevSerial = list.map((item) => JSON.stringify(item.serialize?.apply(item)));
 
           this.splice(0, this.length, ...list);
           this.count = data.count;
@@ -116,19 +121,6 @@ class GraphandModelList extends Array implements Array<any> {
         if (storeTimeout) {
           clearTimeout(storeTimeout);
         }
-
-        storeTimeout = setTimeout(async () => {
-          const list = await this.model.getList(this.query, { syncSocket: false });
-          const serial = list.toArray().map((item) => JSON.stringify(item.serialize?.apply(item)));
-          if (prevSerial.length !== serial.length || !isEqual(serial, prevSerial)) {
-            prevSerial = serial;
-
-            this.splice(0, this.length, ...list);
-            this.count = list.count;
-
-            subscriber.next(list);
-          }
-        }, 500);
       });
 
       if (this.model._client._socket) {
