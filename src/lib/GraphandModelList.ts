@@ -104,7 +104,7 @@ class GraphandModelList extends Array implements Array<any> {
           prevSerial = list.map((item) => JSON.stringify(item.serialize?.apply(item)));
 
           this.splice(0, this.length, ...list);
-          this.count = data.count || 0;
+          this.count = data.count;
 
           subscriber.next(this);
         });
@@ -118,10 +118,14 @@ class GraphandModelList extends Array implements Array<any> {
         }
 
         storeTimeout = setTimeout(async () => {
-          const list = (await this.model.getList(this.query, { syncSocket: false })).toArray();
-          const serial = list.map((item) => JSON.stringify(item.serialize?.apply(item)));
+          const list = await this.model.getList(this.query, { syncSocket: false });
+          const serial = list.toArray().map((item) => JSON.stringify(item.serialize?.apply(item)));
           if (prevSerial.length !== serial.length || !isEqual(serial, prevSerial)) {
             prevSerial = serial;
+
+            this.splice(0, this.length, ...list);
+            this.count = list.count;
+
             subscriber.next(list);
           }
         }, 100);
