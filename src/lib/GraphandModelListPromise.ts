@@ -1,12 +1,8 @@
-import isEqual from "fast-deep-equal";
-import { Observable } from "rxjs";
 import GraphandModel from "./GraphandModel";
 import GraphandModelList from "./GraphandModelList";
 import GraphandModelPromise from "./GraphandModelPromise";
 
 class GraphandModelListPromise extends GraphandModelPromise {
-  private _subscription;
-
   constructor(executor, model, query) {
     super(executor, model, query);
 
@@ -75,10 +71,7 @@ class GraphandModelListPromise extends GraphandModelPromise {
       return;
     }
 
-    return this.then((res) => {
-      this._subscription.unsubscribe();
-      return res?.subscribe?.apply(res, arguments);
-    });
+    return this.then((res) => res?.subscribe?.apply(res, arguments));
   }
 }
 
