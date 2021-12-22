@@ -27,9 +27,8 @@ class GraphandModel {
   protected static _fieldsIds = null;
   protected static _dataFields = {};
   protected static _cache;
-  protected static _fieldsSubscription = null;
   protected static _initialized = false;
-  protected static _fieldsObserver;
+  protected static _fieldsList = null;
   protected static _registeredAt;
   protected static _observers;
   protected static _socketTriggerSubject;
@@ -109,9 +108,9 @@ class GraphandModel {
     Object.defineProperty(this, "_version", { enumerable: false });
     Object.defineProperty(this, "_fields", { enumerable: false });
 
-    // if (constructor.queryFields && constructor._client._options.subscribeFields) {
-    //   constructor.init().then(() => constructor.fieldsObserver?.list.subscribe(() => constructor.setPrototypeFields(this)));
-    // }
+    if (constructor.queryFields && constructor._client._options.subscribeFields) {
+      constructor.init().then(() => constructor.fieldsList.subscribe(() => constructor.setPrototypeFields(this)));
+    }
 
     constructor.setPrototypeFields(this, this._fields);
   }
@@ -235,6 +234,7 @@ class GraphandModel {
         }
       });
     });
+
     return observable.subscribe.apply(observable, arguments);
   }
 
@@ -246,17 +246,18 @@ class GraphandModel {
     return this._data;
   }
 
-  static get fieldsObserver() {
+  static get fieldsList() {
     if (!this.queryFields) {
       return;
     }
 
-    if (!this._fieldsObserver && this._client._options.project) {
-      const query = this._fieldsIds ? { ids: this._fieldsIds } : { query: { scope: this.scope } };
-      this._fieldsObserver = this._client.getModel("DataField").observe(query);
+    const DataField = this._client.getModel("DataField");
+
+    if (!this._fieldsList) {
+      this._fieldsList = DataField.getList({ query: { scope: this.scope }, count: true }, { syncSocket: !!this._socketSubscription });
     }
 
-    return this._fieldsObserver;
+    return this._fieldsList;
   }
 
   static setPrototypeFields(assignTo?: any, fields?: any) {
@@ -402,17 +403,16 @@ class GraphandModel {
           if (this.queryFields) {
             await this._client.init();
 
-            // if (!this._fieldsSubscription && this._client._options.subscribeFields) {
-            //   this._fieldsSubscription = this.fieldsObserver?.list.subscribe(async (list) => {
-            //     const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
-            //     const fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
-            //     if (!isEqual(this._fields, fields)) {
-            //       this._fields = fields;
-            //       this.setPrototypeFields();
-            //       // this.fieldsObserver.list.next(list);
-            //     }
-            //   });
-            // }
+            if (this._client._options.subscribeFields) {
+              this.fieldsList.subscribe(async (list) => {
+                const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
+                const fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
+                if (!isEqual(this._dataFields, fields)) {
+                  this._dataFields = fields;
+                  this.setPrototypeFields();
+                }
+              });
+            }
 
             if (this._client._options.project) {
               await this.setDataFields();
@@ -433,10 +433,10 @@ class GraphandModel {
     return this._initPromise;
   }
 
-  static async setDataFields(fields?: any) {
-    fields = fields ?? (await this.getDataFields());
-    const graphandFields = fields.map((field) => field.toGraphandField());
-    this._dataFields = fields.reduce((final, field, index) => Object.assign(final, { [field.slug]: graphandFields[index] }), {});
+  static async setDataFields(dataFields?: any) {
+    dataFields = dataFields ?? (await this.getDataFields());
+    const graphandFields = dataFields.map((field) => field.toGraphandField());
+    this._dataFields = dataFields.reduce((final, field, index) => Object.assign(final, { [field.slug]: graphandFields[index] }), {});
   }
 
   static async getDataFields() {
@@ -666,7 +666,7 @@ class GraphandModel {
       query = { ids: query };
     }
 
-    // const defaultOptions = { fetch: true, cache: true, syncSocket: this._client._options.realtime && this._socketSubscription };
+    // const defaultOptions = { fetch: true, cache: true, syncSocket: !!this._socketSubscription };
     const defaultOptions = { fetch: true, cache: true, syncSocket: false };
     opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { fetch: opts });
 

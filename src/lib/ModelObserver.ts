@@ -12,9 +12,9 @@ class ModelObserver {
   translations: Function;
   query: Function;
 
-  list = new BehaviorSubject([]);
-  loading = new BehaviorSubject(false);
-  count = new BehaviorSubject(0);
+  _list = new BehaviorSubject([]);
+  _loading = new BehaviorSubject(false);
+  _count = new BehaviorSubject(null);
 
   subjectTimeout;
   reloadTimeout;
@@ -55,6 +55,18 @@ class ModelObserver {
     return this.prevList !== undefined;
   }
 
+  get list() {
+    return this._list;
+  }
+
+  get loading() {
+    return this._loading;
+  }
+
+  get count() {
+    return this._count;
+  }
+
   constructor(options = {}, model) {
     options = Object.assign({}, defaultOptions, options);
 
@@ -73,7 +85,7 @@ class ModelObserver {
       const refresh = async () => {
         subscriber.next({ loading: true });
         try {
-          const list = await model.getList(this.current);
+          const list = await model.getList({ ...this.current, count: true });
           ids = list.ids;
           triggerSubscription({ loading: false, count: list.count });
         } catch (e) {
@@ -132,7 +144,7 @@ class ModelObserver {
 
       Object.assign(this, {
         [key]: (v) => {
-          subject.next(v)
+          subject.next(v);
           return this;
         },
       });
@@ -143,18 +155,18 @@ class ModelObserver {
         const parsedList = list.map((i) => i.toJSON());
         if (!isEqual(this.prevList, parsedList)) {
           this.prevList = parsedList;
-          this.list.next(list);
+          this._list.next(list);
         }
       }
 
       if (loading !== undefined && this.prevLoading !== loading) {
         this.prevLoading = list;
-        this.loading.next(loading);
+        this._loading.next(loading);
       }
 
       if (count !== undefined && this.prevCount !== count) {
         this.prevCount = count;
-        this.count.next(count);
+        this._count.next(count);
       }
     });
 
@@ -164,9 +176,9 @@ class ModelObserver {
   }
 
   unobserve() {
-    this.list?.complete();
-    this.loading?.complete();
-    this.count?.complete();
+    this._list?.complete();
+    this._loading?.complete();
+    this._count?.complete();
     this.mainSubscription?.unsubscribe();
     this.model._observers.delete(this);
   }

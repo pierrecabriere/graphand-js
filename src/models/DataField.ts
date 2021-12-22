@@ -29,15 +29,7 @@ class DataField extends GraphandModel {
       }),
       type: new GraphandFieldText({
         name: "Type",
-        options: [
-          { value: "Text", label: "Texte" },
-          { value: "Number", label: "Nombre" },
-          { value: "Boolean", label: "Booléen" },
-          { value: "Relation", label: "Relation" },
-          { value: "Color", label: "Couleur" },
-          { value: "Date", label: "Date" },
-          { value: "JSON", label: "JSON" },
-        ],
+        options: ["Text", "Number", "Boolean", "Relation", "Color", "Date", "JSON"],
       }),
       exclude: new GraphandFieldBoolean({ name: "Exclure", defaultValue: false }),
       configuration: new GraphandFieldJSON({ name: "Configuration" }),

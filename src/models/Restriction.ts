@@ -24,10 +24,7 @@ class Restriction extends GraphandModel {
         name: "Actions",
         type: GraphandFieldText,
         multiple: true,
-        options: [
-          { value: "create", label: "Créer" },
-          { value: "update", label: "Modifier" },
-        ],
+        options: ["create", "update"],
       }),
       fields: new GraphandFieldText({
         name: "Champs à restreindre",

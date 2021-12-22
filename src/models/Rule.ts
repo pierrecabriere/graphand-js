@@ -23,16 +23,7 @@ class Rule extends GraphandModel {
       actions: new GraphandFieldText({
         name: "Actions",
         multiple: true,
-        options: [
-          { value: "create", label: "Créer" },
-          { value: "read", label: "Lire" },
-          { value: "update", label: "Modifier" },
-          { value: "delete", label: "Supprimer" },
-          { value: "count", label: "Compter" },
-          { value: "login", label: "Se connecter" },
-          { value: "register", label: "S'inscrire" },
-          { value: "execute", label: "Exécuter" },
-        ],
+        options: ["create", "read", "update", "delete", "count", "login", "register", "execute"],
       }),
       prohibition: new GraphandFieldBoolean({ name: "Interdiction", defaultValue: false }),
       conditions: new GraphandFieldJSON({ name: "Conditions" }),

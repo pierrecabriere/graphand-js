@@ -20,6 +20,7 @@ const defaultOptions = {
   autoSync: false,
   subscribeFields: false,
   init: true,
+  initProject: false,
   initModels: false,
   models: [],
   cache: true,
@@ -111,29 +112,16 @@ class Client implements ClientType {
     if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
         try {
-          // if (this._options.project) {
-          //   const Project = this.getModel("Project");
-          //
-          //   try {
-          //     const { data } = await this._axios.get("/projects/current");
-          //     this._project = data.data;
-          //     Project.upsertStore(new Project(this._project));
-          //     if (!this.locale) {
-          //       this.locale = this._options.locale || this._project.defaultLocale;
-          //     }
-          //   } catch (e) {
-          //     delete this._initPromise;
-          //     console.error(e);
-          //     reject("Impossible to init project");
-          //     return;
-          //   }
-          // } else {
-          //   this._project = null;
-          // }
-
+          const [Project, DataModel] = this.getModels(["Project", "DataModel"]);
           if (this._options.project) {
+            if (this._options.initProject) {
+              const { data } = await this._axios.get("/projects/current");
+              this._project = new Project(data.data);
+              Project.upsertStore(this._project);
+            }
+
             if (this._options.initModels) {
-              const dataModels = await this.getModel("DataModel").getList({});
+              const dataModels = await DataModel.getList({});
               const scopes = ["Account", "Media"].concat(dataModels.map((m) => `Data:${m.slug}`));
               await this.registerModels(this._options.models.concat(scopes), { extend: true });
             } else {
@@ -235,9 +223,8 @@ class Client implements ClientType {
     this._models[_name]._socketSubscription = null;
     this._models[_name]._fieldsIds = options.fieldsIds;
     this._models[_name]._dataFields = {};
-    this._models[_name]._fieldsSubscription = null;
+    this._models[_name]._fieldsList = null;
     this._models[_name]._initialized = false;
-    this._models[_name]._fieldsObserver = null;
     this._models[_name]._observers = new Set([]);
     this._models[_name]._socketTriggerSubject = new Subject();
     this._models[_name]._initPromise = null;

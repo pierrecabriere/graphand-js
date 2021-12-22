@@ -19,6 +19,9 @@ class Module extends GraphandModel {
       default: new GraphandFieldBoolean({
         name: "Module par défaut",
       }),
+      pinned: new GraphandFieldBoolean({
+        name: "Module par défaut",
+      }),
       configuration: new GraphandFieldJSON({
         name: "Configuration",
       }),

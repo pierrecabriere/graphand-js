@@ -1,8 +1,8 @@
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldJSON from "./fields/GraphandFieldJSON";
 import GraphandFieldRelation from "./fields/GraphandFieldRelation";
-import GraphandModel from "./GraphandModel";
 import GraphandFieldText from "./fields/GraphandFieldText";
+import GraphandModel from "./GraphandModel";
 
 class GraphandHistoryModel extends GraphandModel {
   static _defaultFields = false;
@@ -18,11 +18,7 @@ class GraphandHistoryModel extends GraphandModel {
       }),
       kind: new GraphandFieldText({
         name: "Opération",
-        options: [
-          { value: "create", label: "Création" },
-          { value: "update", label: "Modification" },
-          { value: "delete", label: "Suppression" },
-        ],
+        options: ["create", "update", "delete"],
       }),
       "metas.account": new GraphandFieldRelation({
         name: "Par",
