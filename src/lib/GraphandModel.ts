@@ -98,9 +98,7 @@ class GraphandModel {
     data = Object.assign({}, data);
 
     this._id = data._id || `_${new ObjectID().toString()}`;
-
     this._data = data;
-
     this._fields = fields || constructor.getFields(this) || {};
 
     Object.defineProperty(this, "_data", { enumerable: false });
@@ -315,21 +313,27 @@ class GraphandModel {
     if (!item && fetch) {
       return new GraphandModelPromise(
         async (resolve, reject) => {
-          let res;
           try {
             await this.init();
-            res = await this.fetch(query, { cache });
-            const data = res.data.data && ((res.data.data.rows && res.data.data.rows[0]) || res.data.data);
-            if (!cache) {
-              resolve(data && this.hydrate(data));
+            const { data } = await this.fetch(query, { cache });
+            let row;
+            if (data.data) {
+              row = data.data.rows?.length ? data.data.rows[0] : data.data;
             }
 
-            const id = data && data._id;
-            if (id) {
-              resolve(this.get(id, false));
-            } else {
-              resolve(null);
+            if (row?._id) {
+              let item;
+
+              if (cache) {
+                item = this.get(row?._id, false);
+              }
+
+              item = item && this.hydrate(row);
+
+              return resolve(item);
             }
+
+            return resolve(null);
           } catch (e) {
             reject(e);
           }
@@ -465,19 +469,24 @@ class GraphandModel {
 
       this._socketTriggerSubject.next({ action, payload });
 
-      setTimeout(() => {
-        switch (action) {
-          case "create":
-            this.upsertStore(payload.map((item) => new this(item))) && this.clearCache();
-            break;
-          case "update":
-            this.upsertStore(payload.map((item) => new this(item))) && this.clearCache();
-            break;
-          case "delete":
-            this.deleteFromStore(payload) && this.clearCache();
-            break;
-        }
-      });
+      // setTimeout(() => {
+      let updated;
+      switch (action) {
+        case "create":
+          updated = this.upsertStore(payload.map((item) => new this(item)));
+          break;
+        case "update":
+          updated = this.upsertStore(payload.map((item) => new this(item)));
+          break;
+        case "delete":
+          updated = this.deleteFromStore(payload);
+          break;
+      }
+
+      if (updated) {
+        this.clearCache();
+      }
+      // });
     };
 
     socket.off(path);
@@ -666,8 +675,8 @@ class GraphandModel {
       query = { ids: query };
     }
 
-    // const defaultOptions = { fetch: true, cache: true, syncSocket: !!this._socketSubscription };
-    const defaultOptions = { fetch: true, cache: true, syncSocket: false };
+    const defaultOptions = { fetch: true, cache: true, syncSocket: !!this._socketSubscription };
+    // const defaultOptions = { fetch: true, cache: true, syncSocket: false };
     opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { fetch: opts });
 
     const { fetch, cache, syncSocket } = opts;
@@ -837,10 +846,14 @@ class GraphandModel {
     let res;
 
     try {
-      const isSimpleQuery = typeof query?.query?._id === "string" && Object.keys(query).length === 1 && Object.keys(query.query).length === 1;
+      const isSimpleQuery = typeof query?.query?._id === "string" && Object.keys(query.query).length === 1;
       if (isSimpleQuery) {
-        const url = `${this.baseUrl}/${query.query._id}`;
-        res = await this._client._axios.get(url);
+        const {
+          query: { _id },
+          ...params
+        } = query;
+        const url = `${this.baseUrl}/${_id}`;
+        res = await this._client._axios.get(url, { params });
 
         if (res.data?.data) {
           const item = this.get(res.data.data._id, false) || new this(res.data?.data);

@@ -99,11 +99,14 @@ class GraphandModelList extends Array implements Array<any> {
               this.count = data.count;
 
               _registerSocket(_socket, data.data.socketPath);
+
+              subscriber.next(this);
             })
             .catch((e) => console.error(e));
         }
 
         this._socketPath = _path;
+        _socket.off(_path);
         return _socket.on(_path, (data) => {
           this.model._handleRequestResult(data, this.query);
           const storeList = this.model._listSubject.getValue();
@@ -137,6 +140,7 @@ class GraphandModelList extends Array implements Array<any> {
 
         if (newList.length !== this.length || !isEqual(this.toArray(), newList)) {
           this.splice(0, this.length, ...newList);
+
           subscriber.next(this);
         }
       });
@@ -178,7 +182,7 @@ class GraphandModelList extends Array implements Array<any> {
     opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : {});
 
     if (!this._observable) {
-      opts.syncSocket ? this.syncSocket() : this.syncStore();
+      opts.syncSocket ? this.syncSocket(this._socketPath) : this.syncStore();
     }
 
     const sub = this._observable.subscribe.apply(this._observable, arguments);
