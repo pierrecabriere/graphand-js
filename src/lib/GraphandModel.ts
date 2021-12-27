@@ -43,6 +43,10 @@ class GraphandModel {
   private _version = 1;
   private _fields = {};
 
+  private _observable;
+  private _storeSub;
+  private _subscriptions = new Set();
+
   // other fields
   _id: string;
   createdAt: Date;
@@ -218,22 +222,52 @@ class GraphandModel {
     return this;
   }
 
-  subscribe() {
+  static sync(opts: any = {}) {
+    let force = typeof opts === "boolean" ? opts : opts.force ?? false;
+    this._socketOptions = opts;
+
+    if (force || (this._client && !this._socketSubscription)) {
+      this._socketSubscription = this._client._socketSubject.subscribe((socket) => this.setupSocket(socket));
+    }
+
+    return this;
+  }
+
+  createObservable() {
     const { constructor } = Object.getPrototypeOf(this);
-    let prev = this.clone();
-    const observable = new Observable((subscriber) => {
-      constructor._listSubject.subscribe(async (list) => {
-        const item = prev.isTemporary() ? list.find((i) => i._id === prev._id) : await constructor.get(prev._id);
-        if (!item || item._version > prev._version || !isEqual(item.raw, prev.raw)) {
-          if (item) {
-            prev = item.clone();
+    this._observable = new Observable((subscriber) => {
+      let prev = this.clone();
+      this._storeSub = constructor._listSubject.subscribe((_list) => {
+        setTimeout(async () => {
+          const item = prev.isTemporary() ? _list.find((i) => i._id === prev._id) : await constructor.get(prev._id);
+          if (!item || item._version > prev._version || !isEqual(item.raw, prev.raw)) {
+            if (item) {
+              prev = item.clone();
+            }
+            subscriber.next(item);
           }
-          subscriber.next(item);
-        }
+        });
       });
     });
+  }
 
-    return observable.subscribe.apply(observable, arguments);
+  subscribe() {
+    if (!this._observable) {
+      this.createObservable();
+    }
+
+    const sub = this._observable.subscribe.apply(this._observable, arguments);
+    this._subscriptions.add(sub);
+    const unsubscribe = sub.unsubscribe;
+    sub.unsubscribe = () => {
+      unsubscribe.apply(sub);
+      this._subscriptions.delete(sub);
+
+      if (!this._subscriptions.size) {
+        this._storeSub?.unsubscribe();
+        delete this._observable;
+      }
+    };
   }
 
   isTemporary() {
@@ -501,18 +535,6 @@ class GraphandModel {
     this._client.registerHook({ model: this, action: event, trigger, _await: options.await, ...options });
   }
 
-  static sync(opts: any = {}) {
-    let force = typeof opts === "boolean" ? opts : opts.force ?? false;
-    this._socketOptions = opts;
-
-    if (force || (this._client && !this._socketSubscription)) {
-      this.setupSocket();
-      this._socketSubscription = this._client._socketSubject.subscribe((socket) => this.setupSocket(socket));
-    }
-
-    return this;
-  }
-
   static unsync() {
     this._socketSubscription.unsubscribe();
     delete this._socketSubscription;
@@ -708,7 +730,11 @@ class GraphandModel {
             const { data } = await this.fetch(query, { cache, sync: syncSocket });
             const storeList = this._listSubject.getValue();
             const list = data.data.rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
-            const graphandList = new GraphandModelList({ model: this, count: data.data.count, query, socketPath: data.data.socketPath }, ...list);
+            const graphandList = new GraphandModelList({ model: this, count: data.data.count, query }, ...list);
+
+            // if (data.data.socketPath) {
+            //   graphandList._socketPath.next(data.data.socketPath);
+            // }
 
             return resolve(graphandList);
           } catch (e) {
@@ -728,33 +754,6 @@ class GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
 
     constructor.setPrototypeFields(this);
-    // this._fields = constructor.getFields(this) || {};
-    //
-    // const properties = Object.keys(this._fields)
-    //   .filter((slug) => slug !== "_id")
-    //   .reduce((final, slug) => {
-    //     const field = this._fields[slug];
-    //     if (field.assign === false) {
-    //       return final;
-    //     }
-    //
-    //     final[slug] = {
-    //       enumerable: true,
-    //       configurable: true,
-    //       get: function () {
-    //         return this.get(slug);
-    //       },
-    //       set(v) {
-    //         return this.set(slug, v);
-    //       },
-    //     };
-    //
-    //     return final;
-    //   }, {});
-    //
-    // Object.defineProperties(this, properties);
-    //
-    // return this._fields;
   }
 
   static getPopulatedPaths(populateQuery) {
@@ -824,22 +823,26 @@ class GraphandModel {
       }
     };
 
-    if (data?.rows) {
-      data.rows = data.rows.map((item) => {
-        _processPopulate(item);
+    const _rows = data?.rows ? data.rows : data?._id ? [data] : [];
+    _rows.forEach((item) => _processPopulate(item));
+
+    const rows = data.rows.map((item) => {
+      const found = item?._id && this.get(item._id, false);
+      if (!found) {
         return new this(item);
-      });
+      }
 
-      let rows = data.rows || [data];
-      rows = rows.map((item) => (item?._id && this.get(item._id, false)) || new this(item));
+      found.assign(item);
+      return found;
+    });
 
-      this.upsertStore(rows);
-    } else if (data && typeof data === "object") {
-      _processPopulate(data);
+    this.upsertStore(rows);
 
-      const item = this.get(data._id, false) || new this(data);
-      this.upsertStore(item);
-    }
+    // if (data.socketPath) {
+    //   rows.filter((item) => item.socketPath !== data.socketPath).forEach((item) => item._socketPath.next(data.socketPath));
+    // }
+
+    return rows;
   }
 
   static async _request(query, hooks, cacheKey?) {
@@ -922,9 +925,9 @@ class GraphandModel {
       query.ids = query.query._id.$in;
     }
 
-    if (sync && this._client._socket) {
-      query.socket = this._client._socket.id;
-    }
+    // if (sync && this._client.socket) {
+    //   query.socket = this._client.socket.id;
+    // }
 
     if (hooks) {
       await this.beforeQuery?.call(this, query);

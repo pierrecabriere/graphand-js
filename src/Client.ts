@@ -39,7 +39,6 @@ class Client implements ClientType {
   _socketSubject;
   _mediasQueueSubject;
   _initialized;
-  _socket;
 
   constructor(project: string | ClientOptions, options: ClientOptions = {}) {
     options = project && typeof project === "object" ? { ...project, ...options } : options;
@@ -47,7 +46,7 @@ class Client implements ClientType {
       options.project = project;
     }
     this._options = { ...defaultOptions, ...options };
-    this._socketSubject = new Subject();
+    this._socketSubject = new BehaviorSubject(null);
     this._mediasQueueSubject = new BehaviorSubject([]);
     this._initialized = false;
     this._models = {};
@@ -93,7 +92,7 @@ class Client implements ClientType {
   static lib = lib;
 
   get socket() {
-    return this._socket;
+    return this._socketSubject.getValue();
   }
 
   private _accessToken;
@@ -113,22 +112,24 @@ class Client implements ClientType {
       this._initPromise = new Promise(async (resolve, reject) => {
         try {
           const [Project, DataModel] = this.getModels(["Project", "DataModel"]);
-          if (this._options.project) {
-            if (this._options.initProject) {
-              const { data } = await this._axios.get("/projects/current");
-              this._project = new Project(data.data);
-              Project.upsertStore(this._project);
-            }
-
-            if (this._options.initModels) {
-              const dataModels = await DataModel.getList({});
-              const scopes = ["Account", "Media"].concat(dataModels.map((m) => `Data:${m.slug}`));
-              await this.registerModels(this._options.models.concat(scopes), { extend: true });
-            } else {
-              await this.registerModels(this._options.models, { extend: true });
-            }
-          }
-
+          await Promise.all([
+            (async () => {
+              if (this._options.initModels) {
+                const dataModels = await DataModel.getList({});
+                const scopes = ["Account", "Media"].concat(dataModels.map((m) => `Data:${m.slug}`));
+                await this.registerModels(this._options.models.concat(scopes), { extend: true });
+              } else {
+                await this.registerModels(this._options.models, { extend: true });
+              }
+            })(),
+            (async () => {
+              if (this._options.initProject) {
+                const { data } = await this._axios.get("/projects/current");
+                this._project = new Project(data.data);
+                Project.upsertStore(this._project);
+              }
+            })(),
+          ]);
           resolve(true);
         } catch (e) {
           reject(e);
@@ -136,7 +137,7 @@ class Client implements ClientType {
       });
     }
 
-    return await this._initPromise;
+    return this._initPromise;
   }
 
   get locale() {
@@ -159,11 +160,20 @@ class Client implements ClientType {
     const scope = `Data:${identifier}`;
 
     if (!this._models[scope]) {
-      let model = this._options.models.find((m: any) => m.scope === scope);
-      if (model) {
+      const found = this._options.models.find((m: any) =>
+        Array.isArray(m) ? m[0] === scope || m[0]?.scope === scope : m === scope || m?.scope === scope,
+      );
+      if (found && Array.isArray(found) && typeof found[1] === "object") {
+        Object.assign(options, found[1]);
+      }
+      let model = found && Array.isArray(found) ? found[0] : found;
+
+      if (model?.apiIdentifier) {
         options.extend = options.extend ?? true;
       } else {
-        const DataConstructor = this._options.models.find((m: any) => m.scope === "Data") || Data;
+        const DataConstructorFound = this._options.models.find((m: any) => (Array.isArray(m) ? m[0]?.scope === "Data" : m.scope === "Data")) || Data;
+        const DataConstructor = Array.isArray(DataConstructorFound) ? DataConstructorFound[0] : DataConstructorFound;
+
         model = class extends DataConstructor {};
         model._registeredAt = null;
         model.apiIdentifier = identifier;
@@ -233,7 +243,8 @@ class Client implements ClientType {
 
     try {
       if (options.sync) {
-        this._models[_name].sync();
+        const syncOpts = typeof options.sync === "object" ? options.sync : undefined;
+        this._models[_name].sync(syncOpts);
       }
     } catch (e) {
       console.error(e);
@@ -248,14 +259,16 @@ class Client implements ClientType {
     return this._models[_name];
   }
 
-  async registerModels(modelsList, options: any = {}) {
+  async registerModels(list, options: any = {}) {
+    const modelsList = list.map((item) => (Array.isArray(item) ? item[0] : item));
     const scopes = modelsList.map((model) => (typeof model === "string" ? model : model.scope));
     const fields = (await this.getModel("DataField").getList({ query: { scope: { $in: scopes } }, pageSize: 1000 })).toArray();
     await Promise.all(
-      modelsList.map(async (model) => {
+      modelsList.map(async (model, index) => {
         const scope = typeof model === "string" ? model : model.scope;
+        const modelOptions = (Array.isArray(list[index]) && list[index][1]) || {};
         const fieldsIds = fields.filter((f) => f.scope === scope).map((f) => f._id);
-        await this.registerModel(model, { ...options, fieldsIds });
+        await this.registerModel(model, { ...options, ...modelOptions, fieldsIds });
       }),
     );
   }
@@ -410,23 +423,22 @@ class Client implements ClientType {
 
   /* Accessors */
 
-  connectSocket() {
-    if (this.socket) {
+  connectSocket(force = false) {
+    if (!force && this.socket) {
       return this.socket;
     }
 
-    this._socket = setupSocket(this);
+    const socket = setupSocket(this);
 
-    return this._socket;
+    return this._socketSubject.next(socket);
   }
 
   disconnectSocket(triggerSubject = true) {
-    if (!this._socket) {
+    if (!this.socket) {
       return;
     }
 
-    this._socket.disconnect();
-    delete this._socket;
+    this.socket.disconnect();
 
     if (triggerSubject) {
       this._socketSubject.next(null);
@@ -434,12 +446,11 @@ class Client implements ClientType {
   }
 
   reconnectSocket() {
-    if (this._socket) {
-      this._socket.disconnect();
-      delete this._socket;
+    if (this.socket) {
+      this.socket.disconnect();
     }
 
-    this.connectSocket();
+    this.connectSocket(true);
   }
 
   getModel(scope, options: any = {}) {
@@ -457,10 +468,14 @@ class Client implements ClientType {
     }
   }
 
-  getGraphandModel(scope, options: any = {}) {
+  getGraphandModel(scope, options?: any) {
     if (!this._models[scope]?._registeredAt) {
-      let model = this._options.models.find((m) => m.scope === scope);
-      if (model) {
+      const found = this._options.models.find((m) => (Array.isArray(m) ? m[0] === scope || m[0]?.scope === scope : m === scope || m.scope === scope));
+      if (found && Array.isArray(found) && typeof found[1] === "object") {
+        Object.assign(options, found[1]);
+      }
+      let model = found && Array.isArray(found) ? found[0] : found;
+      if (model?.apiIdentifier) {
         options.extend = options.extend ?? true;
       } else {
         model = Object.values(models).find((m) => m.scope === scope);

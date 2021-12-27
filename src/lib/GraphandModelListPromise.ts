@@ -73,6 +73,14 @@ class GraphandModelListPromise extends GraphandModelPromise {
 
     return this.then((res) => res?.subscribe?.apply(res, arguments));
   }
+
+  unsubscribe() {
+    if (!this.model) {
+      return;
+    }
+
+    return this.then((res) => res?.unsubscribe?.apply(res, arguments));
+  }
 }
 
 export default GraphandModelListPromise;

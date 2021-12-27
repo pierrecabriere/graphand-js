@@ -21,7 +21,6 @@ class GraphandModelPromise {
   query;
   then;
 
-  // @ts-ignore
   constructor(executor, model, query?, cached = false) {
     this.executor = executor;
     this.cached = cached;
@@ -60,6 +59,10 @@ class GraphandModelPromise {
 
   subscribe() {
     return this.then((res) => res?.subscribe?.apply(res, arguments));
+  }
+
+  unsubscribe() {
+    return this.then((res) => res?.unsubscribe?.apply(res, arguments));
   }
 
   toString() {

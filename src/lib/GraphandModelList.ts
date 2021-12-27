@@ -7,12 +7,16 @@ class GraphandModelList extends Array implements Array<any> {
   _model;
   count;
   _query;
-  _observable;
-  _socketSub;
-  _storeSub;
-  _socketPath;
 
-  constructor({ model, count, query, socketPath }: { model?; count?; query?; socketPath? }, ...elements) {
+  // _socketPath;
+  private _observable;
+  private _storeSub;
+  // private _socketSub;
+  // private _socketPathSub;
+  // private _socketHandler;
+  private _subscriptions;
+
+  constructor({ model, count, query }: { model?; count?; query? }, ...elements) {
     if (!elements?.length) {
       elements = [];
     }
@@ -27,14 +31,11 @@ class GraphandModelList extends Array implements Array<any> {
     this._model = model;
     this.count = count || 0;
     this._query = query;
+    this._subscriptions = new Set();
 
     Object.defineProperty(this, "_model", { enumerable: false });
     Object.defineProperty(this, "count", { enumerable: false });
     Object.defineProperty(this, "_query", { enumerable: false });
-
-    if (socketPath) {
-      this.syncSocket(socketPath);
-    }
   }
 
   get ids() {
@@ -74,131 +75,135 @@ class GraphandModelList extends Array implements Array<any> {
     const list = await this.model.getList(this.query);
     this.splice(0, this.length, ...list);
     this.count = list.count;
-    return list;
+    return this;
   }
 
-  syncSocket(socketPath?) {
-    if (this._observable) {
-      return;
-    }
+  // get socketPath() {
+  //   return this._socketPath.getValue();
+  // }
 
+  // async refreshSocketPath() {
+  //   await this.model.fetch(this.query, { cache: false, sync: true }).catch(() => null);
+  // }
+
+  // _createObservable() {
+  //   this._observable = new Observable((subscriber) => {
+  //     this._storeSub = this.model._listSubject.subscribe(async (_list) => {
+  //       const newList = this.ids.map((_id) => _list.find((item) => item._id === _id)).filter((r) => r);
+  //
+  //       this.splice(0, this.length, ...newList);
+  //       subscriber.next(this);
+  //     });
+  //
+  //     if (this.model._client._options.realtime) {
+  //       const _registerSocket = (socket, path?) => {
+  //         if (!socket || !path) {
+  //           return null;
+  //         }
+  //
+  //         if (this._socketHandler) {
+  //           socket.off(path, this._socketHandler);
+  //         }
+  //
+  //         this._socketHandler = (data) => {
+  //           const rows = this.model._handleRequestResult(data, this.query);
+  //
+  //           const cacheKey = this.model.getCacheKey(this.query);
+  //           if (this.model._cache && this.model._cache[cacheKey]?.previous?.data) {
+  //             this.model._cache[cacheKey].previous.data.data = data;
+  //           }
+  //
+  //           this.splice(0, this.length, ...rows);
+  //           this.count = data.count;
+  //
+  //           subscriber.next(this);
+  //         };
+  //
+  //         return socket.on(path, this._socketHandler);
+  //       };
+  //
+  //       this._socketPathSub = this._socketPath.subscribe((socketPath) => {
+  //         if (!socketPath) {
+  //           return;
+  //         }
+  //
+  //         const { socket } = this.model._client;
+  //         if (socket) {
+  //           _registerSocket(socket, socketPath);
+  //         }
+  //       });
+  //
+  //       this._socketSub = this.model._client._socketSubject.subscribe((socket) => {
+  //         if (!socket) {
+  //           return;
+  //         }
+  //
+  //         this.refreshSocketPath();
+  //       });
+  //
+  //       if (this.model._client.socket && this.socketPath) {
+  //         _registerSocket(this.model._client.socket, this.socketPath);
+  //       }
+  //
+  //       this.model._client.connectSocket();
+  //     }
+  //   });
+  // }
+
+  createObservable() {
     this._observable = new Observable((subscriber) => {
       let prevSerial = this.toArray().map((item) => JSON.stringify(item.serialize?.apply(item)));
+      this._storeSub = this.model._listSubject.subscribe(() => {
+        setTimeout(async () => {
+          const list = await this.model.getList(this.query, { cache: true, syncSocket: false });
+          const listArray = list.toArray();
 
-      const _registerSocket = (_socket, _path?) => {
-        if (!_path) {
-          return this.model
-            .fetch(this.query, { cache: false, sync: true })
-            .then(({ data }) => {
-              this.model._handleRequestResult(data.data, this.query);
-              const storeList = this.model._listSubject.getValue();
-              const list = data.data.rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
-
-              prevSerial = list.map((item) => JSON.stringify(item.serialize?.apply(item)));
-              this.splice(0, this.length, ...list);
-              this.count = data.count;
-
-              _registerSocket(_socket, data.data.socketPath);
-
-              subscriber.next(this);
-            })
-            .catch((e) => console.error(e));
-        }
-
-        this._socketPath = _path;
-        _socket.off(_path);
-        return _socket.on(_path, (data) => {
-          this.model._handleRequestResult(data, this.query);
-          const storeList = this.model._listSubject.getValue();
-          const list = data.rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
-          const cacheKey = this.model.getCacheKey(this.query);
-          if (this.model._cache && this.model._cache[cacheKey]?.previous?.data) {
-            this.model._cache[cacheKey].previous.data.data = data;
+          let reload = false;
+          if (prevSerial.length !== listArray.length) {
+            reload = true;
+            prevSerial = listArray.map((item) => JSON.stringify(item.serialize?.apply(item)));
+          } else {
+            const serial = listArray.map((item) => JSON.stringify(item.serialize?.apply(item)));
+            if (!isEqual(serial, prevSerial)) {
+              reload = true;
+              prevSerial = serial;
+            }
           }
 
-          prevSerial = list.map((item) => JSON.stringify(item.serialize?.apply(item)));
-          this.splice(0, this.length, ...list);
-          this.count = data.count;
+          if (reload) {
+            this.splice(0, this.length, ...listArray);
+            this.count = list.count;
 
-          subscriber.next(this);
+            subscriber.next(this);
+          }
         });
-      };
-
-      this._socketSub = this.model._client._socketSubject.subscribe((_socket) => {
-        if (_socket) {
-          _registerSocket(_socket, !this._socketPath && socketPath);
-        } else {
-          this.unsync();
-        }
-      });
-
-      this._storeSub = this.model._listSubject.subscribe(async (_list) => {
-        const newList =
-          this.toArray()
-            .map((row) => _list.find((item) => item._id === row._id))
-            .filter((r) => r) || [];
-
-        if (newList.length !== this.length || !isEqual(this.toArray(), newList)) {
-          this.splice(0, this.length, ...newList);
-
-          subscriber.next(this);
-        }
-      });
-
-      if (this.model._client._socket) {
-        _registerSocket(this.model._client._socket, socketPath);
-      }
-
-      this.model._client.connectSocket();
-    });
-  }
-
-  syncStore() {
-    if (this._observable) {
-      return;
-    }
-
-    this._socketPath = false;
-    this._observable = new Observable((subscriber) => {
-      let prevSerial = this.toArray().map((item) => JSON.stringify(item.serialize?.apply(item)));
-      this._storeSub = this.model._listSubject.subscribe(async () => {
-        const list = await this.model.getList(this.query, { syncSocket: false });
-        const listArray = list.toArray();
-        const serial = listArray.map((item) => JSON.stringify(item.serialize?.apply(item)));
-        if (prevSerial.length !== serial.length || !isEqual(serial, prevSerial)) {
-          prevSerial = serial;
-
-          this.splice(0, this.length, ...listArray);
-          this.count = list.count;
-
-          subscriber.next(this);
-        }
       });
     });
   }
 
   subscribe(opts?) {
-    const defaultOptions = { syncSocket: false };
-    opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : {});
-
     if (!this._observable) {
-      opts.syncSocket ? this.syncSocket(this._socketPath) : this.syncStore();
+      this.createObservable();
     }
 
     const sub = this._observable.subscribe.apply(this._observable, arguments);
+    this._subscriptions.add(sub);
     const unsubscribe = sub.unsubscribe;
-    sub.unsubscribe = function () {
+    sub.unsubscribe = () => {
       unsubscribe.apply(sub);
-      this.unsync();
-    };
-  }
+      this._subscriptions.delete(sub);
 
-  unsync() {
-    this._storeSub?.unsubscribe();
-    this._socketSub?.unsubscribe();
-    this.model._client._socket?.off(this._socketPath);
-    this._socketPath = false;
-    delete this._observable;
+      if (!this._subscriptions.size) {
+        this._storeSub?.unsubscribe();
+        // this._socketSub?.unsubscribe();
+        // this._socketPathSub?.unsubscribe();
+        // this.socketPath && this.model._client.socket?.off(this.socketPath, this._socketHandler);
+        // this._socketPath.next(null);
+        delete this._observable;
+      }
+    };
+
+    return sub;
   }
 
   encodeQuery() {
