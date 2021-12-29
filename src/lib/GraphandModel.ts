@@ -920,14 +920,14 @@ class GraphandModel {
     const { cache, callback, hooks } = opts;
 
     if (typeof query === "object" && "ids" in query) {
-      if (this._client._options.mergeQueries && Object.keys(query).length === 1 && this._queryIds.size + query.ids.length < 1000) {
+      if (this._client._options.mergeQueries && Object.keys(query).length === 1 && this._queryIds.size + query.ids.length < 200) {
         if (this._queryIdsTimeout) {
           clearTimeout(this._queryIdsTimeout);
         }
 
         query.ids.forEach(this._queryIds.add, this._queryIds);
         await new Promise((resolve) => setTimeout(resolve));
-        query = { ids: [...this._queryIds], pageSize: this._queryIds.size + query.ids.length };
+        query = { ids: [...this._queryIds] };
       }
 
       if (Object.keys(query).length === 1 && Object.keys(query.ids).length === 1) {
