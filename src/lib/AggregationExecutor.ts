@@ -1,5 +1,5 @@
 import Client from "../Client";
-import { encodeQuery } from "../utils";
+import { parseQuery } from "../utils";
 
 class AggregationExecutor {
   _id: string;
@@ -53,7 +53,7 @@ class AggregationExecutor {
   }
 
   async _exec() {
-    const { data } = await this.client._axios.post(`/aggregations/${this._id}/execute`, encodeQuery(this.vars));
+    const { data } = await this.client._axios.post(`/aggregations/${this._id}/execute`, parseQuery(this.vars));
     this.res = data;
     return data;
   }

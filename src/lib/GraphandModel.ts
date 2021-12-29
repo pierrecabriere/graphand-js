@@ -3,14 +3,13 @@ import isEqual from "fast-deep-equal";
 import _ from "lodash";
 import { Observable } from "rxjs";
 import Client from "../Client";
-import encodeQuery from "../utils/encodeQuery";
+import parseQuery from "../utils/parseQuery";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldId from "./fields/GraphandFieldId";
 import GraphandFieldRelation from "./fields/GraphandFieldRelation";
 import GraphandModelList from "./GraphandModelList";
 import GraphandModelListPromise from "./GraphandModelListPromise";
 import GraphandModelPromise from "./GraphandModelPromise";
-import ModelObserver from "./ModelObserver";
 
 class GraphandModel {
   // configurable fields
@@ -36,6 +35,8 @@ class GraphandModel {
   protected static _listSubject;
   protected static _defaultFields = true;
   protected static _socketOptions;
+  protected static _queryIds = new Set();
+  protected static _queryIdsTimeout;
 
   // private fields
   private _data: any = {};
@@ -268,6 +269,9 @@ class GraphandModel {
         delete this._observable;
       }
     };
+
+    sub.next(this);
+    return sub;
   }
 
   isTemporary() {
@@ -286,7 +290,8 @@ class GraphandModel {
     const DataField = this._client.getModel("DataField");
 
     if (!this._fieldsList) {
-      this._fieldsList = DataField.getList({ query: { scope: this.scope }, count: true }, { syncSocket: !!this._socketSubscription });
+      const query = this._fieldsIds ? { ids: this._fieldsIds } : { query: { scope: this.scope } };
+      this._fieldsList = DataField.getList(query);
     }
 
     return this._fieldsList;
@@ -342,7 +347,7 @@ class GraphandModel {
         ? query
         : null;
 
-    const item = cache && this.getList().find((item) => item._id === _id);
+    const item = cache && _id && this.getList().find((item) => item._id === _id);
 
     if (!item && fetch) {
       return new GraphandModelPromise(
@@ -351,8 +356,17 @@ class GraphandModel {
             await this.init();
             const { data } = await this.fetch(query, { cache });
             let row;
+
             if (data.data) {
-              row = data.data.rows?.length ? data.data.rows[0] : data.data;
+              if (data.data.rows) {
+                if (_id) {
+                  row = data.data.rows.find((row) => row._id === _id);
+                } else {
+                  row = data.data.rows[0];
+                }
+              } else {
+                row = data.data;
+              }
             }
 
             if (row?._id) {
@@ -682,28 +696,25 @@ class GraphandModel {
 
   static getList(query?: any) {
     if (!query) {
-      const list = this._listSubject.getValue().filter(Boolean);
+      const list = this._listSubject.getValue();
       return new GraphandModelList({ model: this }, ...list);
     }
 
     return this.query.apply(this, arguments);
   }
 
-  static query(
-    query: any,
-    opts: { fetch: boolean; cache: boolean; syncSocket: boolean } | boolean = true,
-  ): GraphandModelList | GraphandModelListPromise {
+  static query(query: any, opts: { fetch: boolean; cache: boolean } | boolean = true): GraphandModelList | GraphandModelListPromise {
     if (Array.isArray(query)) {
       query = { ids: query };
     }
 
-    const defaultOptions = { fetch: true, cache: true, syncSocket: !!this._socketSubscription };
-    // const defaultOptions = { fetch: true, cache: true, syncSocket: false };
+    const defaultOptions = { fetch: true, cache: true };
     opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { fetch: opts });
 
-    const { fetch, cache, syncSocket } = opts;
+    const { fetch, cache } = opts;
 
     let list;
+    let mapIds;
 
     if (query.ids) {
       if (query.ids instanceof GraphandModelList || query.ids instanceof GraphandModelListPromise) {
@@ -715,6 +726,7 @@ class GraphandModel {
       }
 
       if (cache && "ids" in query && Object.keys(query).length === 1) {
+        mapIds = query.ids;
         const cacheList = query.ids.map((_id) => this.get(_id, false));
         if (cacheList.every(Boolean)) {
           list = new GraphandModelList({ model: this, count: cacheList.length, query }, ...cacheList);
@@ -727,14 +739,17 @@ class GraphandModel {
         async (resolve) => {
           try {
             await this.init();
-            const { data } = await this.fetch(query, { cache, sync: syncSocket });
-            const storeList = this._listSubject.getValue();
-            const list = data.data.rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
-            const graphandList = new GraphandModelList({ model: this, count: data.data.count, query }, ...list);
 
-            // if (data.data.socketPath) {
-            //   graphandList._socketPath.next(data.data.socketPath);
-            // }
+            let graphandList;
+            const { data } = await this.fetch(query, { cache });
+            const storeList = this._listSubject.getValue();
+            if (mapIds) {
+              const _list = mapIds?.map((_id) => storeList.find((item) => item._id === _id)).filter((r) => r) || [];
+              graphandList = new GraphandModelList({ model: this, count: mapIds.length, query }, ..._list);
+            } else {
+              const _list = data.data.rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
+              graphandList = new GraphandModelList({ model: this, count: data.data.count, query }, ..._list);
+            }
 
             return resolve(graphandList);
           } catch (e) {
@@ -892,15 +907,7 @@ class GraphandModel {
   }
 
   static async fetch(query: any, opts: boolean | any = true) {
-    if (Array.isArray(query)) {
-      query = { ids: query };
-    } else if (typeof query === "string") {
-      query = { query: { _id: query } };
-    } else if (!query) {
-      query = {};
-    } else {
-      query = encodeQuery(query);
-    }
+    query = parseQuery(query);
 
     const defaultOptions = {
       cache: true,
@@ -910,20 +917,29 @@ class GraphandModel {
     };
 
     opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { cache: opts });
-    const { cache, callback, hooks, sync } = opts;
+    const { cache, callback, hooks } = opts;
+
+    if (typeof query === "object" && "ids" in query) {
+      if (this._client._options.autoMapQueries && Object.keys(query).length === 1 && this._queryIds.size + query.ids.length < 1000) {
+        if (this._queryIdsTimeout) {
+          clearTimeout(this._queryIdsTimeout);
+        }
+
+        query.ids.forEach(this._queryIds.add, this._queryIds);
+        await new Promise((resolve) => setTimeout(resolve));
+        query = { ids: [...this._queryIds], pageSize: this._queryIds.size + query.ids.length };
+      }
+
+      if (Object.keys(query).length === 1 && Object.keys(query.ids).length === 1) {
+        query = { query: { _id: query.ids[0] } };
+      }
+    } else if (typeof query === "string") {
+      query = { query: { _id: query } };
+    }
 
     // if (this.translatable && !query.translations && this._client._project?.locales?.length) {
     //   query.translations = this._client._project?.locales;
     // }
-
-    if (
-      this._client._options.autoMapQueries &&
-      query.query?._id?.$in &&
-      Object.keys(query.query).length === 1 &&
-      Object.keys(query.query._id).length === 1
-    ) {
-      query.ids = query.query._id.$in;
-    }
 
     // if (sync && this._client.socket) {
     //   query.socket = this._client.socket.id;
@@ -961,6 +977,7 @@ class GraphandModel {
       res = await cacheEntry.request;
     }
 
+    this._queryIdsTimeout = setTimeout(() => (this._queryIds = new Set()));
     callback && callback(res);
     return res;
   }
@@ -971,15 +988,11 @@ class GraphandModel {
     } else if (!query) {
       query = {};
     } else {
-      query = encodeQuery(query);
+      query = parseQuery(query);
     }
 
     const { data } = await this._client._axios.post(`${this.baseUrl}/count`, query);
     return parseInt(data.data, 10);
-  }
-
-  static observe(options: any = {}) {
-    return new ModelObserver(options, this);
   }
 
   static async create(payload, hooks = true, url = this.baseUrl) {
@@ -1001,7 +1014,7 @@ class GraphandModel {
 
     let inserted;
     try {
-      args.payload = encodeQuery(args.payload);
+      args.payload = parseQuery(args.payload);
       const req = this._client._axios.post(url, args.payload, args.config).then(async (res) => {
         const { data } = res.data;
         const inserted = Array.isArray(data) ? data.map((i) => new this(i)) : data ? new this(data) : data;
@@ -1064,7 +1077,7 @@ class GraphandModel {
     }
 
     try {
-      payload = encodeQuery(payload);
+      payload = parseQuery(payload);
       const { data } = await this.handleUpdateCall(payload);
 
       if (!data) {
@@ -1223,7 +1236,7 @@ class GraphandModel {
       }
     } else {
       try {
-        payload = encodeQuery(payload);
+        payload = parseQuery(payload);
 
         // @ts-ignore
         const { data } = await this._client._axios.delete(this.baseUrl, { _data: payload });

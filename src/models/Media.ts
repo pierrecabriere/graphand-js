@@ -53,6 +53,7 @@ class Media extends GraphandModel {
 
   getUrl(opts: any = {}) {
     opts = Object.assign({}, defaultLinkOptions, opts);
+    // @ts-ignore
     const client = this instanceof GraphandModelPromise ? this.model._client : Object.getPrototypeOf(this).constructor._client;
     const scope = opts.private ? "private" : "public";
     let url = `https://cdn.graphand.io/${scope}/${client._options.project}/${this._id}?fit=${opts.fit}`;

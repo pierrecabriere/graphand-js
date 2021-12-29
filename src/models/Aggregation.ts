@@ -39,6 +39,7 @@ class Aggregation extends GraphandModel {
   }
 
   execute(vars) {
+    // @ts-ignore
     const client = this instanceof GraphandModelPromise ? this.model._client : Object.getPrototypeOf(this).constructor._client;
     return new AggregationExecutor({ _id: this._id, vars, client });
   }

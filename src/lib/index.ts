@@ -9,7 +9,6 @@ import GraphandModelPromise from "./GraphandModelPromise";
 import GraphandSocketHook from "./GraphandSocketHook";
 import GraphandValidationError from "./GraphandValidationError";
 import GraphandWebhookLogsModel from "./GraphandWebhookLogsModel";
-import ModelObserver from "./ModelObserver";
 
 export {
   AggregationExecutor,
@@ -23,5 +22,4 @@ export {
   GraphandSocketHook,
   GraphandValidationError,
   GraphandWebhookLogsModel,
-  ModelObserver,
 };

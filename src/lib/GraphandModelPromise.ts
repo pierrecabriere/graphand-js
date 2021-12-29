@@ -1,3 +1,5 @@
+import { Observable } from "rxjs";
+
 const _propertiesMiddleware = (fromModel, toModel, middleware) => {
   const fromKeys = Object.getOwnPropertyNames(fromModel.prototype);
   const toKeys = Object.getOwnPropertyNames(toModel.prototype);
@@ -20,6 +22,9 @@ class GraphandModelPromise {
   promise?;
   query;
   then;
+
+  _observable;
+  _resSub;
 
   constructor(executor, model, query?, cached = false) {
     this.executor = executor;
@@ -57,14 +62,6 @@ class GraphandModelPromise {
     return typeof _id === "string" ? _id : null;
   }
 
-  subscribe() {
-    return this.then((res) => res?.subscribe?.apply(res, arguments));
-  }
-
-  unsubscribe() {
-    return this.then((res) => res?.unsubscribe?.apply(res, arguments));
-  }
-
   toString() {
     return this._id;
   }
@@ -76,6 +73,28 @@ class GraphandModelPromise {
   toPromise() {
     // @ts-ignore
     return new Promise(this.executor);
+  }
+
+  createObservable() {
+    this._observable = new Observable((subscriber) => {
+      this.then((res) => (this._resSub = res?.subscribe?.apply(res, [(r) => subscriber.next(r)])));
+    });
+  }
+
+  subscribe() {
+    if (!this._observable) {
+      this.createObservable();
+    }
+
+    const sub = this._observable.subscribe.apply(this._observable, arguments);
+    const unsubscribe = sub.unsubscribe;
+    sub.unsubscribe = () => {
+      unsubscribe.apply(sub);
+      this._resSub?.unsubscribe();
+      delete this._observable;
+    };
+
+    return sub;
   }
 }
 

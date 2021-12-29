@@ -155,7 +155,7 @@ class GraphandModelList extends Array implements Array<any> {
       let prevSerial = this.toArray().map((item) => JSON.stringify(item.serialize?.apply(item)));
       this._storeSub = this.model._listSubject.subscribe(() => {
         setTimeout(async () => {
-          const list = await this.model.getList(this.query, { cache: true, syncSocket: false });
+          const list = await this.model.getList(this.query, { cache: true });
           const listArray = list.toArray();
 
           let reload = false;
@@ -203,6 +203,7 @@ class GraphandModelList extends Array implements Array<any> {
       }
     };
 
+    sub.next(this);
     return sub;
   }
 

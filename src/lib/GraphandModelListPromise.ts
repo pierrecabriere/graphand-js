@@ -1,8 +1,12 @@
+import { Observable } from "rxjs";
 import GraphandModel from "./GraphandModel";
 import GraphandModelList from "./GraphandModelList";
 import GraphandModelPromise from "./GraphandModelPromise";
 
 class GraphandModelListPromise extends GraphandModelPromise {
+  _observable;
+  _resSub;
+
   constructor(executor, model, query) {
     super(executor, model, query);
 
@@ -66,20 +70,26 @@ class GraphandModelListPromise extends GraphandModelPromise {
     return JSON.stringify(this.toJSON());
   }
 
-  subscribe() {
-    if (!this.model) {
-      return;
-    }
-
-    return this.then((res) => res?.subscribe?.apply(res, arguments));
+  createObservable() {
+    this._observable = new Observable((subscriber) => {
+      this.then((res) => (this._resSub = res?.subscribe?.apply(res, [(r) => subscriber.next(r)])));
+    });
   }
 
-  unsubscribe() {
-    if (!this.model) {
-      return;
+  subscribe() {
+    if (!this._observable) {
+      this.createObservable();
     }
 
-    return this.then((res) => res?.unsubscribe?.apply(res, arguments));
+    const sub = this._observable.subscribe.apply(this._observable, arguments);
+    const unsubscribe = sub.unsubscribe;
+    sub.unsubscribe = () => {
+      unsubscribe.apply(sub);
+      this._resSub?.unsubscribe();
+      delete this._observable;
+    };
+
+    return sub;
   }
 }
 

@@ -15,20 +15,39 @@ const _decode = (value) => {
     if (Array.isArray(value)) {
       return value.map((v) => _decode(v));
     } else {
-      return encodeQuery(value);
+      return parseQuery(value);
     }
   }
 
   return value;
 };
 
-const encodeQuery = (payload) => {
+const parseQuery = (payload) => {
   if (payload.constructor.name === "FormData") {
     return payload;
   }
 
-  if (!payload || typeof payload !== "object") {
+  if (typeof payload === "string" && !payload.match(/^[0-9a-fA-F]{24}$/)) {
+    return payload;
+  }
+
+  if (!payload) {
     return {};
+  }
+
+  if (Array.isArray(payload)) {
+    payload = { ids: payload };
+  } else if (typeof payload === "string" && payload.match(/^[0-9a-fA-F]{24}$/)) {
+    payload = { ids: [payload] };
+  } else if (
+    payload.payload?._id?.$in &&
+    Object.keys(payload.payload).length === 1 &&
+    Object.keys(payload.payload._id).length === 1 &&
+    Object.keys(payload.payload._id.$in).length === 1
+  ) {
+    payload = { ids: [payload.payload._id] };
+  } else if (payload.payload?._id?.$in && Object.keys(payload.payload).length === 1 && Object.keys(payload.payload._id).length === 1) {
+    payload.ids = payload.payload._id.$in;
   }
 
   let res;
@@ -39,7 +58,7 @@ const encodeQuery = (payload) => {
     res = Object.keys(payload).reduce((final, key) => Object.assign(final, { [key]: _decode(payload[key]) }), {});
   }
 
-  return JSON.parse(JSON.stringify(res));
+  return res;
 };
 
-export default encodeQuery;
+export default parseQuery;

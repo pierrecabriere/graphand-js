@@ -1,6 +1,6 @@
-import encodeQuery from "./encodeQuery";
+import parseQuery from "./parseQuery";
 import setupAxios from "./setupAxios";
 import setupSocket from "./setupSocket";
 import verifyScopeFormat from "./verifyScopeFormat";
 
-export { encodeQuery, setupAxios, setupSocket, verifyScopeFormat };
+export { parseQuery, setupAxios, setupSocket, verifyScopeFormat };

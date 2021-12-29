@@ -17,7 +17,6 @@ import GraphandModelList from "./lib/GraphandModelList";
 import GraphandModelListPromise from "./lib/GraphandModelListPromise";
 import GraphandModelPromise from "./lib/GraphandModelPromise";
 import GraphandValidationError from "./lib/GraphandValidationError";
-import ModelObserver from "./lib/ModelObserver";
 import Account from "./models/Account";
 import Aggregation from "./models/Aggregation";
 import Data from "./models/Data";
@@ -35,11 +34,11 @@ import Sockethook from "./models/Sockethook";
 import Token from "./models/Token";
 import User from "./models/User";
 import Webhook from "./models/Webhook";
-import encodeQuery from "./utils/encodeQuery";
+import parseQuery from "./utils/parseQuery";
 
 export default Client;
 export {
-  encodeQuery,
+  parseQuery,
   Client,
   GraphandModel,
   GraphandField,
@@ -70,7 +69,6 @@ export {
   Log as GraphandModelLog,
   GraphandError,
   GraphandValidationError,
-  ModelObserver,
   GraphandModelPromise,
   GraphandModelList,
   GraphandModelListPromise,

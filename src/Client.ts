@@ -16,7 +16,7 @@ const defaultOptions = {
   locale: undefined,
   translations: undefined,
   realtime: undefined,
-  autoMapQueries: false,
+  autoMapQueries: true,
   autoSync: false,
   subscribeFields: false,
   init: true,
@@ -111,15 +111,18 @@ class Client implements ClientType {
     if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
         try {
-          const [Project, DataModel] = this.getModels(["Project", "DataModel"]);
+          const [Project] = this.getModels(["Project"]);
           await Promise.all([
             (async () => {
-              if (this._options.initModels) {
-                const dataModels = await DataModel.getList({});
-                const scopes = ["Account", "Media"].concat(dataModels.map((m) => `Data:${m.slug}`));
-                await this.registerModels(this._options.models.concat(scopes), { extend: true });
-              } else {
-                await this.registerModels(this._options.models, { extend: true });
+              if (this._options.project) {
+                if (this._options.initModels) {
+                  const [DataModel] = this.getModels(["DataModel"]);
+                  const dataModels = await DataModel.getList({});
+                  const scopes = ["Account", "Media"].concat(dataModels.map((m) => `Data:${m.slug}`));
+                  await this.registerModels(this._options.models.concat(scopes), { extend: true });
+                } else {
+                  await this.registerModels(this._options.models, { extend: true });
+                }
               }
             })(),
             (async () => {
@@ -262,7 +265,8 @@ class Client implements ClientType {
   async registerModels(list, options: any = {}) {
     const modelsList = list.map((item) => (Array.isArray(item) ? item[0] : item));
     const scopes = modelsList.map((model) => (typeof model === "string" ? model : model.scope));
-    const fields = (await this.getModel("DataField").getList({ query: { scope: { $in: scopes } }, pageSize: 1000 })).toArray();
+    const DataField = this.getModel("DataField");
+    const fields = (await DataField.getList({ query: { scope: { $in: scopes } }, pageSize: 1000 })).toArray();
     await Promise.all(
       modelsList.map(async (model, index) => {
         const scope = typeof model === "string" ? model : model.scope;
