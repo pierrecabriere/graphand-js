@@ -920,7 +920,7 @@ class GraphandModel {
     const { cache, callback, hooks } = opts;
 
     if (typeof query === "object" && "ids" in query) {
-      if (this._client._options.autoMapQueries && Object.keys(query).length === 1 && this._queryIds.size + query.ids.length < 1000) {
+      if (this._client._options.mergeQueries && Object.keys(query).length === 1 && this._queryIds.size + query.ids.length < 1000) {
         if (this._queryIdsTimeout) {
           clearTimeout(this._queryIdsTimeout);
         }

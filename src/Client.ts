@@ -16,7 +16,7 @@ const defaultOptions = {
   locale: undefined,
   translations: undefined,
   realtime: undefined,
-  autoMapQueries: true,
+  mergeQueries: true,
   autoSync: false,
   subscribeFields: false,
   init: true,
