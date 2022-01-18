@@ -327,7 +327,8 @@ class Client implements ClientType {
       }
 
       try {
-        hook = await this.getModel("Sockethook").create({
+        const Sockethook = this.getModel("Sockethook");
+        hook = await Sockethook.create({
           socket: socket.id,
           scope: model.scope,
           await: _await,
@@ -338,8 +339,9 @@ class Client implements ClientType {
           fields,
         });
 
-        console.error(`sockethook ${hook.identifier} with _id ${hook._id} registered on socket ${socket.id}`);
+        socket.off(`/hooks/${hook._id}`);
         socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
+        console.error(`sockethook ${hook.identifier} with _id ${hook._id} registered on socket ${socket.id}`);
       } catch (e) {
         console.error(`error registering sockethook`, e);
       }

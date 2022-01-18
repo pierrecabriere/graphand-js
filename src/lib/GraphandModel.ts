@@ -60,7 +60,7 @@ class GraphandModel {
   static hydrate(data: any, fields?) {
     data = data ?? {};
 
-    const Model = !data.__scope || data.__scope === this.scope ? this : this._client.getModel(data.__scope);
+    const Model = data.__scope ? this._client.getModel(data.__scope) : this;
 
     switch (data.__type) {
       case "GraphandModelList":
@@ -325,27 +325,31 @@ class GraphandModel {
     Object.defineProperties(assignTo, properties);
   }
 
-  static get(query, fetch = true, cache = true) {
+  static get(query, fetch = true, cache?) {
     if (!query) {
       return new GraphandModelPromise(async (resolve, reject) => {
         try {
           await this.init();
           const res = await this.fetch(null);
-          resolve(this.get((res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id, false));
+          const _id = (res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id;
+          resolve(this.get(_id, false));
         } catch (e) {
           reject(e);
         }
       }, this);
     }
 
-    const _id =
-      query instanceof GraphandModel
-        ? query._id
-        : typeof query === "object" && query.query?._id
-        ? query.query._id
-        : typeof query === "string"
-        ? query
-        : null;
+    let _id;
+    if (query instanceof GraphandModel) {
+      _id = query._id;
+      cache = cache ?? true;
+    } else if (typeof query === "string") {
+      _id = query;
+      cache = cache ?? true;
+    } else if (typeof query === "object" && query.query?._id) {
+      _id = query.query._id;
+      cache = cache ?? Object.keys(query).length === 1;
+    }
 
     const item = cache && _id && this.getList().find((item) => item._id === _id);
 
@@ -376,7 +380,7 @@ class GraphandModel {
                 item = this.get(row?._id, false);
               }
 
-              item = item && this.hydrate(row);
+              item = item || new this(row);
 
               return resolve(item);
             }
@@ -841,7 +845,7 @@ class GraphandModel {
     const _rows = data?.rows ? data.rows : data?._id ? [data] : [];
     _rows.forEach((item) => _processPopulate(item));
 
-    const rows = data.rows.map((item) => {
+    const rows = _rows.map((item) => {
       const found = item?._id && this.get(item._id, false);
       if (!found) {
         return new this(item);
@@ -852,10 +856,6 @@ class GraphandModel {
     });
 
     this.upsertStore(rows);
-
-    // if (data.socketPath) {
-    //   rows.filter((item) => item.socketPath !== data.socketPath).forEach((item) => item._socketPath.next(data.socketPath));
-    // }
 
     return rows;
   }
@@ -872,18 +872,12 @@ class GraphandModel {
         } = query;
         const url = `${this.baseUrl}/${_id}`;
         res = await this._client._axios.get(url, { params });
-
-        if (res.data?.data) {
-          const item = this.get(res.data.data._id, false) || new this(res.data?.data);
-          this.upsertStore(item);
-        }
       } else {
         const url = this.queryUrl || `${this.baseUrl}/query`;
         res = await this._client._axios.post(url, query);
-        const { data } = res;
-
-        this._handleRequestResult(data.data, query);
       }
+
+      this._handleRequestResult(res.data.data, query);
     } catch (e) {
       delete this._cache[cacheKey];
 
@@ -978,7 +972,8 @@ class GraphandModel {
     }
 
     this._queryIdsTimeout = setTimeout(() => (this._queryIds = new Set()));
-    callback && callback(res);
+    callback?.call(callback, res);
+
     return res;
   }
 
