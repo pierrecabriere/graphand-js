@@ -564,8 +564,8 @@ class GraphandModel {
     return this.reinitStore();
   }
 
-  static getCacheKey({ select, populate, sort, pageSize, page, translations, query, ids, count }) {
-    return this.scope + JSON.stringify([select, populate, sort, pageSize, page, translations, query, ids, count]);
+  static getCacheKey({ populate, sort, pageSize, page, translations, query, ids, count }) {
+    return this.scope + JSON.stringify([populate || 0, sort || 0, pageSize || 0, page || 0, translations || 0, query || 0, ids || 0, !!count]);
   }
 
   static clearCache(query?, clean = false) {
@@ -600,7 +600,9 @@ class GraphandModel {
       .filter((field) => field instanceof GraphandFieldRelation)
       .forEach((field: any) => {
         const model = typeof field.model === "string" ? this._client.getModel(field.model) : field.model;
-        model?.clearCache();
+        if (model !== this) {
+          model?.clearCache();
+        }
       });
   }
 
@@ -933,10 +935,6 @@ class GraphandModel {
 
     // if (this.translatable && !query.translations && this._client._project?.locales?.length) {
     //   query.translations = this._client._project?.locales;
-    // }
-
-    // if (sync && this._client.socket) {
-    //   query.socket = this._client.socket.id;
     // }
 
     if (hooks) {

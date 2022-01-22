@@ -152,7 +152,7 @@ class GraphandModelList extends Array implements Array<any> {
 
   createObservable() {
     this._observable = new Observable((subscriber) => {
-      let prevSerial = this.toArray().map((item) => JSON.stringify(item.serialize?.apply(item)));
+      let prevSerial = this.toArray().map((item) => JSON.stringify(item.serialize?.apply(item)).normalize());
       this._storeSub = this.model._listSubject.subscribe(() => {
         setTimeout(async () => {
           const list = await this.model.getList(this.query, { cache: true });
@@ -161,10 +161,11 @@ class GraphandModelList extends Array implements Array<any> {
           let reload = false;
           if (prevSerial.length !== listArray.length) {
             reload = true;
-            prevSerial = listArray.map((item) => JSON.stringify(item.serialize?.apply(item)));
+            prevSerial = listArray.map((item) => JSON.stringify(item.serialize?.apply(item)).normalize());
           } else {
-            const serial = listArray.map((item) => JSON.stringify(item.serialize?.apply(item)));
+            const serial = listArray.map((item) => JSON.stringify(item.serialize?.apply(item)).normalize());
             if (!isEqual(serial, prevSerial)) {
+              // if (!serial.every((objString) => prevSerial.find((toto) => toto.localeCompare(objString)))) {
               reload = true;
               prevSerial = serial;
             }
