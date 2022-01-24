@@ -13,7 +13,9 @@ const setupAxios = (client: Client) => {
     config.headers = config.headers || {};
     if (!config.headers.Authorization) {
       const token = client.accessToken || options.accessToken;
-      config.headers.Authorization = `Bearer ${token}`;
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
 
     if (/\/users/.test(config.url)) {
