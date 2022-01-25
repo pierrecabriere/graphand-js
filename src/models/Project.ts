@@ -1,6 +1,7 @@
+import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
+import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
-import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 
 const locales = [
   { value: "fr", label: "Français" },
@@ -27,6 +28,8 @@ class Project extends GraphandModel {
         options: locales,
       }),
       settings: new GraphandFieldJSON({ name: "Paramètres" }),
+      accessTokenLifetime: new GraphandFieldNumber({ name: "accessTokenLifetime" }),
+      refreshTokenLifetime: new GraphandFieldNumber({ name: "refreshTokenLifetime" }),
     };
   }
 

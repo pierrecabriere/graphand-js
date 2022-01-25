@@ -13,6 +13,7 @@ const defaultOptions = {
   unloadTimeout: 100,
   project: undefined,
   accessToken: undefined,
+  refreshToken: undefined,
   locale: undefined,
   translations: undefined,
   realtime: undefined,
@@ -32,12 +33,16 @@ class Client implements ClientType {
   static models = models;
 
   private _initPromise;
+  private _refreshTokenPromise;
+
   _models;
   _options;
   _axios;
   _project;
   _socketSubject;
   _mediasQueueSubject;
+  _accessTokenSubject;
+  _refreshTokenSubject;
   _initialized;
 
   constructor(project: string | ClientOptions, options: ClientOptions = {}) {
@@ -48,13 +53,15 @@ class Client implements ClientType {
     this._options = { ...defaultOptions, ...options };
     this._socketSubject = new BehaviorSubject(null);
     this._mediasQueueSubject = new BehaviorSubject([]);
+    this._accessTokenSubject = new BehaviorSubject(options.accessToken);
+    this._refreshTokenSubject = new BehaviorSubject(options.refreshToken);
     this._initialized = false;
     this._models = {};
 
     this._axios = setupAxios(this);
 
     if (this._options.accessToken) {
-      this.accessToken = this._options.accessToken;
+      this.setRefreshToken(this._options.accessToken);
     }
 
     if (this._options.project && this._options.init) {
@@ -95,14 +102,66 @@ class Client implements ClientType {
     return this._socketSubject.getValue();
   }
 
-  private _accessToken;
+  getAccessToken() {
+    return this._accessTokenSubject.getValue();
+  }
 
-  get accessToken() {
-    return this._accessToken;
+  getRefreshToken() {
+    return this._refreshTokenSubject.getValue();
   }
 
   set accessToken(token: string) {
     this.setAccessToken(token);
+  }
+
+  async refreshToken() {
+    if (this._refreshTokenPromise) {
+      return this._refreshTokenPromise;
+    }
+
+    this._refreshTokenPromise = new Promise(async (resolve, reject) => {
+      try {
+        const {
+          data: {
+            data: { accessToken, refreshToken },
+          },
+        } = await this._axios.post(
+          "/auth/login",
+          { accessToken: this._accessTokenSubject.getValue(), refreshToken: this._refreshTokenSubject.getValue(), method: "refresh" },
+          {
+            headers: {
+              Authorization: null,
+            },
+          },
+        );
+        this.setRefreshToken(refreshToken);
+        this.setAccessToken(accessToken);
+        resolve(this);
+      } catch (e) {
+        this.logout();
+        reject(e);
+      }
+    });
+
+    this._refreshTokenPromise.finally(() => delete this._refreshTokenPromise);
+
+    return this._refreshTokenPromise;
+  }
+
+  setRefreshToken(token: string) {
+    this._refreshTokenSubject.next(token);
+  }
+
+  setAccessToken(token: string) {
+    this._accessTokenSubject.next(token);
+
+    if (this._options.realtime) {
+      if (token) {
+        this.reconnectSocket();
+      } else {
+        this.disconnectSocket();
+      }
+    }
   }
 
   private _locale;
@@ -357,7 +416,7 @@ class Client implements ClientType {
   }
 
   logout() {
-    this.accessToken = undefined;
+    this.setAccessToken(undefined);
     Object.values(this._models).forEach((model: any) => {
       model.clearCache();
     });
@@ -366,11 +425,16 @@ class Client implements ClientType {
   async login(credentials) {
     const {
       data: {
-        data: { accessToken },
+        data: { accessToken, refreshToken },
       },
-    } = await this._axios.post("/auth/login", credentials);
-    this.accessToken = accessToken;
-    return accessToken;
+    } = await this._axios.post("/auth/login", credentials, {
+      headers: {
+        Authorization: null,
+      },
+    });
+    this.setRefreshToken(refreshToken);
+    this.setAccessToken(accessToken);
+    return this;
   }
 
   loginWithGraphand = () => {
@@ -389,7 +453,7 @@ class Client implements ClientType {
         if (!data) {
           reject();
         } else {
-          this.accessToken = data;
+          this.setAccessToken(data);
           resolve(data);
         }
       };
@@ -495,18 +559,6 @@ class Client implements ClientType {
     }
 
     return this._models[scope];
-  }
-
-  setAccessToken(token: string) {
-    this._accessToken = token;
-
-    if (this._options.realtime) {
-      if (token) {
-        this.reconnectSocket();
-      } else {
-        this.disconnectSocket();
-      }
-    }
   }
 
   setLocale(locale: string) {

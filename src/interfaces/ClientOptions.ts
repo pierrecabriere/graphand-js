@@ -1,6 +1,7 @@
 export interface ClientOptions {
   project?: string;
   accessToken?: string;
+  refreshToken?: string;
   locale?: string;
   translations?: string[];
   host?: string;
@@ -13,5 +14,5 @@ export interface ClientOptions {
   subscribeFields?: boolean;
   init?: boolean;
   initFields?: boolean;
-  models?: any[]
+  models?: any[];
 }
