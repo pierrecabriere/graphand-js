@@ -346,7 +346,7 @@ class GraphandModel {
     } else if (typeof query === "string") {
       _id = query;
       cache = cache ?? true;
-    } else if (typeof query === "object" && query.query?._id) {
+    } else if (typeof query === "object" && query.query?._id && typeof query.query._id === "string") {
       _id = query.query._id;
       cache = cache ?? Object.keys(query).length === 1;
     }

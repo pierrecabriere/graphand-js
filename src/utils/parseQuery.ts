@@ -23,16 +23,16 @@ const _decode = (value) => {
 };
 
 const parseQuery = (payload) => {
-  if (payload.constructor.name === "FormData") {
+  if (!payload) {
+    return {};
+  }
+
+  if (payload.constructor?.name === "FormData") {
     return payload;
   }
 
   if (typeof payload === "string" && !payload.match(/^[0-9a-fA-F]{24}$/)) {
     return payload;
-  }
-
-  if (!payload) {
-    return {};
   }
 
   if (Array.isArray(payload)) {
