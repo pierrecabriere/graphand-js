@@ -22,6 +22,7 @@ import Aggregation from "./models/Aggregation";
 import Data from "./models/Data";
 import DataField from "./models/DataField";
 import DataModel from "./models/DataModel";
+import Environment from "./models/Environment";
 import EsMapping from "./models/EsMapping";
 import Log from "./models/Log";
 import Media from "./models/Media";
@@ -67,6 +68,7 @@ export {
   Sockethook as GraphandModelSockethook,
   EsMapping as GraphandModelEsMapping,
   Log as GraphandModelLog,
+  Environment as GraphandModelEnvironment,
   GraphandError,
   GraphandValidationError,
   GraphandModelPromise,
