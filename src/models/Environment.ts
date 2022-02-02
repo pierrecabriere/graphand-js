@@ -1,4 +1,5 @@
-import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
+import ModelEnvScopes from "../enums/model-env-scopes";
+import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
@@ -11,10 +12,11 @@ class Environment extends GraphandModel {
     return {
       name: new GraphandFieldText({ name: "Nom" }),
       description: new GraphandFieldText({ name: "Description" }),
-      scopes: new GraphandFieldScope({
-        name: "Scopes",
-        multiple: true,
+      cloneFrom: new GraphandFieldRelation({
+        name: "Cloner depuis",
+        model: this._client.getModel("Environment"),
       }),
+      status: new GraphandFieldText({ name: "Status", options: Object.values(ModelEnvScopes) }),
     };
   }
 }

@@ -1,18 +1,23 @@
 export interface ClientOptions {
+  host?: string;
+  cdn?: string;
+  ssl?: boolean;
+  unloadTimeout?: number;
   project?: string;
   accessToken?: string;
   refreshToken?: string;
   locale?: string;
   translations?: string[];
-  host?: string;
-  cdn?: string;
   realtime?: boolean;
+  mergeQueries?: boolean;
   autoSync?: boolean;
-  autoMapQueries?: boolean;
-  ssl?: boolean;
-  unloadTimeout?: number;
   subscribeFields?: boolean;
   init?: boolean;
-  initFields?: boolean;
+  initProject?: boolean;
+  initModels?: boolean;
   models?: any[];
+  cache?: boolean;
+  plugins?: any[];
+  socketOptions?: any;
+  env?: string;
 }

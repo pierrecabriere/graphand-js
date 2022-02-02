@@ -23,6 +23,10 @@ const setupAxios = (client: Client) => {
       delete config.headers.Authorization;
     }
 
+    if (config.headers["Content-Environment"] === undefined) {
+      config.headers["Content-Environment"] = client._options.env || "master";
+    }
+
     if (/\/users/.test(config.url)) {
       config.baseURL = `${options.ssl ? "https" : "http"}://${options.host}`;
     }

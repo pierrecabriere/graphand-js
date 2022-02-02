@@ -27,6 +27,7 @@ const defaultOptions = {
   cache: true,
   plugins: [],
   socketOptions: {},
+  env: "master",
 };
 
 class Client implements ClientType {
@@ -119,23 +120,30 @@ class Client implements ClientType {
       return this._refreshTokenPromise;
     }
 
+    const accessToken = this._accessTokenSubject.getValue();
+    const refreshToken = this._refreshTokenSubject.getValue();
+
+    console.log(accessToken, refreshToken);
+
+    if (!accessToken || !refreshToken) {
+      throw new Error();
+    }
+
     this._refreshTokenPromise = new Promise(async (resolve, reject) => {
       try {
         const {
-          data: {
-            data: { accessToken, refreshToken },
-          },
+          data: { data },
         } = await this._axios.post(
           "/auth/login",
-          { accessToken: this._accessTokenSubject.getValue(), refreshToken: this._refreshTokenSubject.getValue(), method: "refresh" },
+          { accessToken, refreshToken, method: "refresh" },
           {
             headers: {
               Authorization: null,
             },
           },
         );
-        this.setRefreshToken(refreshToken);
-        this.setAccessToken(accessToken);
+        this.setRefreshToken(data.refreshToken);
+        this.setAccessToken(data.accessToken);
         resolve(this);
       } catch (e) {
         this.logout();
@@ -185,7 +193,7 @@ class Client implements ClientType {
               }
             })(),
             (async () => {
-              if (this._options.initProject) {
+              if (this._options.initProject && this._options.project) {
                 const { data } = await this._axios.get("/projects/current");
                 this._project = new Project(data.data);
                 Project.upsertStore(this._project);
