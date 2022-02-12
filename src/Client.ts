@@ -51,6 +51,8 @@ class Client implements ClientType {
     if (typeof project === "string" && !options.project) {
       options.project = project;
     }
+    options.env = options.env || "master";
+
     this._options = { ...defaultOptions, ...options };
     this._socketSubject = new BehaviorSubject(null);
     this._mediasQueueSubject = new BehaviorSubject([]);
