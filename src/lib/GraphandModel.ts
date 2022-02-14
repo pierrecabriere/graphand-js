@@ -916,7 +916,7 @@ class GraphandModel {
     opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { cache: opts });
     const { cache, callback, hooks } = opts;
 
-    if (typeof query === "object" && "ids" in query) {
+    if (cache && typeof query === "object" && "ids" in query) {
       if (this._client._options.mergeQueries && Object.keys(query).length === 1 && this._queryIds.size + query.ids.length < 100) {
         if (this._queryIdsTimeout) {
           clearTimeout(this._queryIdsTimeout);
@@ -950,24 +950,36 @@ class GraphandModel {
     const cacheKey = this.getCacheKey(query);
     const cacheEntry = this._cache[cacheKey];
 
-    if (!cacheEntry) {
-      this._cache[cacheKey] = {
-        previous: null,
-        request: this._request(query, hooks, cacheKey),
-      };
+    try {
+      if (!cacheEntry) {
+        this._cache[cacheKey] = {
+          previous: null,
+          request: this._request(query, hooks, cacheKey),
+        };
 
-      res = await this._cache[cacheKey].request;
-      callback?.call(callback, res);
-    } else {
-      if (cacheEntry.previous) {
-        callback?.call(callback, cacheEntry.previous);
+        res = await this._cache[cacheKey].request;
+        callback?.call(callback, res);
+      } else {
+        if (cacheEntry.previous) {
+          callback?.call(callback, cacheEntry.previous);
+        }
+
+        if (!cacheEntry.request) {
+          cacheEntry.request = this._request(query, hooks, cacheKey);
+        }
+
+        res = await cacheEntry.request;
+      }
+    } catch (e) {
+      if (e.data) {
+        res = e.response;
+      } else {
+        throw e;
       }
 
-      if (!cacheEntry.request) {
-        cacheEntry.request = this._request(query, hooks, cacheKey);
+      if (e.graphandErrors) {
+        console.error(e.graphandErrors);
       }
-
-      res = await cacheEntry.request;
     }
 
     this._queryIdsTimeout = setTimeout(() => (this._queryIds = new Set()));

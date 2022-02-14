@@ -40,8 +40,9 @@ const setupAxios = (client: Client) => {
       error.graphandErrors = error.graphandErrors || [];
 
       try {
-        const { errors } = error.response.data;
-        error.graphandErrors = error.graphandErrors.concat(errors.map((e) => GraphandError.fromJSON(e, error.response.status)));
+        const { data, errors } = error.response.data;
+        error.data = data;
+        error.graphandErrors = errors.map((e) => GraphandError.fromJSON(e, error.response.status));
       } catch (e) {}
 
       if (!error.config._retry && error.config.url !== "/auth/login" && error.graphandErrors.find((e) => e.code === "expired_token")) {
@@ -53,7 +54,7 @@ const setupAxios = (client: Client) => {
         });
       }
 
-      return Promise.reject(error.graphandErrors || [new GraphandError(error.message)]);
+      return Promise.reject(error);
     },
   );
 
