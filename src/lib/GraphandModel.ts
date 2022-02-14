@@ -10,6 +10,7 @@ import GraphandFieldRelation from "./fields/GraphandFieldRelation";
 import GraphandModelList from "./GraphandModelList";
 import GraphandModelListPromise from "./GraphandModelListPromise";
 import GraphandModelPromise from "./GraphandModelPromise";
+import Account from "../models/Account";
 
 class GraphandModel {
   // configurable fields
