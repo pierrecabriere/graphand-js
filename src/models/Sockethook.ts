@@ -1,9 +1,9 @@
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
-import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 
 class Sockethook extends GraphandModel {
   static apiIdentifier = "sockethooks";
@@ -13,12 +13,12 @@ class Sockethook extends GraphandModel {
   static baseFields = {
     identifier: new GraphandFieldText({ name: "Identifiant unique" }),
     action: new GraphandFieldText({ name: "Action" }),
+    fields: new GraphandFieldText({ name: "Champs", multiple: true }),
     scope: new GraphandFieldScope({ name: "Scope" }),
     await: new GraphandFieldBoolean({ name: "Attendre le retour" }),
     blocked: new GraphandFieldBoolean({ name: "Bloqué" }),
     timeout: new GraphandFieldNumber({ name: "Timeout" }),
     priority: new GraphandFieldNumber({ name: "Priorité", defaultValue: 0 }),
-    revision: new GraphandFieldNumber({ name: "Revision", defaultValue: 1 }),
     hosts: new GraphandFieldJSON({ name: "Hôtes" }),
   };
 

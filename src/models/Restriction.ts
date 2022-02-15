@@ -10,7 +10,7 @@ class Restriction extends GraphandModel {
   static scope = "Restriction";
 
   static baseFields(values) {
-    const model = values && this._client.getModel(values.scope);
+    const model = values?.scope && this._client.getModel(values.scope);
     return {
       role: new GraphandFieldRelation({
         name: "Rôle",
@@ -29,12 +29,7 @@ class Restriction extends GraphandModel {
       fields: new GraphandFieldText({
         name: "Champs à restreindre",
         multiple: true,
-        options: model
-          ? Object.keys(model.fields).map((slug) => ({
-              value: slug,
-              label: model.fields[slug].name || slug,
-            }))
-          : [],
+        options: model?.fields ? Object.keys(model.fields) : [],
       }),
       conditions: new GraphandFieldJSON({ name: "Conditions" }),
     };
