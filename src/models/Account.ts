@@ -27,11 +27,6 @@ class Account extends GraphandModel {
       password: new GraphandFieldText({
         name: "Mot de passe",
       }),
-      user: new GraphandFieldRelation({
-        name: "Utilisateur graphand",
-        model: this._client.getModel("User"),
-        multiple: false,
-      }),
       role: new GraphandFieldRelation({
         name: "Role",
         model: this._client.getModel("Role"),

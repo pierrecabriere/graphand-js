@@ -1,5 +1,4 @@
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
-import GraphandFieldColor from "../lib/fields/GraphandFieldColor";
 import GraphandFieldDate from "../lib/fields/GraphandFieldDate";
 import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
@@ -58,8 +57,6 @@ class DataField extends GraphandModel {
         return new GraphandFieldBoolean({ ...configuration, exclude, name });
       case "Number":
         return new GraphandFieldNumber({ ...configuration, exclude, name });
-      case "Color":
-        return new GraphandFieldColor({ ...configuration, exclude, name });
       case "JSON":
         return new GraphandFieldJSON({ ...configuration, exclude, name });
     }

@@ -1,7 +1,6 @@
 import Client from "./Client";
 import AggregationExecutor from "./lib/AggregationExecutor";
 import GraphandFieldBoolean from "./lib/fields/GraphandFieldBoolean";
-import GraphandFieldColor from "./lib/fields/GraphandFieldColor";
 import GraphandFieldDate from "./lib/fields/GraphandFieldDate";
 import GraphandFieldId from "./lib/fields/GraphandFieldId";
 import GraphandFieldJSON from "./lib/fields/GraphandFieldJSON";
@@ -50,7 +49,6 @@ export {
   GraphandFieldDate,
   GraphandFieldBoolean,
   GraphandFieldJSON,
-  GraphandFieldColor,
   Account as GraphandModelAccount,
   Data as GraphandModelData,
   Role as GraphandModelRole,
