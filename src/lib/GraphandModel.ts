@@ -3,14 +3,16 @@ import isEqual from "fast-deep-equal";
 import _ from "lodash";
 import { Observable } from "rxjs";
 import Client from "../Client";
+import Account from "../models/Account";
+import { getPopulatedPaths } from "../utils/getPopulatedPaths";
 import parseQuery from "../utils/parseQuery";
+import { processPopulate } from "../utils/processPopulate";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldId from "./fields/GraphandFieldId";
 import GraphandFieldRelation from "./fields/GraphandFieldRelation";
 import GraphandModelList from "./GraphandModelList";
 import GraphandModelListPromise from "./GraphandModelListPromise";
 import GraphandModelPromise from "./GraphandModelPromise";
-import Account from "../models/Account";
 
 class GraphandModel {
   // configurable fields
@@ -101,11 +103,9 @@ class GraphandModel {
       return data.clone();
     }
 
-    data = Object.assign({}, data);
-
     this._id = data._id || `_${new ObjectID().toString()}`;
-    this._data = data;
     this._fields = fields || constructor.getFields(this) || {};
+    this._data = Object.assign({}, data);
 
     Object.defineProperty(this, "_data", { enumerable: false });
     Object.defineProperty(this, "_locale", { enumerable: false });
@@ -117,6 +117,11 @@ class GraphandModel {
     }
 
     constructor.setPrototypeFields(this, this._fields);
+  }
+
+  populate(paths?) {
+    this._data = processPopulate(this._data, this._fields, paths);
+    return this;
   }
 
   translate(locale) {
@@ -253,12 +258,12 @@ class GraphandModel {
     });
   }
 
-  subscribe() {
+  subscribe(...args) {
     if (!this._observable) {
       this.createObservable();
     }
 
-    const sub = this._observable.subscribe.apply(this._observable, arguments);
+    const sub = this._observable.subscribe(...args);
     this._subscriptions.add(sub);
     const unsubscribe = sub.unsubscribe;
     sub.unsubscribe = () => {
@@ -778,75 +783,13 @@ class GraphandModel {
     constructor.setPrototypeFields(this);
   }
 
-  static getPopulatedPaths(populateQuery) {
-    if (!populateQuery) {
-      return null;
-    }
-
-    if (typeof populateQuery === "string") {
-      return [populateQuery];
-    }
-
-    const _getPopulatedPaths = function (list, arr, prefix) {
-      for (const pop of arr) {
-        list.push(prefix + pop.path);
-        if (!Array.isArray(pop.populate)) {
-          continue;
-        }
-        _getPopulatedPaths(list, pop.populate, prefix + pop.path + ".");
-      }
-    };
-
-    const ret = [];
-    for (const path of Object.keys(populateQuery)) {
-      const pop = populateQuery[path];
-      if ("string" === typeof pop) {
-        ret.push(pop);
-        continue;
-      } else if (!Array.isArray(pop.populate)) {
-        continue;
-      }
-
-      _getPopulatedPaths(ret, pop.populate, path + ".");
-    }
-
-    return ret;
-  }
-
   static _handleRequestResult(data, query) {
-    const _processPopulate = (item) => {
-      const populatedPaths = this.getPopulatedPaths(query.populate);
-      if (populatedPaths?.length) {
-        const fields = this.getFields(item);
-        for (const path of populatedPaths) {
-          const field = fields[path];
-          if (!field || !(field instanceof GraphandFieldRelation)) {
-            continue;
-          }
+    const populatedPaths = getPopulatedPaths(query.populate);
 
-          const populatedData = _.get(item, path);
-          if (!populatedData) {
-            continue;
-          }
-
-          let value;
-          if (field.multiple && Array.isArray(populatedData)) {
-            const _items = populatedData.map((populatedItem) => new field.model(populatedItem));
-            field.model.upsertStore(_items);
-            value = populatedData.map((i) => i && i._id).filter(Boolean);
-          } else {
-            const _item = new field.model(populatedData);
-            field.model.upsertStore(_item);
-            value = _item._id;
-          }
-
-          _.set(item, path, value);
-        }
-      }
-    };
-
-    const _rows = data?.rows ? data.rows : data?._id ? [data] : [];
-    _rows.forEach((item) => _processPopulate(item));
+    let _rows = data?.rows ? data.rows : data?._id ? [data] : [];
+    if (populatedPaths?.length) {
+      _rows.forEach((_row) => processPopulate(_row, this.getFields(_row), populatedPaths));
+    }
 
     const rows = _rows.map((item) => {
       const found = item?._id && this.get(item._id, false);

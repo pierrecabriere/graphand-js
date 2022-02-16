@@ -1,6 +1,8 @@
 import GraphandModel from "./GraphandModel";
 
 class GraphandField {
+  static __fieldType;
+
   name;
   defaultValue;
   exclude;

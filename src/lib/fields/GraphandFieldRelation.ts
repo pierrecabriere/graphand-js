@@ -2,6 +2,8 @@ import GraphandField from "../GraphandField";
 import GraphandModel from "../GraphandModel";
 
 class GraphandFieldRelation extends GraphandField {
+  static __fieldType = "Relation";
+
   model;
   multiple;
   query;

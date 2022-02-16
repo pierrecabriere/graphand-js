@@ -1,5 +1,5 @@
-import GraphandField from "../GraphandField";
+import GraphandFieldText from "./GraphandFieldText";
 
-class GraphandFieldId extends GraphandField {}
+class GraphandFieldId extends GraphandFieldText {}
 
 export default GraphandFieldId;

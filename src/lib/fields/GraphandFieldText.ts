@@ -2,6 +2,8 @@ import GraphandField from "../GraphandField";
 import GraphandModel from "../GraphandModel";
 
 class GraphandFieldText extends GraphandField {
+  static __fieldType = "Text";
+
   multiple;
 
   getter(value, from: GraphandModel) {

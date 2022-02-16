@@ -2,6 +2,8 @@ import isEqual from "fast-deep-equal";
 import GraphandField from "../GraphandField";
 
 class GraphandFieldJSON extends GraphandField {
+  static __fieldType = "JSON";
+
   fields;
 
   getter(value) {
