@@ -45,14 +45,16 @@ class Sockethook extends GraphandModel {
     return super.handleUpdateCall.apply(this, arguments);
   }
 
-  async ping() {
+  async ping(waitForReconnections = false) {
     const { constructor } = Object.getPrototypeOf(this);
     try {
       const startTime = new Date().getTime();
       await constructor._client._axios.post(`${constructor.baseUrl}/ping`, {
         ip: this.ip,
         identifier: this.identifier,
+        waitForReconnections,
       });
+
       return new Date().getTime() - startTime;
     } catch (e) {
       return false;

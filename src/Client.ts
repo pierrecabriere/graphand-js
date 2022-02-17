@@ -125,8 +125,6 @@ class Client implements ClientType {
     const accessToken = this._accessTokenSubject.getValue();
     const refreshToken = this._refreshTokenSubject.getValue();
 
-    console.log(accessToken, refreshToken);
-
     if (!accessToken || !refreshToken) {
       throw new Error();
     }
