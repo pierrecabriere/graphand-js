@@ -355,6 +355,8 @@ class GraphandModel {
     } else if (typeof query === "object" && query.query?._id && typeof query.query._id === "string") {
       _id = query.query._id;
       cache = cache ?? Object.keys(query).length === 1;
+    } else {
+      cache = cache ?? true;
     }
 
     const item = cache && _id && this.getList().find((item) => item._id === _id);
@@ -856,8 +858,12 @@ class GraphandModel {
       sync: false,
     };
 
-    opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { cache: opts });
+    opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { cache: opts ?? defaultOptions.cache });
     const { cache, callback, hooks } = opts;
+
+    if (query.query?.slug) {
+      console.log(query, { cache, callback, hooks }, opts);
+    }
 
     if (cache && typeof query === "object" && "ids" in query) {
       if (this._client._options.mergeQueries && Object.keys(query).length === 1 && this._queryIds.size + query.ids.length < 100) {
