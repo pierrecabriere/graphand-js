@@ -60,6 +60,17 @@ class GraphandModel {
 
   static universalPrototypeMethods = [];
 
+  // hooks
+  static beforeQuery;
+  static afterQuery;
+  static beforeCreate;
+  static middlewareCreate;
+  static afterCreate;
+  static beforeUpdate;
+  static afterUpdate;
+  static beforeDelete;
+  static afterDelete;
+
   static hydrate(data: any, fields?) {
     data = data ?? {};
 
@@ -82,153 +93,6 @@ class GraphandModel {
     return new this(data, fields);
   }
 
-  serialize() {
-    const { constructor } = Object.getPrototypeOf(this);
-
-    return { __type: "GraphandModel", __scope: constructor.scope, __payload: this._data };
-  }
-
-  constructor(data: any = {}, fields?) {
-    const { constructor } = Object.getPrototypeOf(this);
-
-    if (!constructor._registeredAt || !constructor._client) {
-      throw new Error(`Model ${constructor.scope} is not register. Please use Client.registerModel() before`);
-    }
-
-    if (!constructor._initialized) {
-      console.warn(`Model ${constructor.scope} is not initialized yet. You should wait Model.init() berore create instances`);
-    }
-
-    if (data instanceof GraphandModel) {
-      return data.clone();
-    }
-
-    this._id = data._id || `_${new ObjectID().toString()}`;
-    this._fields = fields || constructor.getFields(this) || {};
-    this._data = Object.assign({}, data);
-
-    Object.defineProperty(this, "_data", { enumerable: false });
-    Object.defineProperty(this, "_locale", { enumerable: false });
-    Object.defineProperty(this, "_version", { enumerable: false });
-    Object.defineProperty(this, "_fields", { enumerable: false });
-
-    if (constructor.queryFields && constructor._client._options.subscribeFields) {
-      constructor.init().then(() => constructor.fieldsList.subscribe(() => constructor.setPrototypeFields(this)));
-    }
-
-    constructor.setPrototypeFields(this, this._fields);
-  }
-
-  populate(paths?) {
-    this._data = processPopulate(this._data, this._fields, paths);
-    return this;
-  }
-
-  translate(locale) {
-    const { constructor } = Object.getPrototypeOf(this);
-
-    if (constructor.translatable) {
-      this._locale = locale;
-    }
-
-    return this;
-  }
-
-  get _translations() {
-    const { constructor } = Object.getPrototypeOf(this);
-
-    const translations = this._data.translations ? Object.keys(this._data.translations) : [];
-    return translations.concat(constructor._client._project?.defaultLocale);
-  }
-
-  clone(locale?) {
-    const { constructor } = Object.getPrototypeOf(this);
-    const clone = new constructor(_.cloneDeep(this.raw), this._fields);
-    if (locale) {
-      clone.translate(locale);
-    }
-    clone._version = this._version;
-    return clone;
-  }
-
-  get(slug, decode = false, _locale = this._locale, fallback = true, fields?: any) {
-    const { constructor } = Object.getPrototypeOf(this);
-
-    fields = fields ?? constructor.getFields(this);
-    const field = fields[slug];
-    if (!field) {
-      return undefined;
-    }
-
-    let value = _.get(this._data, slug);
-
-    if (constructor.translatable) {
-      let locale = _locale || constructor._client.locale;
-      if (locale && constructor._client._project?.locales?.includes(locale) && locale !== constructor._client._project.defaultLocale) {
-        const translationValue = _.get(this._data, `translations.${locale}.${slug}`);
-        value = fallback && translationValue !== undefined ? value : translationValue;
-      }
-    }
-
-    if (value === undefined) {
-      value = field.defaultValue;
-    }
-
-    if (field?.getter) {
-      value = field.getter(value, this);
-      if (decode && field?.setter) {
-        value = field.setter(value, this);
-      }
-    }
-
-    return value;
-  }
-
-  set(slug, value, fields?: any) {
-    const { constructor } = Object.getPrototypeOf(this);
-
-    fields = fields ?? constructor.getFields(this);
-    const field = fields[slug];
-
-    if (field?.setter) {
-      value = field.setter(value, this);
-    }
-
-    _.set(this._data, slug, value);
-
-    return this;
-  }
-
-  assign(values?, upsert = true, updatedAtNow = true) {
-    const { constructor } = Object.getPrototypeOf(this);
-    const clone = this.clone();
-    if (values) {
-      Object.keys(values).forEach((key) => {
-        clone.set(key, values[key]);
-      });
-    }
-
-    if (updatedAtNow) {
-      clone.updatedAt = new Date();
-    }
-
-    if (upsert) {
-      constructor.upsertStore(clone);
-    }
-
-    if (values) {
-      Object.keys(values).forEach((key) => {
-        this.set(key, values[key]);
-      });
-    }
-
-    if (updatedAtNow) {
-      this.updatedAt = clone.updatedAt;
-    }
-
-    return this;
-  }
-
   static sync(opts: any = {}) {
     let force = typeof opts === "boolean" ? opts : opts.force ?? false;
     this._socketOptions = opts;
@@ -238,54 +102,6 @@ class GraphandModel {
     }
 
     return this;
-  }
-
-  createObservable() {
-    const { constructor } = Object.getPrototypeOf(this);
-    this._observable = new Observable((subscriber) => {
-      let prev = this.clone();
-      this._storeSub = constructor._listSubject.subscribe((_list) => {
-        setTimeout(async () => {
-          const item = prev.isTemporary() ? _list.find((i) => i._id === prev._id) : await constructor.get(prev._id);
-          if (!item || item._version > prev._version || !isEqual(item.raw, prev.raw)) {
-            if (item) {
-              prev = item.clone();
-            }
-            subscriber.next(item);
-          }
-        });
-      });
-    });
-  }
-
-  subscribe(...args) {
-    if (!this._observable) {
-      this.createObservable();
-    }
-
-    const sub = this._observable.subscribe(...args);
-    this._subscriptions.add(sub);
-    const unsubscribe = sub.unsubscribe;
-    sub.unsubscribe = () => {
-      unsubscribe.apply(sub);
-      this._subscriptions.delete(sub);
-
-      if (!this._subscriptions.size) {
-        this._storeSub?.unsubscribe();
-        delete this._observable;
-      }
-    };
-
-    sub.next(this);
-    return sub;
-  }
-
-  isTemporary() {
-    return this._id.startsWith("_");
-  }
-
-  get raw() {
-    return this._data;
   }
 
   static get fieldsList() {
@@ -508,7 +324,7 @@ class GraphandModel {
     return await this._client.getModel("DataField").getList(query);
   }
 
-  private static setupSocket(socket?) {
+  static setupSocket(socket?) {
     socket = socket || this._client?.socket;
     if (!socket || !socket.id) {
       return;
@@ -777,12 +593,6 @@ class GraphandModel {
     }
 
     return list;
-  }
-
-  reloadFields() {
-    const { constructor } = Object.getPrototypeOf(this);
-
-    constructor.setPrototypeFields(this);
   }
 
   static _handleRequestResult(data, query) {
@@ -1225,11 +1035,6 @@ class GraphandModel {
     return true;
   }
 
-  delete(options) {
-    const constructor = this.constructor as any;
-    return constructor.delete(this, options);
-  }
-
   static get HistoryModel() {
     const modelName = `${this.scope}_history`;
     const parent = this;
@@ -1248,6 +1053,52 @@ class GraphandModel {
     }
 
     return this._client.models[modelName];
+  }
+
+  // constructor
+
+  constructor(data: any = {}, fields?) {
+    const { constructor } = Object.getPrototypeOf(this);
+
+    if (!constructor._registeredAt || !constructor._client) {
+      throw new Error(`Model ${constructor.scope} is not register. Please use Client.registerModel() before`);
+    }
+
+    if (!constructor._initialized) {
+      console.warn(`Model ${constructor.scope} is not initialized yet. You should wait Model.init() berore create instances`);
+    }
+
+    if (data instanceof GraphandModel) {
+      return data.clone();
+    }
+
+    this._id = data._id || `_${new ObjectID().toString()}`;
+    this._fields = fields || constructor.getFields(this) || {};
+    this._data = Object.assign({}, data);
+
+    Object.defineProperty(this, "_data", { enumerable: false });
+    Object.defineProperty(this, "_locale", { enumerable: false });
+    Object.defineProperty(this, "_version", { enumerable: false });
+    Object.defineProperty(this, "_fields", { enumerable: false });
+
+    if (constructor.queryFields && constructor._client._options.subscribeFields) {
+      constructor.init().then(() => constructor.fieldsList.subscribe(() => constructor.setPrototypeFields(this)));
+    }
+
+    constructor.setPrototypeFields(this, this._fields);
+  }
+
+  // getters
+
+  get raw() {
+    return this._data;
+  }
+
+  get _translations() {
+    const { constructor } = Object.getPrototypeOf(this);
+
+    const translations = this._data.translations ? Object.keys(this._data.translations) : [];
+    return translations.concat(constructor._client._project?.defaultLocale);
   }
 
   get HistoryModel() {
@@ -1271,43 +1122,168 @@ class GraphandModel {
     return constructor._client.models[modelName];
   }
 
-  get publicUrls() {
-    return new Proxy(this, {
-      get: function (oTarget, sKey) {
-        const { constructor } = Object.getPrototypeOf(oTarget);
-        if (!constructor._client) {
-          return null;
-        }
+  // helpers
 
-        const cdnUri = `${constructor._client._options.ssl ? "https" : "http"}://${constructor._client._options.cdn}`;
-        return `${cdnUri}/public/${constructor._client._options.project}/${oTarget.raw[sKey]}`;
-      },
+  populate(paths?) {
+    this._data = processPopulate(this._data, this._fields, paths);
+    return this;
+  }
+
+  translate(locale) {
+    const { constructor } = Object.getPrototypeOf(this);
+
+    if (constructor.translatable) {
+      this._locale = locale;
+    }
+
+    return this;
+  }
+
+  clone(locale?) {
+    const { constructor } = Object.getPrototypeOf(this);
+    const clone = new constructor(_.cloneDeep(this.raw), this._fields);
+    if (locale) {
+      clone.translate(locale);
+    }
+    clone._version = this._version;
+    return clone;
+  }
+
+  get(slug, decode = false, _locale = this._locale, fallback = true, fields?: any) {
+    const { constructor } = Object.getPrototypeOf(this);
+
+    fields = fields ?? constructor.getFields(this);
+    const field = fields[slug];
+    if (!field) {
+      return undefined;
+    }
+
+    let value = _.get(this._data, slug);
+
+    if (constructor.translatable) {
+      let locale = _locale || constructor._client.locale;
+      if (locale && constructor._client._project?.locales?.includes(locale) && locale !== constructor._client._project.defaultLocale) {
+        const translationValue = _.get(this._data, `translations.${locale}.${slug}`);
+        value = fallback && translationValue !== undefined ? value : translationValue;
+      }
+    }
+
+    if (value === undefined) {
+      value = field.defaultValue;
+    }
+
+    if (field?.getter) {
+      value = field.getter(value, this);
+      if (decode && field?.setter) {
+        value = field.setter(value, this);
+      }
+    }
+
+    return value;
+  }
+
+  set(slug, value, fields?: any) {
+    const { constructor } = Object.getPrototypeOf(this);
+
+    fields = fields ?? constructor.getFields(this);
+    const field = fields[slug];
+
+    if (field?.setter) {
+      value = field.setter(value, this);
+    }
+
+    _.set(this._data, slug, value);
+
+    return this;
+  }
+
+  assign(values?, upsert = true, updatedAtNow = true) {
+    const { constructor } = Object.getPrototypeOf(this);
+    const clone = this.clone();
+    if (values) {
+      Object.keys(values).forEach((key) => {
+        clone.set(key, values[key]);
+      });
+    }
+
+    if (updatedAtNow) {
+      clone.updatedAt = new Date();
+    }
+
+    if (upsert) {
+      constructor.upsertStore(clone);
+    }
+
+    if (values) {
+      Object.keys(values).forEach((key) => {
+        this.set(key, values[key]);
+      });
+    }
+
+    if (updatedAtNow) {
+      this.updatedAt = clone.updatedAt;
+    }
+
+    return this;
+  }
+
+  createObservable() {
+    const { constructor } = Object.getPrototypeOf(this);
+    this._observable = new Observable((subscriber) => {
+      let prev = this.clone();
+      this._storeSub = constructor._listSubject.subscribe((_list) => {
+        setTimeout(async () => {
+          const item = prev.isTemporary() ? _list.find((i) => i._id === prev._id) : await constructor.get(prev._id);
+          if (!item || item._version > prev._version || !isEqual(item.raw, prev.raw)) {
+            if (item) {
+              prev = item.clone();
+            }
+            subscriber.next(item);
+          }
+        });
+      });
     });
   }
 
-  toObject() {
-    const { constructor } = Object.getPrototypeOf(this);
-    const fields = constructor.getFields(this);
-    return Object.keys(fields).reduce((final, slug) => Object.assign(final, { [slug]: this.get(slug) }), {});
+  subscribe(...args) {
+    if (!this._observable) {
+      this.createObservable();
+    }
+
+    const sub = this._observable.subscribe(...args);
+    this._subscriptions.add(sub);
+    const unsubscribe = sub.unsubscribe;
+    sub.unsubscribe = () => {
+      unsubscribe.apply(sub);
+      this._subscriptions.delete(sub);
+
+      if (!this._subscriptions.size) {
+        this._storeSub?.unsubscribe();
+        delete this._observable;
+      }
+    };
+
+    sub.next(this);
+    return sub;
   }
 
-  toJSON() {
-    const { constructor } = Object.getPrototypeOf(this);
-    const fields = constructor.getFields(this);
-    return Object.keys(fields).reduce((final, slug) => Object.assign(final, { [slug]: this.get(slug, true) }), {});
+  isTemporary() {
+    return this._id.startsWith("_");
   }
 
-  toString() {
-    return this._id;
+  reloadFields() {
+    const { constructor } = Object.getPrototypeOf(this);
+
+    constructor.setPrototypeFields(this);
+  }
+
+  delete(options) {
+    const constructor = this.constructor as any;
+    return constructor.delete(this, options);
   }
 
   encodeQuery() {
     return this._id;
-  }
-
-  toPromise() {
-    const { constructor } = Object.getPrototypeOf(this);
-    return constructor.get(this._id).toPromise();
   }
 
   refresh() {
@@ -1317,18 +1293,13 @@ class GraphandModel {
     return this;
   }
 
-  // hooks
-  static beforeQuery;
-  static afterQuery;
-  static beforeCreate;
-  static middlewareCreate;
-  static afterCreate;
-  static beforeUpdate;
-  static afterUpdate;
-  static beforeDelete;
-  static afterDelete;
+  // serialization
 
-  // experimental
+  serialize() {
+    const { constructor } = Object.getPrototypeOf(this);
+
+    return { __type: "GraphandModel", __scope: constructor.scope, __payload: this._data };
+  }
 
   static async serializeModel(clearCache = false) {
     const dataFields = await this.getDataFields();
@@ -1369,6 +1340,29 @@ class GraphandModel {
     this.rebuildModel(modelSerial);
     const data = JSON.parse(res);
     return this.hydrate(data);
+  }
+
+  // format
+
+  toObject() {
+    const { constructor } = Object.getPrototypeOf(this);
+    const fields = constructor.getFields(this);
+    return Object.keys(fields).reduce((final, slug) => Object.assign(final, { [slug]: this.get(slug) }), {});
+  }
+
+  toJSON() {
+    const { constructor } = Object.getPrototypeOf(this);
+    const fields = constructor.getFields(this);
+    return Object.keys(fields).reduce((final, slug) => Object.assign(final, { [slug]: this.get(slug, true) }), {});
+  }
+
+  toString() {
+    return this._id;
+  }
+
+  toPromise() {
+    const { constructor } = Object.getPrototypeOf(this);
+    return constructor.get(this._id).toPromise();
   }
 }
 
