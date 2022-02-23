@@ -133,10 +133,10 @@ class GraphandModel {
           enumerable: true,
           configurable: true,
           get: function () {
-            return this.get(slug, undefined, undefined, undefined, fields);
+            return this.get(slug);
           },
           set(v) {
-            return this.set(slug, v, fields);
+            return this.set(slug, v);
           },
         };
 
@@ -671,10 +671,6 @@ class GraphandModel {
     opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { cache: opts ?? defaultOptions.cache });
     const { cache, callback, hooks } = opts;
 
-    if (query.query?.slug) {
-      console.log(query, { cache, callback, hooks }, opts);
-    }
-
     if (cache && typeof query === "object" && "ids" in query) {
       if (this._client._options.mergeQueries && Object.keys(query).length === 1 && this._queryIds.size + query.ids.length < 100) {
         if (this._queryIdsTimeout) {
@@ -1149,10 +1145,11 @@ class GraphandModel {
     return clone;
   }
 
-  get(slug, decode = false, _locale = this._locale, fallback = true, fields?: any) {
+  get(slug, decode = false, _locale = this._locale, fallback = true) {
     const { constructor } = Object.getPrototypeOf(this);
 
-    fields = fields ?? constructor.getFields(this);
+    // const fields = constructor.getFields(this);
+    const fields = this._fields;
     const field = fields[slug];
     if (!field) {
       return undefined;
@@ -1182,17 +1179,24 @@ class GraphandModel {
     return value;
   }
 
-  set(slug, value, fields?: any) {
+  set(slug, value, upsert) {
     const { constructor } = Object.getPrototypeOf(this);
 
-    fields = fields ?? constructor.getFields(this);
+    // const fields = constructor.getFields(this);
+    const fields = this._fields;
     const field = fields[slug];
+
+    upsert = upsert ?? (field && !["_id", "createdAt", "createdBy", "updatedAt", "updatedBy"].includes(slug));
 
     if (field?.setter) {
       value = field.setter(value, this);
     }
 
-    _.set(this._data, slug, value);
+    if (upsert) {
+      return this.assign({ [slug]: value });
+    } else {
+      _.set(this._data, slug, value);
+    }
 
     return this;
   }
@@ -1202,7 +1206,7 @@ class GraphandModel {
     const clone = this.clone();
     if (values) {
       Object.keys(values).forEach((key) => {
-        clone.set(key, values[key]);
+        clone.set(key, values[key], false);
       });
     }
 
@@ -1216,7 +1220,7 @@ class GraphandModel {
 
     if (values) {
       Object.keys(values).forEach((key) => {
-        this.set(key, values[key]);
+        this.set(key, values[key], false);
       });
     }
 
