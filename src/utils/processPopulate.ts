@@ -1,7 +1,8 @@
 import _ from "lodash";
+import Client from "../Client";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 
-export const processPopulate = (item, fields, populatedPaths?) => {
+export const processPopulate = (item: any, fields: any, client: Client, populatedPaths?: string[]) => {
   populatedPaths = populatedPaths ?? Object.keys(fields).filter((key) => fields[key] instanceof GraphandFieldRelation);
   for (const path of populatedPaths) {
     const field = fields[path];
@@ -11,14 +12,16 @@ export const processPopulate = (item, fields, populatedPaths?) => {
       continue;
     }
 
+    const model = client.getModel(field.ref);
+
     let value;
     if (field.multiple && Array.isArray(populatedData)) {
-      const _items = populatedData.map((populatedItem) => new field.model(populatedItem));
-      field.model.upsertStore(_items);
+      const _items = populatedData.map((populatedItem) => new model(populatedItem));
+      model.upsertStore(_items);
       value = populatedData.map((i) => i && i._id).filter(Boolean);
     } else {
-      const _item = new field.model(populatedData);
-      field.model.upsertStore(_item);
+      const _item = new model(populatedData);
+      model.upsertStore(_item);
       value = _item._id;
     }
 

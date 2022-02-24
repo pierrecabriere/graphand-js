@@ -8,8 +8,16 @@ class GraphandFieldRelation extends GraphandField {
   multiple;
   query;
 
+  constructor(data?: any) {
+    super(data);
+
+    if (!data.ref) {
+      throw new Error(`Invalid ref ${data.ref} for field`);
+    }
+  }
+
   getter(value, from: GraphandModel) {
-    if (!value) {
+    if (!value || !from) {
       return;
     }
 

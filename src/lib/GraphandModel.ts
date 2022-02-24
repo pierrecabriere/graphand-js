@@ -420,7 +420,7 @@ class GraphandModel {
     Object.values(fields)
       .filter((field) => field instanceof GraphandFieldRelation)
       .forEach((field: any) => {
-        const model = typeof field.model === "string" ? this._client.getModel(field.model) : field.model;
+        const model = this._client.getModel(field.ref);
         if (model !== this) {
           model?.clearCache();
         }
@@ -598,7 +598,7 @@ class GraphandModel {
     let _rows = data?.rows ? data.rows : data?._id ? [data] : [];
     if (populatedPaths?.length) {
       const fields = this.fields;
-      _rows.forEach((_row) => processPopulate(_row, fields, populatedPaths));
+      _rows.forEach((_row) => processPopulate(_row, fields, this._client, populatedPaths));
     }
 
     const rows = _rows.map((item) => {
@@ -1118,7 +1118,7 @@ class GraphandModel {
 
   populate(paths?) {
     const { constructor } = Object.getPrototypeOf(this);
-    this._data = processPopulate(this._data, constructor.fields, paths);
+    this._data = processPopulate(this._data, constructor.fields, constructor._client, paths);
     return this;
   }
 

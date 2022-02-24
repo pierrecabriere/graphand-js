@@ -12,11 +12,11 @@ class GraphandField {
     Object.assign(this, data);
   }
 
-  getter(value, from: GraphandModel) {
+  getter(value: any, from: GraphandModel) {
     return value;
   }
 
-  setter(value) {
+  setter(value: any) {
     return value;
   }
 }
