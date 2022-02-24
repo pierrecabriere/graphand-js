@@ -7,26 +7,13 @@ class Module extends GraphandModel {
   static apiIdentifier = "modules";
   static baseUrl = "/modules";
   static scope = "Module";
-
-  static get baseFields() {
-    return {
-      name: new GraphandFieldText({
-        name: "Nom",
-      }),
-      type: new GraphandFieldText({
-        name: "Type",
-      }),
-      default: new GraphandFieldBoolean({
-        name: "Module par défaut",
-      }),
-      pinned: new GraphandFieldBoolean({
-        name: "Module par défaut",
-      }),
-      configuration: new GraphandFieldJSON({
-        name: "Configuration",
-      }),
-    };
-  }
+  static schema = {
+    name: new GraphandFieldText({ name: "Nom" }),
+    type: new GraphandFieldText({ name: "Type" }),
+    default: new GraphandFieldBoolean({ name: "Module par défaut" }),
+    pinned: new GraphandFieldBoolean({ name: "Module par défaut" }),
+    configuration: new GraphandFieldJSON({ name: "Configuration" }),
+  };
 }
 
 export default Module;

@@ -9,31 +9,16 @@ class Account extends GraphandModel {
   static apiIdentifier = "accounts";
   static baseUrl = "/accounts";
   static scope = "Account";
+  static schema = {
+    firstname: new GraphandFieldText({ name: "Prénom" }),
+    lastname: new GraphandFieldText({ name: "Nom" }),
+    email: new GraphandFieldText({ name: "Email" }),
+    password: new GraphandFieldText({ name: "Mot de passe" }),
+    role: new GraphandFieldRelation({ name: "Role", ref: "Role", multiple: false }),
+  };
 
   firstname;
   lastname;
-
-  static baseFields() {
-    return {
-      firstname: new GraphandFieldText({
-        name: "Prénom",
-      }),
-      lastname: new GraphandFieldText({
-        name: "Nom",
-      }),
-      email: new GraphandFieldText({
-        name: "Email",
-      }),
-      password: new GraphandFieldText({
-        name: "Mot de passe",
-      }),
-      role: new GraphandFieldRelation({
-        name: "Role",
-        model: this._client.getModel("Role"),
-        multiple: false,
-      }),
-    };
-  }
 
   get fullname() {
     return `${this.firstname} ${this.lastname}`;

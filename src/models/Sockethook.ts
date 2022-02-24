@@ -9,8 +9,7 @@ class Sockethook extends GraphandModel {
   static apiIdentifier = "sockethooks";
   static baseUrl = "/sockethooks";
   static scope = "Sockethook";
-
-  static baseFields = {
+  static schema = {
     identifier: new GraphandFieldText({ name: "Identifiant unique" }),
     action: new GraphandFieldText({ name: "Action" }),
     fields: new GraphandFieldText({ name: "Champs", multiple: true }),

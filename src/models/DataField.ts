@@ -6,35 +6,26 @@ import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
+import DataFieldTypes from "../enums/data-field-types";
 
 class DataField extends GraphandModel {
   static apiIdentifier = "data-fields";
   static baseUrl = "/data-fields";
   static scope = "DataField";
+  static schema = {
+    name: new GraphandFieldText({ name: "Nom" }),
+    slug: new GraphandFieldText({ name: "Identifiant" }),
+    type: new GraphandFieldText({ name: "Type", options: Object.values(DataFieldTypes) }),
+    exclude: new GraphandFieldBoolean({ name: "Exclure", defaultValue: false }),
+    configuration: new GraphandFieldJSON({ name: "Configuration" }),
+    scope: new GraphandFieldScope({ name: "Scope" }),
+  };
 
   name;
   slug;
   type;
   exclude;
   configuration;
-
-  static get baseFields() {
-    return {
-      name: new GraphandFieldText({
-        name: "Nom",
-      }),
-      slug: new GraphandFieldText({
-        name: "Identifiant",
-      }),
-      type: new GraphandFieldText({
-        name: "Type",
-        options: ["Text", "Number", "Boolean", "Relation", "Color", "Date", "JSON"],
-      }),
-      exclude: new GraphandFieldBoolean({ name: "Exclure", defaultValue: false }),
-      configuration: new GraphandFieldJSON({ name: "Configuration" }),
-      scope: new GraphandFieldScope({ name: "Scope" }),
-    };
-  }
 
   toGraphandField() {
     const { constructor } = Object.getPrototypeOf(this);
@@ -48,7 +39,6 @@ class DataField extends GraphandModel {
           ...configuration,
           exclude,
           name,
-          model: constructor._client.getModel(configuration.ref),
           query: configuration.initialQuery,
         });
       case "Date":

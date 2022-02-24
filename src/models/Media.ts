@@ -15,10 +15,7 @@ class Media extends GraphandModel {
   static baseUrl = "/medias";
   static scope = "Media";
   static queryFields = true;
-
-  static universalPrototypeMethods = ["getUrl"];
-
-  static baseFields = {
+  static schema = {
     name: new GraphandFieldText({ name: "Nom" }),
     description: new GraphandFieldText({ name: "Description" }),
     url: new GraphandFieldText({ name: "Url" }),
@@ -29,6 +26,8 @@ class Media extends GraphandModel {
     width: new GraphandFieldNumber({ name: "Largeur" }),
     height: new GraphandFieldNumber({ name: "Hauteur" }),
   };
+
+  static universalPrototypeMethods = ["getUrl"];
 
   static async beforeCreate(args) {
     if (args.payload?.file?.getAsFile) {

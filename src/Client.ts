@@ -425,6 +425,7 @@ class Client implements ClientType {
 
   logout() {
     this.setAccessToken(undefined);
+    this.setRefreshToken(undefined);
     Object.values(this._models).forEach((model: any) => {
       model.clearCache();
     });

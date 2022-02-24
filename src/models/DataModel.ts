@@ -7,6 +7,14 @@ class DataModel extends GraphandModel {
   static apiIdentifier = "data-models";
   static baseUrl = "/data-models";
   static scope = "DataModel";
+  static schema = {
+    name: new GraphandFieldText({ name: "Nom" }),
+    nameSingle: new GraphandFieldText({ name: "Nom singulier" }),
+    nameMultiple: new GraphandFieldText({ name: "Nom pluriel" }),
+    slug: new GraphandFieldText({ name: "Identifiant" }),
+    multiple: new GraphandFieldBoolean({ name: "Multiple", defaultValue: true }),
+    defaultField: new GraphandFieldRelation({ name: "Champ par défaut", ref: "DataField" }),
+  };
 
   static afterCreate(item, err) {
     if (!err) {
@@ -24,32 +32,6 @@ class DataModel extends GraphandModel {
     if (!err) {
       this._client.models.Module.clearCache();
     }
-  }
-
-  static baseFields(model) {
-    return {
-      name: new GraphandFieldText({
-        name: "Nom",
-      }),
-      nameSingle: new GraphandFieldText({
-        name: "Nom singulier",
-      }),
-      nameMultiple: new GraphandFieldText({
-        name: "Nom pluriel",
-      }),
-      slug: new GraphandFieldText({
-        name: "Identifiant",
-      }),
-      multiple: new GraphandFieldBoolean({
-        name: "Multiple",
-        defaultValue: true,
-      }),
-      defaultField: new GraphandFieldRelation({
-        name: "Champ par défaut",
-        model: this._client.getModel("DataField"),
-        query: model && { scope: `Data:${model.slug}` },
-      }),
-    };
   }
 }
 

@@ -7,26 +7,13 @@ class Token extends GraphandModel {
   static apiIdentifier = "tokens";
   static baseUrl = "/tokens";
   static scope = "Token";
-
-  static get baseFields() {
-    return {
-      name: new GraphandFieldText({
-        name: "Nom",
-      }),
-      description: new GraphandFieldText({ name: "Description" }),
-      accessToken: new GraphandFieldText({
-        name: "Clé d'accès",
-      }),
-      role: new GraphandFieldRelation({
-        name: "Rôle",
-        model: this._client.getModel("Role"),
-        multiple: false,
-      }),
-      expiration: new GraphandFieldDate({
-        name: "Date d'expiration",
-      }),
-    };
-  }
+  static schema = {
+    name: new GraphandFieldText({ name: "Nom" }),
+    description: new GraphandFieldText({ name: "Description" }),
+    accessToken: new GraphandFieldText({ name: "Clé d'accès" }),
+    role: new GraphandFieldRelation({ name: "Rôle", ref: "Role", multiple: false }),
+    expiration: new GraphandFieldDate({ name: "Date d'expiration" }),
+  };
 }
 
 export default Token;

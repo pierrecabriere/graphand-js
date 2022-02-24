@@ -22,7 +22,7 @@ class GraphandHistoryModel extends GraphandModel {
       }),
       "metas.account": new GraphandFieldRelation({
         name: "Par",
-        model: this._client.models.Account,
+        ref: "Account",
       }),
     };
   }

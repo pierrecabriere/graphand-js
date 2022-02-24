@@ -7,18 +7,12 @@ class Environment extends GraphandModel {
   static apiIdentifier = "environments";
   static baseUrl = "/environments";
   static scope = "Environment";
-
-  static get baseFields() {
-    return {
-      name: new GraphandFieldText({ name: "Nom" }),
-      description: new GraphandFieldText({ name: "Description" }),
-      cloneFrom: new GraphandFieldRelation({
-        name: "Cloner depuis",
-        model: this._client.getModel("Environment"),
-      }),
-      status: new GraphandFieldText({ name: "Status", options: Object.values(ModelEnvScopes) }),
-    };
-  }
+  static schema = {
+    name: new GraphandFieldText({ name: "Nom" }),
+    description: new GraphandFieldText({ name: "Description" }),
+    cloneFrom: new GraphandFieldRelation({ name: "Cloner depuis", ref: "Environment" }),
+    status: new GraphandFieldText({ name: "Status", options: Object.values(ModelEnvScopes) }),
+  };
 
   async merge(opts) {
     const { constructor } = Object.getPrototypeOf(this);

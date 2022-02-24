@@ -8,53 +8,38 @@ class Role extends GraphandModel {
   static apiIdentifier = "roles";
   static baseUrl = "/roles";
   static scope = "Role";
-
-  static baseFields(item) {
-    const inherits = new GraphandFieldRelation({
+  static schema = {
+    name: new GraphandFieldText({ name: "Nom" }),
+    description: new GraphandFieldText({ name: "Description" }),
+    admin: new GraphandFieldBoolean({ name: "Administrateur" }),
+    level: new GraphandFieldNumber({
+      name: "Niveau",
+      options: {
+        helper:
+          "Les utilisateurs ne pourront pas créer ou modifier des utilisateurs dont le niveau de rôle est inférieur au leur. Le rôle administrateur est de niveau 0",
+      },
+    }),
+    inherits: new GraphandFieldRelation({
       name: "Rôles parents",
-      model: this._client.getModel("Role"),
+      ref: "Role",
       multiple: true,
-    });
-
-    if (item?._id) {
-      inherits.query = { _id: { $ne: item._id } };
-    }
-
-    return {
-      name: new GraphandFieldText({
-        name: "Nom",
-      }),
-      description: new GraphandFieldText({
-        name: "Description",
-      }),
-      admin: new GraphandFieldBoolean({
-        name: "Administrateur",
-      }),
-      level: new GraphandFieldNumber({
-        name: "Niveau",
-        options: {
-          helper:
-            "Les utilisateurs ne pourront pas créer ou modifier des utilisateurs dont le niveau de rôle est inférieur au leur. Le rôle administrateur est de niveau 0",
-        },
-      }),
-      inherits,
-      modules: new GraphandFieldRelation({
-        name: "Applications",
-        model: this._client.getModel("Module"),
-        multiple: true,
-      }),
-      sidebarModules: new GraphandFieldRelation({
-        name: "Applications de la sidebar",
-        model: this._client.getModel("Module"),
-        multiple: true,
-      }),
-      menuModules: new GraphandFieldRelation({
-        name: "Applications du menu",
-        model: this._client.getModel("Module"),
-        multiple: true,
-      }),
-    };
-  }
+    }),
+    modules: new GraphandFieldRelation({
+      name: "Applications",
+      ref: "Module",
+      multiple: true,
+    }),
+    sidebarModules: new GraphandFieldRelation({
+      name: "Applications de la sidebar",
+      ref: "Module",
+      multiple: true,
+    }),
+    menuModules: new GraphandFieldRelation({
+      name: "Applications du menu",
+      ref: "Module",
+      multiple: true,
+    }),
+  };
 }
 
 export default Role;

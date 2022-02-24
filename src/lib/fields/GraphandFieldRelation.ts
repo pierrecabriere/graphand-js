@@ -4,17 +4,19 @@ import GraphandModel from "../GraphandModel";
 class GraphandFieldRelation extends GraphandField {
   static __fieldType = "Relation";
 
-  model;
+  ref;
   multiple;
   query;
-  defaultField;
 
   getter(value, from: GraphandModel) {
     if (!value) {
       return;
     }
 
-    const model = this.model;
+    const { constructor } = Object.getPrototypeOf(from);
+    const { _client } = constructor;
+
+    const model = _client.getModel(this.ref);
     if (this.multiple) {
       const ids = typeof value === "string" ? [value] : value.filter(Boolean).map((v) => v._id || v) || [];
       return model.getList({ ids });

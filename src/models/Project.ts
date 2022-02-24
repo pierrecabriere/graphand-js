@@ -13,25 +13,15 @@ class Project extends GraphandModel {
   static apiIdentifier = "projects";
   static baseUrl = "/projects";
   static scope = "Project";
-
-  static baseFields(project) {
-    return {
-      name: new GraphandFieldText({ name: "Nom" }),
-      slug: new GraphandFieldText({ name: "Identifiant" }),
-      locales: new GraphandFieldText({
-        name: "Langues",
-        multiple: true,
-        options: locales,
-      }),
-      defaultLocale: new GraphandFieldText({
-        name: "Langue par défaut",
-        options: locales,
-      }),
-      settings: new GraphandFieldJSON({ name: "Paramètres" }),
-      accessTokenLifetime: new GraphandFieldNumber({ name: "accessTokenLifetime" }),
-      refreshTokenLifetime: new GraphandFieldNumber({ name: "refreshTokenLifetime" }),
-    };
-  }
+  static schema = {
+    name: new GraphandFieldText({ name: "Nom" }),
+    slug: new GraphandFieldText({ name: "Identifiant" }),
+    locales: new GraphandFieldText({ name: "Langues", multiple: true, options: locales }),
+    defaultLocale: new GraphandFieldText({ name: "Langue par défaut", options: locales }),
+    settings: new GraphandFieldJSON({ name: "Paramètres" }),
+    accessTokenLifetime: new GraphandFieldNumber({ name: "accessTokenLifetime" }),
+    refreshTokenLifetime: new GraphandFieldNumber({ name: "refreshTokenLifetime" }),
+  };
 
   static getCurrent() {
     return this._client._options.project && (this.get(this._client._options.project, false) || this.get("current"));
