@@ -11,6 +11,8 @@ const defaultLinkOptions = {
 };
 
 class Media extends GraphandModel {
+  protected static _customFields = {};
+
   static apiIdentifier = "medias";
   static baseUrl = "/medias";
   static scope = "Media";

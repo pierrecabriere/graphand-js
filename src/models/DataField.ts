@@ -1,3 +1,4 @@
+import DataFieldTypes from "../enums/data-field-types";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldDate from "../lib/fields/GraphandFieldDate";
 import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
@@ -6,9 +7,10 @@ import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
-import DataFieldTypes from "../enums/data-field-types";
 
 class DataField extends GraphandModel {
+  protected static _customFields = {};
+
   static apiIdentifier = "data-fields";
   static baseUrl = "/data-fields";
   static scope = "DataField";

@@ -10,6 +10,7 @@ import { processPopulate } from "../utils/processPopulate";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldId from "./fields/GraphandFieldId";
 import GraphandFieldRelation from "./fields/GraphandFieldRelation";
+import GraphandField from "./GraphandField";
 import GraphandModelList from "./GraphandModelList";
 import GraphandModelListPromise from "./GraphandModelListPromise";
 import GraphandModelPromise from "./GraphandModelPromise";
@@ -39,6 +40,8 @@ class GraphandModel {
   protected static _socketOptions;
   protected static _queryIds = new Set();
   protected static _queryIdsTimeout;
+  protected static _customFields = {};
+  protected static _cachedFields;
 
   // private fields
   private _data: any = {};
@@ -118,7 +121,7 @@ class GraphandModel {
   }
 
   static setPrototypeFields(assignTo?: any) {
-    const fields = this.fields;
+    const fields = this.getFields();
     const properties = Object.keys(fields)
       .filter((slug) => slug !== "_id")
       .reduce((final, slug) => {
@@ -224,7 +227,11 @@ class GraphandModel {
     return item;
   }
 
-  static get fields() {
+  static getFields(cache = true) {
+    if (cache && this._cachedFields) {
+      return this._cachedFields;
+    }
+
     if (!this._registeredAt || !this._client) {
       throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
     }
@@ -259,7 +266,39 @@ class GraphandModel {
       };
     }
 
+    const customFields = Object.keys(this._customFields).reduce((final, slug) => {
+      const input = this._customFields[slug];
+      const field = typeof input === "function" ? input(fields) : input;
+
+      if (!field || !(field instanceof GraphandField)) {
+        console.error(`Field ${slug} is not an instance of GraphandField`);
+        return final;
+      }
+
+      final[slug] = field;
+      return final;
+    }, {});
+
+    if (Object.keys(customFields).length) {
+      Object.assign(fields, customFields);
+    }
+
+    this._cachedFields = fields;
     return fields;
+  }
+
+  static customField(slug, field) {
+    this._customFields[slug] = field;
+    return this;
+  }
+
+  static customFields(assign) {
+    Object.assign(this._customFields, assign);
+    return this;
+  }
+
+  static get fields() {
+    return this.getFields();
   }
 
   static async init(force = false) {
@@ -285,6 +324,7 @@ class GraphandModel {
                 const fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
                 if (!isEqual(this._dataFields, fields)) {
                   this._dataFields = fields;
+                  delete this._cachedFields;
                   this.setPrototypeFields();
                 }
               });
@@ -416,7 +456,7 @@ class GraphandModel {
   }
 
   static clearRelationsCache() {
-    const fields = this.fields;
+    const fields = this.getFields();
     Object.values(fields)
       .filter((field) => field instanceof GraphandFieldRelation)
       .forEach((field: any) => {
@@ -597,7 +637,7 @@ class GraphandModel {
 
     let _rows = data?.rows ? data.rows : data?._id ? [data] : [];
     if (populatedPaths?.length) {
-      const fields = this.fields;
+      const fields = this.getFields();
       _rows.forEach((_row) => processPopulate(_row, fields, this._client, populatedPaths));
     }
 
@@ -1074,7 +1114,7 @@ class GraphandModel {
     Object.defineProperty(this, "_version", { enumerable: false });
 
     if (constructor.queryFields && constructor._client._options.subscribeFields) {
-      constructor.init().then(() => constructor.fieldsList.subscribe(() => constructor.setPrototypeFields(this)));
+      constructor.init().then(() => constructor.fieldsList.subscribe(() => setTimeout(() => constructor.setPrototypeFields(this))));
     } else {
       constructor.setPrototypeFields(this);
     }
@@ -1118,7 +1158,7 @@ class GraphandModel {
 
   populate(paths?) {
     const { constructor } = Object.getPrototypeOf(this);
-    this._data = processPopulate(this._data, constructor.fields, constructor._client, paths);
+    this._data = processPopulate(this._data, constructor.getFields(), constructor._client, paths);
     return this;
   }
 
@@ -1146,7 +1186,7 @@ class GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
 
     // const fields = constructor.getFields(this);
-    const field = constructor.fields[slug];
+    const field = constructor.getFields()[slug];
     if (!field) {
       return undefined;
     }
@@ -1178,7 +1218,7 @@ class GraphandModel {
   set(slug, value, upsert) {
     const { constructor } = Object.getPrototypeOf(this);
 
-    const field = constructor.fields[slug];
+    const field = constructor.getFields()[slug];
 
     upsert = upsert ?? (field && !["_id", "createdAt", "createdBy", "updatedAt", "updatedBy"].includes(slug));
 
@@ -1344,13 +1384,13 @@ class GraphandModel {
 
   toObject() {
     const { constructor } = Object.getPrototypeOf(this);
-    const fields = constructor.fields;
+    const fields = constructor.getFields();
     return Object.keys(fields).reduce((final, slug) => Object.assign(final, { [slug]: this.get(slug) }), {});
   }
 
   toJSON() {
     const { constructor } = Object.getPrototypeOf(this);
-    const fields = constructor.fields;
+    const fields = constructor.getFields();
     return Object.keys(fields).reduce((final, slug) => Object.assign(final, { [slug]: this.get(slug, true) }), {});
   }
 

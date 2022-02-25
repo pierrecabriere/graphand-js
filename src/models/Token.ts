@@ -4,6 +4,8 @@ import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
 class Token extends GraphandModel {
+  protected static _customFields = {};
+
   static apiIdentifier = "tokens";
   static baseUrl = "/tokens";
   static scope = "Token";

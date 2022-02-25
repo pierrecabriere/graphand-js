@@ -4,6 +4,8 @@ import GraphandModel from "../lib/GraphandModel";
 import Role from "./Role";
 
 class Account extends GraphandModel {
+  protected static _customFields = {};
+
   static queryFields = true;
   static _currentId = undefined;
   static apiIdentifier = "accounts";

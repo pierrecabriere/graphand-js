@@ -5,6 +5,8 @@ import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
 class EsMapping extends GraphandModel {
+  protected static _customFields = {};
+
   static apiIdentifier = "elasticsearch";
   static baseUrl = "/elasticsearch";
   static scope = "EsMapping";

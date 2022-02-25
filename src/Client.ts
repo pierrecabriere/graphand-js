@@ -310,6 +310,10 @@ class Client implements ClientType {
     this._models[_name]._initPromise = null;
     this._models[_name]._listSubject = options.cache ? new BehaviorSubject([]) : null;
     this._models[_name]._registeredAt = new Date();
+    this._models[_name]._socketOptions = null;
+    this._models[_name]._queryIds = new Set();
+    this._models[_name]._queryIdsTimeout = null;
+    this._models[_name]._cachedFields = null;
 
     try {
       if (options.sync) {
@@ -446,7 +450,7 @@ class Client implements ClientType {
     return this;
   }
 
-  loginWithGraphand = () => {
+  loginWithGraphand() {
     let loginWindow;
 
     const height = window.outerHeight / 1.3;
@@ -482,7 +486,7 @@ class Client implements ClientType {
         }
       }, 100);
     });
-  };
+  }
 
   create(options: ClientOptions) {
     return new Client({ ...this._options, ...options });

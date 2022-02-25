@@ -5,6 +5,8 @@ import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
 class Restriction extends GraphandModel {
+  protected static _customFields = {};
+
   static apiIdentifier = "restrictions";
   static baseUrl = "/restrictions";
   static scope = "Restriction";

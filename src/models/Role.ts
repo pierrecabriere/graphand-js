@@ -5,6 +5,8 @@ import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
 class Role extends GraphandModel {
+  protected static _customFields = {};
+
   static apiIdentifier = "roles";
   static baseUrl = "/roles";
   static scope = "Role";
