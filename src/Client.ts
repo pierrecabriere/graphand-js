@@ -35,6 +35,7 @@ class Client implements ClientType {
   static models = models;
 
   private _initPromise;
+  private _registerHooks;
   private _refreshTokenPromise;
 
   _uid;
@@ -55,6 +56,8 @@ class Client implements ClientType {
     }
     options.env = options.env || "master";
 
+    this._registerHooks = new Set();
+
     this._uid = new ObjectID().toString();
     this._options = { ...defaultOptions, ...options };
     this._socketSubject = new BehaviorSubject(null);
@@ -63,7 +66,6 @@ class Client implements ClientType {
     this._refreshTokenSubject = new BehaviorSubject(options.refreshToken);
     this._initialized = false;
     this._models = {};
-
     this._axios = setupAxios(this);
 
     if (this._options.accessToken) {
@@ -180,7 +182,6 @@ class Client implements ClientType {
   async init(force = false) {
     if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
-        console.log("init", this._uid);
         try {
           const [Project] = this.getModels(["Project"]);
           await Promise.all([
@@ -363,6 +364,12 @@ class Client implements ClientType {
       identifier = `${action}:${model.scope}`;
     }
 
+    if (this._registerHooks.has(identifier)) {
+      console.warn(`Duplicate identifier ${identifier} for differents sockethooks`);
+    } else {
+      this._registerHooks.add(identifier);
+    }
+
     const _trigger = async (payload, hook) => {
       if (hook.await) {
         let res;
@@ -392,7 +399,6 @@ class Client implements ClientType {
 
     const _register = async (_socket) => {
       if (!_socket?.id) {
-        console.log("socket not connected, waiting for connection");
         return;
       }
 
@@ -417,7 +423,7 @@ class Client implements ClientType {
 
         socket.off(`/hooks/${hook._id}`);
         socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
-        console.error(`sockethook ${hook.identifier} with _id ${hook._id} registered on socket ${socket.id}`);
+        console.log(`sockethook ${hook.identifier} with _id ${hook._id} registered on socket ${socket.id}`);
       } catch (e) {
         console.error(`error registering sockethook`, e);
       }

@@ -270,8 +270,8 @@ class GraphandModel {
       const input = this._customFields[slug];
       const field = typeof input === "function" ? input(fields) : input;
 
-      if (!field || !(field instanceof GraphandField)) {
-        console.error(`Field ${slug} is not an instance of GraphandField`);
+      if (field && !(field instanceof GraphandField)) {
+        console.warn(`Field ${slug} is not an instance of GraphandField`);
         return final;
       }
 
