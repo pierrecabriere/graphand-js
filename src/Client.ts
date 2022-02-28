@@ -1,3 +1,4 @@
+import { ObjectID } from "bson";
 import { BehaviorSubject, Subject } from "rxjs";
 import { ClientOptions, ClientType } from "./interfaces";
 import * as lib from "./lib";
@@ -36,6 +37,7 @@ class Client implements ClientType {
   private _initPromise;
   private _refreshTokenPromise;
 
+  _uid;
   _models;
   _options;
   _axios;
@@ -53,6 +55,7 @@ class Client implements ClientType {
     }
     options.env = options.env || "master";
 
+    this._uid = new ObjectID().toString();
     this._options = { ...defaultOptions, ...options };
     this._socketSubject = new BehaviorSubject(null);
     this._mediasQueueSubject = new BehaviorSubject([]);
@@ -177,6 +180,7 @@ class Client implements ClientType {
   async init(force = false) {
     if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
+        console.log("init", this._uid);
         try {
           const [Project] = this.getModels(["Project"]);
           await Promise.all([
@@ -387,7 +391,8 @@ class Client implements ClientType {
     };
 
     const _register = async (_socket) => {
-      if (!_socket) {
+      if (!_socket?.id) {
+        console.log("socket not connected, waiting for connection");
         return;
       }
 

@@ -35,7 +35,7 @@ const parseQuery = (payload) => {
     return payload;
   }
 
-  if (Array.isArray(payload)) {
+  if (Array.isArray(payload) && payload.every((row) => typeof row === "string" || row?._id)) {
     payload = { ids: payload };
   } else if (typeof payload === "string" && payload.match(/^[0-9a-fA-F]{24}$/)) {
     payload = { ids: [payload] };

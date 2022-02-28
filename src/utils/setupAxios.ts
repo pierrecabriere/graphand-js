@@ -12,7 +12,7 @@ const setupAxios = (client: Client) => {
     config.data = config.data || config._data;
     config.headers = config.headers || {};
 
-    if (config.headers.Authorization === undefined && !/^\/projects/.test(config.url)) {
+    if (config.headers.Authorization === undefined) {
       const token = client.getAccessToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;

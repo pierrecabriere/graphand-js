@@ -23,8 +23,14 @@ const setupSocket = (client: Client) => {
     }
   });
 
-  socket.on("connect", () => client._socketSubject.next(socket));
-  socket.on("reconnect_error", console.log);
+  socket.on("connect", () => {
+    console.log("connect", socket.id, client._uid);
+    client._socketSubject.next(socket);
+  });
+  socket.on("connect_error", (e) => console.error("connect_error", e));
+  socket.on("reconnect_error", (e) => console.error("reconnect_error", e));
+  socket.on("reconnect_failed", (e) => console.error("reconnect_failed", e));
+  socket.on("connect_timeout", (e) => console.error("connect_timeout", e));
 
   return socket;
 };
