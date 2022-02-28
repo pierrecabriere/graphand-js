@@ -126,7 +126,7 @@ class GraphandModel {
       .filter((slug) => slug !== "_id")
       .reduce((final, slug) => {
         const field = fields[slug];
-        if (field.assign === false) {
+        if (!field || field.assign === false) {
           return final;
         }
 
