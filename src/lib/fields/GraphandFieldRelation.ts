@@ -17,7 +17,7 @@ class GraphandFieldRelation extends GraphandField {
   }
 
   getter(value, from: GraphandModel) {
-    if (!value || !from) {
+    if (!value) {
       return;
     }
 
