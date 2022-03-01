@@ -318,23 +318,18 @@ class GraphandModel {
           if (this.queryFields) {
             await this._client.init();
 
+            let fieldsList;
             if (this._client._options.subscribeFields) {
-              this.fieldsList.subscribe(async (list) => {
-                const graphandFields = await Promise.all(list.map((field) => field.toGraphandField()));
-                const fields = list.reduce((fields, field, index) => Object.assign(fields, { [field.slug]: graphandFields[index] }), {});
-                if (!isEqual(this._dataFields, fields)) {
-                  this._dataFields = fields;
-                  delete this._cachedFields;
-                  this.setPrototypeFields();
-                }
-              });
+              fieldsList = await this.fieldsList;
+              fieldsList.subscribe((list) => this.setDataFields(list));
             }
 
             if (this._client._options.project) {
-              await this.setDataFields();
+              await this.setDataFields(fieldsList);
             }
           }
 
+          this._cachedFields = null;
           this.setPrototypeFields();
 
           this._initialized = true;
@@ -353,6 +348,7 @@ class GraphandModel {
     dataFields = dataFields ?? (await this.getDataFields());
     const graphandFields = dataFields.map((field) => field.toGraphandField());
     this._dataFields = dataFields.reduce((final, field, index) => Object.assign(final, { [field.slug]: graphandFields[index] }), {});
+    return this._dataFields;
   }
 
   static async getDataFields() {

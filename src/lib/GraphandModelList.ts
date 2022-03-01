@@ -8,12 +8,8 @@ class GraphandModelList extends Array implements Array<any> {
   count;
   _query;
 
-  // _socketPath;
   private _observable;
   private _storeSub;
-  // private _socketSub;
-  // private _socketPathSub;
-  // private _socketHandler;
   private _subscriptions;
 
   constructor({ model, count, query }: { model?; count?; query? }, ...elements) {
@@ -78,78 +74,6 @@ class GraphandModelList extends Array implements Array<any> {
     return this;
   }
 
-  // get socketPath() {
-  //   return this._socketPath.getValue();
-  // }
-
-  // async refreshSocketPath() {
-  //   await this.model.fetch(this.query, { cache: false, sync: true }).catch(() => null);
-  // }
-
-  // _createObservable() {
-  //   this._observable = new Observable((subscriber) => {
-  //     this._storeSub = this.model._listSubject.subscribe(async (_list) => {
-  //       const newList = this.ids.map((_id) => _list.find((item) => item._id === _id)).filter((r) => r);
-  //
-  //       this.splice(0, this.length, ...newList);
-  //       subscriber.next(this);
-  //     });
-  //
-  //     if (this.model._client._options.realtime) {
-  //       const _registerSocket = (socket, path?) => {
-  //         if (!socket || !path) {
-  //           return null;
-  //         }
-  //
-  //         if (this._socketHandler) {
-  //           socket.off(path, this._socketHandler);
-  //         }
-  //
-  //         this._socketHandler = (data) => {
-  //           const rows = this.model._handleRequestResult(data, this.query);
-  //
-  //           const cacheKey = this.model.getCacheKey(this.query);
-  //           if (this.model._cache && this.model._cache[cacheKey]?.previous?.data) {
-  //             this.model._cache[cacheKey].previous.data.data = data;
-  //           }
-  //
-  //           this.splice(0, this.length, ...rows);
-  //           this.count = data.count;
-  //
-  //           subscriber.next(this);
-  //         };
-  //
-  //         return socket.on(path, this._socketHandler);
-  //       };
-  //
-  //       this._socketPathSub = this._socketPath.subscribe((socketPath) => {
-  //         if (!socketPath) {
-  //           return;
-  //         }
-  //
-  //         const { socket } = this.model._client;
-  //         if (socket) {
-  //           _registerSocket(socket, socketPath);
-  //         }
-  //       });
-  //
-  //       this._socketSub = this.model._client._socketSubject.subscribe((socket) => {
-  //         if (!socket) {
-  //           return;
-  //         }
-  //
-  //         this.refreshSocketPath();
-  //       });
-  //
-  //       if (this.model._client.socket && this.socketPath) {
-  //         _registerSocket(this.model._client.socket, this.socketPath);
-  //       }
-  //
-  //       this.model._client.connectSocket();
-  //     }
-  //   });
-  // }
-
   createObservable() {
     this._observable = new Observable((subscriber) => {
       let prevSerial = this.toArray().map((item) => JSON.stringify(item.serialize?.apply(item)).normalize());
@@ -165,7 +89,6 @@ class GraphandModelList extends Array implements Array<any> {
           } else {
             const serial = listArray.map((item) => JSON.stringify(item.serialize?.apply(item)).normalize());
             if (!isEqual(serial, prevSerial)) {
-              // if (!serial.every((objString) => prevSerial.find((toto) => toto.localeCompare(objString)))) {
               reload = true;
               prevSerial = serial;
             }
@@ -196,10 +119,6 @@ class GraphandModelList extends Array implements Array<any> {
 
       if (!this._subscriptions.size) {
         this._storeSub?.unsubscribe();
-        // this._socketSub?.unsubscribe();
-        // this._socketPathSub?.unsubscribe();
-        // this.socketPath && this.model._client.socket?.off(this.socketPath, this._socketHandler);
-        // this._socketPath.next(null);
         delete this._observable;
       }
     };
