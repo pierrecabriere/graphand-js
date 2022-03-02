@@ -652,7 +652,7 @@ class GraphandModel {
     return rows;
   }
 
-  static async _request(query, hooks, cacheKey?) {
+  static async _request(query, hooks, cacheKey?, opts = {}) {
     let res;
 
     try {
@@ -663,10 +663,10 @@ class GraphandModel {
           ...params
         } = query;
         const url = `${this.baseUrl}/${_id}`;
-        res = await this._client._axios.get(url, { params });
+        res = await this._client._axios.get(url, { params }, opts);
       } else {
         const url = this.queryUrl || `${this.baseUrl}/query`;
-        res = await this._client._axios.post(url, query);
+        res = await this._client._axios.post(url, query, opts);
       }
 
       this._handleRequestResult(res.data.data, query);
@@ -699,7 +699,6 @@ class GraphandModel {
       cache: true,
       callback: undefined,
       hooks: true,
-      sync: false,
     };
 
     opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { cache: opts ?? defaultOptions.cache });
@@ -1181,7 +1180,6 @@ class GraphandModel {
   get(slug, decode = false, _locale = this._locale, fallback = true) {
     const { constructor } = Object.getPrototypeOf(this);
 
-    // const fields = constructor.getFields(this);
     const field = constructor.getFields()[slug];
     if (!field) {
       return undefined;

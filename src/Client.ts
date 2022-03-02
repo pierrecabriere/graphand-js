@@ -199,9 +199,7 @@ class Client implements ClientType {
             })(),
             (async () => {
               if (this._options.initProject && this._options.project) {
-                const { data } = await this._axios.get("/projects/current");
-                this._project = new Project(data.data);
-                Project.upsertStore(this._project);
+                await Project.getCurrent();
               }
             })(),
           ]);

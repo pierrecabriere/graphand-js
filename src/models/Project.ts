@@ -26,7 +26,7 @@ class Project extends GraphandModel {
   };
 
   static getCurrent() {
-    return this._client._options.project && (this.get(this._client._options.project, false) || this.get("current"));
+    return this.get("current");
   }
 }
 
