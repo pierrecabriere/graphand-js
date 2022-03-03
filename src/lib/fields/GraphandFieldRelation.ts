@@ -7,11 +7,14 @@ class GraphandFieldRelation extends GraphandField {
   ref;
   multiple;
   query;
+  _model;
 
   constructor(data?: any) {
     super(data);
 
-    if (!data.ref) {
+    if (data._model && !data.ref) {
+      this.ref = data._model.scope;
+    } else if (!data.ref) {
       throw new Error(`Invalid ref ${data.ref} for field`);
     }
   }
@@ -21,10 +24,14 @@ class GraphandFieldRelation extends GraphandField {
       return;
     }
 
-    const { constructor } = Object.getPrototypeOf(from);
-    const { _client } = constructor;
+    let model = this._model;
+    if (!model) {
+      const { constructor } = Object.getPrototypeOf(from);
+      const { _client } = constructor;
 
-    const model = _client.getModel(this.ref);
+      model = _client.getModel(this.ref);
+    }
+
     if (this.multiple) {
       const ids = typeof value === "string" ? [value] : value.filter(Boolean).map((v) => v._id || v) || [];
       return model.getList({ ids });
