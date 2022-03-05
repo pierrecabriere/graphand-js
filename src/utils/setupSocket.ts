@@ -24,6 +24,8 @@ const setupSocket = (client: Client) => {
   });
 
   socket.on("connect", () => client._socketSubject.next(socket));
+  socket.on("disconnect", () => client._socketSubject.next(null));
+
   socket.on("connect_error", (e) => console.error("connect_error", e));
   socket.on("reconnect_error", (e) => console.error("reconnect_error", e));
   socket.on("reconnect_failed", (e) => console.error("reconnect_failed", e));

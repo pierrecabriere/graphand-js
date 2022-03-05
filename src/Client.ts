@@ -428,6 +428,7 @@ class Client implements ClientType {
     };
 
     this._socketSubject.subscribe((_socket) => _register(_socket));
+    console.log("waiting for socket to connect ...");
     this.connectSocket();
   }
 
@@ -521,22 +522,19 @@ class Client implements ClientType {
     }
 
     const socket = setupSocket(this);
+    this._socketSubject.next(socket);
 
-    console.log("connectSocket", socket, socket.query);
-
-    return this._socketSubject.next(socket);
+    return this;
   }
 
-  disconnectSocket(triggerSubject = true) {
+  disconnectSocket() {
     if (!this.socket) {
       return;
     }
 
     this.socket.disconnect();
 
-    if (triggerSubject) {
-      this._socketSubject.next(null);
-    }
+    return this;
   }
 
   reconnectSocket() {

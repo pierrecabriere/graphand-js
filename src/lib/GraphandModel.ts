@@ -368,8 +368,6 @@ class GraphandModel {
         return;
       }
 
-      console.log(path, action);
-
       if (typeof this._socketOptions?.handleSocketTrigger === "function") {
         const res = await this._socketOptions.handleSocketTrigger({ action, payload });
         if (res === false) {
@@ -379,7 +377,6 @@ class GraphandModel {
 
       this._socketTriggerSubject.next({ action, payload });
 
-      // setTimeout(() => {
       let updated;
       switch (action) {
         case "create":
@@ -396,7 +393,6 @@ class GraphandModel {
       if (updated) {
         this.clearCache();
       }
-      // });
     };
 
     socket.off(path);
@@ -510,7 +506,16 @@ class GraphandModel {
 
       if (force || item.updatedAt > found.updatedAt) {
         refresh = true;
-        return list.map((i) => (i === found ? item : i));
+        found.assign(item._data, false, false);
+        return list;
+        // return list.map((i) => (i === found ? item : i));
+        // return list.map((i) => {
+        //   if (i === found) {
+        //     i.assign(item._data, false, false);
+        //   }
+        //
+        //   return i;
+        // });
       }
 
       return list;
@@ -526,33 +531,6 @@ class GraphandModel {
     if (refresh) {
       this.clearRelationsCache();
       this._listSubject.next(_list);
-      return true;
-    }
-
-    return false;
-  }
-
-  static updateStore(target, payload) {
-    const _update = (_list, item, payload) => {
-      const found = _list.find((i) => i._id === item._id);
-      if (found) {
-        return _list.map((i) => {
-          if (i === found) {
-            Object.assign(i, payload);
-          }
-
-          return i;
-        });
-      }
-
-      return _list;
-    };
-
-    let list = _update(this.getList(), target, payload);
-
-    if (!isEqual(this.getList(), list)) {
-      this.clearRelationsCache();
-      this._listSubject.next(list);
       return true;
     }
 
@@ -1234,17 +1212,18 @@ class GraphandModel {
   assign(values?, upsert = true, updatedAtNow = true) {
     const { constructor } = Object.getPrototypeOf(this);
     const clone = this.clone();
-    if (values) {
-      Object.keys(values).forEach((key) => {
-        clone.set(key, values[key], false);
-      });
-    }
 
     if (updatedAtNow) {
       clone.updatedAt = new Date();
     }
 
     if (upsert) {
+      if (values) {
+        Object.keys(values).forEach((key) => {
+          clone.set(key, values[key], false);
+        });
+      }
+
       constructor.upsertStore(clone);
     }
 
