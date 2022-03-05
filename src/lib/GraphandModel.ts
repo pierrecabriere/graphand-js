@@ -368,6 +368,8 @@ class GraphandModel {
         return;
       }
 
+      console.log(path, action);
+
       if (typeof this._socketOptions?.handleSocketTrigger === "function") {
         const res = await this._socketOptions.handleSocketTrigger({ action, payload });
         if (res === false) {

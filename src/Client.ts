@@ -522,6 +522,8 @@ class Client implements ClientType {
 
     const socket = setupSocket(this);
 
+    console.log("connectSocket", socket, socket.query);
+
     return this._socketSubject.next(socket);
   }
 

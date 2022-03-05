@@ -44,11 +44,9 @@ class Account extends GraphandModel {
 
   static async generateToken(id: string) {
     const {
-      data: {
-        data: { accessToken },
-      },
+      data: { data },
     } = await this._client._axios.post(`accounts/${id}/generate-token`);
-    return accessToken;
+    return data;
   }
 
   async generateToken() {
