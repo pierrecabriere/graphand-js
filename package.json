@@ -1,6 +1,6 @@
 {
   "name": "graphand-js",
-  "version": "0.21.10-beta",
+  "version": "0.21.11-beta",
   "description": "",
   "main": "dist/index.js",
   "author": "Pierre Cabrière",
@@ -18,7 +18,7 @@
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
     "rxjs": "^7.5.4",
-    "socket.io-client": "^2.3.1",
+    "socket.io-client": "^4.4.1",
     "utf-8-validate": "^5.0.8"
   },
   "devDependencies": {
