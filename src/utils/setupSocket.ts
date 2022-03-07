@@ -8,9 +8,7 @@ const setupSocket = (client: Client) => {
     query: { token: client.getAccessToken(), projectId: client._options.project, env: client._options.env || "master" },
   });
 
-  console.log("subscribe uploads");
   socket.on("/uploads", ({ action, payload }) => {
-    console.log("/uploads", action, payload);
     const queueItem = client._mediasQueueSubject.value.find((item) => (payload.socket ? item.socket === payload.socket : item.name === payload.name));
     payload.status = action;
     switch (action) {
