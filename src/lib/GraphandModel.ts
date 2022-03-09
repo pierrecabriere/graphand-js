@@ -1,7 +1,6 @@
 import isEqual from "fast-deep-equal";
 import _ from "lodash";
 import { Observable } from "rxjs";
-import { uid2 } from "uid2";
 import Client from "../Client";
 import Account from "../models/Account";
 import { getPopulatedPaths } from "../utils/getPopulatedPaths";
@@ -1081,7 +1080,7 @@ class GraphandModel {
       return data.clone();
     }
 
-    this._id = data._id || `_${uid2(6)}`;
+    this._id = data._id || `_${Date.now()}`;
     this._data = Object.assign({}, data);
 
     Object.defineProperty(this, "_data", { enumerable: false });

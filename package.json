@@ -17,9 +17,7 @@
     "lodash": "^4.17.21",
     "md5": "^2.3.0",
     "rxjs": "^7.5.4",
-    "socket.io-client": "^4.4.1",
-    "uid2": "^1.0.0",
-    "utf-8-validate": "^5.0.8"
+    "socket.io-client": "^4.4.1"
   },
   "devDependencies": {
     "@types/node": "^17.0.21",

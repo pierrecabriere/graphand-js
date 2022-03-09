@@ -1,5 +1,4 @@
 import { BehaviorSubject, Subject } from "rxjs";
-import uid2 from "uid2";
 import { ClientOptions, ClientType } from "./interfaces";
 import * as lib from "./lib";
 import * as models from "./models";
@@ -58,7 +57,7 @@ class Client implements ClientType {
 
     this._registerHooks = new Set();
 
-    this._uid = uid2(6);
+    this._uid = Date.now();
     this._options = { ...defaultOptions, ...options };
     this._socketSubject = new BehaviorSubject(null);
     this._mediasQueueSubject = new BehaviorSubject([]);
