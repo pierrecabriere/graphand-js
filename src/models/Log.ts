@@ -9,9 +9,9 @@ class Log extends GraphandModel {
   static baseUrl = "/logs";
   static scope = "Log";
   static schema = {
-    path: new GraphandFieldText({ name: "Path" }),
-    status: new GraphandFieldNumber({ name: "Status" }),
-    ip: new GraphandFieldText({ name: "Adresse ip" }),
+    path: new GraphandFieldText(),
+    status: new GraphandFieldNumber(),
+    ip: new GraphandFieldText(),
   };
 }
 

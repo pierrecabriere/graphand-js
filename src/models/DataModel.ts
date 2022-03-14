@@ -10,12 +10,12 @@ class DataModel extends GraphandModel {
   static baseUrl = "/data-models";
   static scope = "DataModel";
   static schema = {
-    name: new GraphandFieldText({ name: "Nom" }),
-    nameSingle: new GraphandFieldText({ name: "Nom singulier" }),
-    nameMultiple: new GraphandFieldText({ name: "Nom pluriel" }),
-    slug: new GraphandFieldText({ name: "Identifiant" }),
-    multiple: new GraphandFieldBoolean({ name: "Multiple", defaultValue: true }),
-    defaultField: new GraphandFieldRelation({ name: "Champ par défaut", ref: "DataField" }),
+    name: new GraphandFieldText(),
+    nameSingle: new GraphandFieldText(),
+    nameMultiple: new GraphandFieldText(),
+    slug: new GraphandFieldText(),
+    multiple: new GraphandFieldBoolean({ defaultValue: true }),
+    defaultField: new GraphandFieldRelation({ ref: "DataField" }),
   };
 
   static afterCreate(item, err) {

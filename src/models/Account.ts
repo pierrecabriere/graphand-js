@@ -12,11 +12,11 @@ class Account extends GraphandModel {
   static baseUrl = "/accounts";
   static scope = "Account";
   static schema = {
-    firstname: new GraphandFieldText({ name: "Prénom" }),
-    lastname: new GraphandFieldText({ name: "Nom" }),
-    email: new GraphandFieldText({ name: "Email" }),
-    password: new GraphandFieldText({ name: "Mot de passe" }),
-    role: new GraphandFieldRelation({ name: "Role", ref: "Role", multiple: false }),
+    firstname: new GraphandFieldText(),
+    lastname: new GraphandFieldText(),
+    email: new GraphandFieldText(),
+    password: new GraphandFieldText(),
+    role: new GraphandFieldRelation({ ref: "Role", multiple: false }),
   };
 
   firstname;

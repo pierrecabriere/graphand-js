@@ -6,6 +6,7 @@ import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandField from "../lib/GraphandField";
 import GraphandModel from "../lib/GraphandModel";
 
 class DataField extends GraphandModel {
@@ -15,12 +16,12 @@ class DataField extends GraphandModel {
   static baseUrl = "/data-fields";
   static scope = "DataField";
   static schema = {
-    name: new GraphandFieldText({ name: "Nom" }),
-    slug: new GraphandFieldText({ name: "Identifiant" }),
-    type: new GraphandFieldText({ name: "Type", options: Object.values(DataFieldTypes) }),
-    exclude: new GraphandFieldBoolean({ name: "Exclure", defaultValue: false }),
-    configuration: new GraphandFieldJSON({ name: "Configuration" }),
-    scope: new GraphandFieldScope({ name: "Scope" }),
+    name: new GraphandFieldText(),
+    slug: new GraphandFieldText(),
+    type: new GraphandFieldText({ options: Object.values(DataFieldTypes) }),
+    exclude: new GraphandFieldBoolean({ defaultValue: false }),
+    configuration: new GraphandFieldJSON(),
+    scope: new GraphandFieldScope(),
   };
 
   name;
@@ -28,30 +29,38 @@ class DataField extends GraphandModel {
   type;
   exclude;
   configuration;
+  scope;
 
   toGraphandField() {
-    const { constructor } = Object.getPrototypeOf(this);
-    const { name, type, exclude, configuration } = this;
+    const { type, configuration } = this;
+    let field;
     switch (type) {
       case "Text":
-      default:
-        return new GraphandFieldText({ ...configuration, exclude, name, type });
+        field = new GraphandFieldText(configuration);
+        break;
       case "Relation":
-        return new GraphandFieldRelation({
-          ...configuration,
-          exclude,
-          name,
-          query: configuration.initialQuery,
-        });
+        field = new GraphandFieldRelation(configuration);
+        field.query = configuration.initialQuery;
+        break;
       case "Date":
-        return new GraphandFieldDate({ ...configuration, exclude, name });
+        field = new GraphandFieldDate(configuration);
+        break;
       case "Boolean":
-        return new GraphandFieldBoolean({ ...configuration, exclude, name });
+        field = new GraphandFieldBoolean(configuration);
+        break;
       case "Number":
-        return new GraphandFieldNumber({ ...configuration, exclude, name });
+        field = new GraphandFieldNumber(configuration);
+        break;
       case "JSON":
-        return new GraphandFieldJSON({ ...configuration, exclude, name });
+        field = new GraphandFieldJSON(configuration);
+        break;
+      default:
+        field = new GraphandField(configuration);
+        break;
     }
+
+    field.__dataField = this;
+    return field;
   }
 }
 

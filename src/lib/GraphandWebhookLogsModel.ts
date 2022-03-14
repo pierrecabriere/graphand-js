@@ -6,15 +6,10 @@ class GraphandWebhookLogsModel extends GraphandModel {
   static get baseFields() {
     return {
       webhook: new GraphandFieldRelation({
-        name: "Webhook",
         ref: "Webhook",
       }),
-      request: new GraphandFieldJSON({
-        name: "Requête",
-      }),
-      response: new GraphandFieldJSON({
-        name: "Réponse",
-      }),
+      request: new GraphandFieldJSON(),
+      response: new GraphandFieldJSON(),
     };
   }
 }

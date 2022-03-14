@@ -1,6 +1,8 @@
 import { BehaviorSubject, Subject } from "rxjs";
+import PluginLifecyclePhases from "./enums/plugin-lifecycle-phases";
 import { ClientOptions, ClientType } from "./interfaces";
 import * as lib from "./lib";
+import GraphandPlugin from "./lib/GraphandPlugin";
 import * as models from "./models";
 import Data from "./models/Data";
 import Sockethook from "./models/Sockethook";
@@ -47,6 +49,7 @@ class Client implements ClientType {
   _accessTokenSubject;
   _refreshTokenSubject;
   _initialized;
+  _plugins;
 
   constructor(project: string | ClientOptions, options: ClientOptions = {}) {
     options = project && typeof project === "object" ? { ...project, ...options } : options;
@@ -64,20 +67,9 @@ class Client implements ClientType {
     this._accessTokenSubject = new BehaviorSubject(options.accessToken);
     this._refreshTokenSubject = new BehaviorSubject(options.refreshToken);
     this._initialized = false;
+    this._plugins = new Set();
     this._models = {};
     this._axios = setupAxios(this);
-
-    if (this._options.accessToken) {
-      this.setRefreshToken(this._options.accessToken);
-    }
-
-    if (this._options.project && this._options.init) {
-      this.init();
-    }
-
-    if (this._options.realtime) {
-      this.connectSocket();
-    }
 
     if (this._options.plugins?.length) {
       this._options.plugins.forEach((plugin) => {
@@ -88,6 +80,14 @@ class Client implements ClientType {
           this.plugin(plugin);
         }
       });
+    }
+
+    if (this._options.realtime) {
+      this.connectSocket();
+    }
+
+    if (this._options.init) {
+      this.init();
     }
   }
 
@@ -155,7 +155,7 @@ class Client implements ClientType {
       }
     });
 
-    this._refreshTokenPromise.finally(() => delete this._refreshTokenPromise);
+    this._refreshTokenPromise.finally(() => (this._refreshTokenPromise = null));
 
     return this._refreshTokenPromise;
   }
@@ -181,6 +181,9 @@ class Client implements ClientType {
   async init(force = false) {
     if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
+        const plugins = [...this._plugins];
+        await Promise.all(plugins.map((p) => p.execute(PluginLifecyclePhases.INIT)));
+
         try {
           const [Project] = this.getModels(["Project"]);
           await Promise.all([
@@ -505,12 +508,10 @@ class Client implements ClientType {
     return this.create.apply(this, arguments);
   }
 
-  plugin(_plugin: Function, options: any = {}) {
-    if (typeof _plugin !== "function") {
-      return;
-    }
+  plugin(_plugin: GraphandPlugin, options: any = {}) {
+    const graphandPlugin = new GraphandPlugin(_plugin, options, this);
 
-    _plugin.apply(this, [this, options]);
+    this._plugins.add(graphandPlugin);
   }
 
   /* Accessors */

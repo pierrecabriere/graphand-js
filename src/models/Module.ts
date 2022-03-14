@@ -10,11 +10,11 @@ class Module extends GraphandModel {
   static baseUrl = "/modules";
   static scope = "Module";
   static schema = {
-    name: new GraphandFieldText({ name: "Nom" }),
-    type: new GraphandFieldText({ name: "Type" }),
-    default: new GraphandFieldBoolean({ name: "Module par défaut" }),
-    pinned: new GraphandFieldBoolean({ name: "Module par défaut" }),
-    configuration: new GraphandFieldJSON({ name: "Configuration" }),
+    name: new GraphandFieldText(),
+    type: new GraphandFieldText(),
+    default: new GraphandFieldBoolean(),
+    pinned: new GraphandFieldBoolean(),
+    configuration: new GraphandFieldJSON(),
   };
 }
 

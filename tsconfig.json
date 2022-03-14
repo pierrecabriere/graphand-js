@@ -2,7 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "sourceMap": false,
-    "declaration": false,
+    "declaration": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,

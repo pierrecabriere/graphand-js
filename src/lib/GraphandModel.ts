@@ -14,6 +14,12 @@ import GraphandModelList from "./GraphandModelList";
 import GraphandModelListPromise from "./GraphandModelListPromise";
 import GraphandModelPromise from "./GraphandModelPromise";
 
+interface FetchOptions {
+  cache?: boolean;
+  callback?: boolean;
+  hooks?: boolean;
+}
+
 class GraphandModel {
   // configurable fields
   static translatable = true;
@@ -151,7 +157,7 @@ class GraphandModel {
     return {};
   }
 
-  static get(query, fetch = true, cache?) {
+  static get(query, fetch: FetchOptions | boolean = true, cache?) {
     if (!query) {
       return new GraphandModelPromise(async (resolve, reject) => {
         try {
@@ -186,7 +192,9 @@ class GraphandModel {
         async (resolve, reject) => {
           try {
             await this.init();
-            const { data } = await this.fetch(query, { cache });
+            const fetchOpts: FetchOptions = typeof fetch === "object" ? fetch : {};
+            fetchOpts.cache = fetchOpts.cache ?? cache;
+            const { data } = await this.fetch(query, fetchOpts);
             let row;
 
             if (data.data) {
@@ -245,21 +253,17 @@ class GraphandModel {
       fields = {
         ...fields,
         createdBy: new GraphandFieldRelation({
-          name: "Créé par",
           ref: "Account",
           multiple: false,
         }),
         createdAt: new GraphandFieldDate({
-          name: "Créé à",
           time: true,
         }),
         updatedBy: new GraphandFieldRelation({
-          name: "Modifié par",
           ref: "Account",
           multiple: false,
         }),
         updatedAt: new GraphandFieldDate({
-          name: "Modifié à",
           time: true,
         }),
       };

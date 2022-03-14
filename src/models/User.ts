@@ -8,11 +8,11 @@ class User extends GraphandModel {
   static baseUrl = "/users";
   static scope = "User";
   static schema = {
-    firstname: new GraphandFieldText({ name: "Prénom" }),
-    lastname: new GraphandFieldText({ name: "Nom" }),
-    picture: new GraphandFieldText({ name: "Image de profil" }),
-    email: new GraphandFieldText({ name: "Email" }),
-    password: new GraphandFieldText({ name: "Mot de passe" }),
+    firstname: new GraphandFieldText(),
+    lastname: new GraphandFieldText(),
+    picture: new GraphandFieldText(),
+    email: new GraphandFieldText(),
+    password: new GraphandFieldText(),
   };
 
   firstname;

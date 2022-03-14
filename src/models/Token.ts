@@ -10,11 +10,11 @@ class Token extends GraphandModel {
   static baseUrl = "/tokens";
   static scope = "Token";
   static schema = {
-    name: new GraphandFieldText({ name: "Nom" }),
-    description: new GraphandFieldText({ name: "Description" }),
-    accessToken: new GraphandFieldText({ name: "Clé d'accès" }),
-    role: new GraphandFieldRelation({ name: "Rôle", ref: "Role", multiple: false }),
-    expiration: new GraphandFieldDate({ name: "Date d'expiration" }),
+    name: new GraphandFieldText(),
+    description: new GraphandFieldText(),
+    accessToken: new GraphandFieldText(),
+    role: new GraphandFieldRelation({ ref: "Role", multiple: false }),
+    expiration: new GraphandFieldDate(),
   };
 }
 

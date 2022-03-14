@@ -12,15 +12,14 @@ class Rule extends GraphandModel {
   static baseUrl = "/rules";
   static scope = "Rule";
   static schema = {
-    role: new GraphandFieldRelation({ name: "Rôle", ref: "Role", multiple: false }),
-    scope: new GraphandFieldScope({ name: "Scope" }),
+    role: new GraphandFieldRelation({ ref: "Role", multiple: false }),
+    scope: new GraphandFieldScope(),
     actions: new GraphandFieldText({
-      name: "Actions",
       multiple: true,
       options: ["create", "read", "update", "delete", "count", "login", "register", "execute"],
     }),
-    prohibition: new GraphandFieldBoolean({ name: "Interdiction", defaultValue: false }),
-    conditions: new GraphandFieldJSON({ name: "Conditions" }),
+    prohibition: new GraphandFieldBoolean({ defaultValue: false }),
+    conditions: new GraphandFieldJSON(),
   };
 }
 

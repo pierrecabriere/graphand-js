@@ -11,16 +11,15 @@ class EsMapping extends GraphandModel {
   static baseUrl = "/elasticsearch";
   static scope = "EsMapping";
   static schema = {
-    name: new GraphandFieldText({ name: "Nom" }),
-    description: new GraphandFieldText({ name: "Description" }),
-    scope: new GraphandFieldScope({ name: "Scope" }),
-    fields: new GraphandFieldJSON({ name: "Mapping des champs" }),
-    settings: new GraphandFieldJSON({ name: "Paramètres de l'index" }),
-    externalHost: new GraphandFieldBoolean({ name: "Utiliser un hôte externe" }),
-    host: new GraphandFieldText({ name: "Hôte" }),
-    conditions: new GraphandFieldJSON({ name: "Conditions" }),
+    name: new GraphandFieldText(),
+    description: new GraphandFieldText(),
+    scope: new GraphandFieldScope(),
+    fields: new GraphandFieldJSON(),
+    settings: new GraphandFieldJSON(),
+    externalHost: new GraphandFieldBoolean(),
+    host: new GraphandFieldText(),
+    conditions: new GraphandFieldJSON(),
     defaultQuery: new GraphandFieldJSON({
-      name: "Requête par défaut",
       defaultValue: {
         query_string: {
           query: "*{q}*",

@@ -11,20 +11,19 @@ class Webhook extends GraphandModel {
   static baseUrl = "/webhooks";
   static scope = "Webhook";
   static schema = {
-    name: new GraphandFieldText({ name: "Nom" }),
-    description: new GraphandFieldText({ name: "Description" }),
-    endpoint: new GraphandFieldText({ name: "Url" }),
-    method: new GraphandFieldText({ name: "Méthode", options: ["get", "post", "put", "patch", "delete"] }),
-    scope: new GraphandFieldScope({ name: "Scope" }),
+    name: new GraphandFieldText(),
+    description: new GraphandFieldText(),
+    endpoint: new GraphandFieldText(),
+    method: new GraphandFieldText({ options: ["get", "post", "put", "patch", "delete"] }),
+    scope: new GraphandFieldScope(),
     actions: new GraphandFieldText({
-      name: "Actions",
       multiple: true,
       options: ["before_create", "after_create", "before_update", "after_update", "before_delete", "after_delete", "before_execute", "after_execute"],
     }),
-    await: new GraphandFieldBoolean({ name: "Attendre le retour", defaultValue: false }),
-    timeout: new GraphandFieldNumber({ name: "Timeout", defaultValue: 10000 }),
-    priority: new GraphandFieldNumber({ name: "Priorité" }),
-    active: new GraphandFieldBoolean({ name: "Actif", defaultValue: true }),
+    await: new GraphandFieldBoolean({ defaultValue: false }),
+    timeout: new GraphandFieldNumber({ defaultValue: 10000 }),
+    priority: new GraphandFieldNumber(),
+    active: new GraphandFieldBoolean({ defaultValue: true }),
   };
 
   get LogsModel() {

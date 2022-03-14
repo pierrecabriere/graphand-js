@@ -16,13 +16,13 @@ class Project extends GraphandModel {
   static baseUrl = "/projects";
   static scope = "Project";
   static schema = {
-    name: new GraphandFieldText({ name: "Nom" }),
-    slug: new GraphandFieldText({ name: "Identifiant" }),
-    locales: new GraphandFieldText({ name: "Langues", multiple: true, options: locales }),
-    defaultLocale: new GraphandFieldText({ name: "Langue par défaut", options: locales }),
-    settings: new GraphandFieldJSON({ name: "Paramètres" }),
-    accessTokenLifetime: new GraphandFieldNumber({ name: "accessTokenLifetime" }),
-    refreshTokenLifetime: new GraphandFieldNumber({ name: "refreshTokenLifetime" }),
+    name: new GraphandFieldText(),
+    slug: new GraphandFieldText(),
+    locales: new GraphandFieldText({ multiple: true, options: locales }),
+    defaultLocale: new GraphandFieldText({ options: locales }),
+    settings: new GraphandFieldJSON(),
+    accessTokenLifetime: new GraphandFieldNumber(),
+    refreshTokenLifetime: new GraphandFieldNumber(),
   };
 
   static getCurrent() {

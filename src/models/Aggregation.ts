@@ -14,19 +14,18 @@ class Aggregation extends GraphandModel {
   static baseUrl = "/aggregations";
   static scope = "Aggregation";
   static schema = {
-    name: new GraphandFieldText({ name: "Nom" }),
-    description: new GraphandFieldText({ name: "Description" }),
-    scope: new GraphandFieldScope({ name: "Scope" }),
-    pipeline: new GraphandFieldJSON({ name: "Pipeline", defaultValue: [] }),
-    defaultVars: new GraphandFieldJSON({ name: "Variables par défaut" }),
-    cache: new GraphandFieldBoolean({ name: "Activer la mise en cache" }),
-    cacheExpiredToleration: new GraphandFieldBoolean({ name: "Tolérer le cache expiré" }),
-    cacheMaxAge: new GraphandFieldNumber({ name: "Temps maximal de mise en cache" }),
+    name: new GraphandFieldText(),
+    description: new GraphandFieldText(),
+    scope: new GraphandFieldScope(),
+    pipeline: new GraphandFieldJSON({ defaultValue: [] }),
+    defaultVars: new GraphandFieldJSON(),
+    cache: new GraphandFieldBoolean(),
+    cacheExpiredToleration: new GraphandFieldBoolean(),
+    cacheMaxAge: new GraphandFieldNumber(),
     cacheKey: new GraphandFieldJSON({
-      name: "Requête de la clé de cache",
       fields: {
-        scope: new GraphandFieldScope({ name: "Scope" }),
-        conditions: new GraphandFieldJSON({ name: "Conditions" }),
+        scope: new GraphandFieldScope(),
+        conditions: new GraphandFieldJSON(),
       },
     }),
   };

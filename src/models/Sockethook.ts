@@ -12,15 +12,15 @@ class Sockethook extends GraphandModel {
   static baseUrl = "/sockethooks";
   static scope = "Sockethook";
   static schema = {
-    identifier: new GraphandFieldText({ name: "Identifiant unique" }),
-    action: new GraphandFieldText({ name: "Action" }),
-    fields: new GraphandFieldText({ name: "Champs", multiple: true }),
-    scope: new GraphandFieldScope({ name: "Scope" }),
-    await: new GraphandFieldBoolean({ name: "Attendre le retour" }),
-    blocked: new GraphandFieldBoolean({ name: "Bloqué" }),
-    timeout: new GraphandFieldNumber({ name: "Timeout" }),
-    priority: new GraphandFieldNumber({ name: "Priorité", defaultValue: 0 }),
-    hosts: new GraphandFieldJSON({ name: "Hôtes" }),
+    identifier: new GraphandFieldText(),
+    action: new GraphandFieldText(),
+    fields: new GraphandFieldText({ multiple: true }),
+    scope: new GraphandFieldScope(),
+    await: new GraphandFieldBoolean(),
+    blocked: new GraphandFieldBoolean(),
+    timeout: new GraphandFieldNumber(),
+    priority: new GraphandFieldNumber({ defaultValue: 0 }),
+    hosts: new GraphandFieldJSON(),
   };
 
   identifier;

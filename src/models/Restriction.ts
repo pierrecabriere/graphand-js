@@ -11,11 +11,11 @@ class Restriction extends GraphandModel {
   static baseUrl = "/restrictions";
   static scope = "Restriction";
   static schema = {
-    role: new GraphandFieldRelation({ name: "Rôle", ref: "Role", multiple: false }),
-    scope: new GraphandFieldScope({ name: "Scope" }),
-    actions: new GraphandFieldText({ name: "Actions", type: GraphandFieldText, multiple: true, options: ["create", "update"] }),
-    fields: new GraphandFieldText({ name: "Champs à restreindre", multiple: true }),
-    conditions: new GraphandFieldJSON({ name: "Conditions" }),
+    role: new GraphandFieldRelation({ ref: "Role", multiple: false }),
+    scope: new GraphandFieldScope(),
+    actions: new GraphandFieldText({ multiple: true, options: ["create", "update"] }),
+    fields: new GraphandFieldText({ multiple: true }),
+    conditions: new GraphandFieldJSON(),
   };
 }
 

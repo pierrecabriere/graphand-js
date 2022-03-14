@@ -18,15 +18,15 @@ class Media extends GraphandModel {
   static scope = "Media";
   static queryFields = true;
   static schema = {
-    name: new GraphandFieldText({ name: "Nom" }),
-    description: new GraphandFieldText({ name: "Description" }),
-    url: new GraphandFieldText({ name: "Url" }),
-    mimetype: new GraphandFieldText({ name: "Mimetype" }),
-    originalname: new GraphandFieldText({ name: "Nom original" }),
-    size: new GraphandFieldNumber({ name: "Taille" }),
-    private: new GraphandFieldBoolean({ name: "Privé", defaultValue: false }),
-    width: new GraphandFieldNumber({ name: "Largeur" }),
-    height: new GraphandFieldNumber({ name: "Hauteur" }),
+    name: new GraphandFieldText(),
+    description: new GraphandFieldText(),
+    url: new GraphandFieldText(),
+    mimetype: new GraphandFieldText(),
+    originalname: new GraphandFieldText(),
+    size: new GraphandFieldNumber(),
+    private: new GraphandFieldBoolean({ defaultValue: false }),
+    width: new GraphandFieldNumber(),
+    height: new GraphandFieldNumber(),
   };
 
   static universalPrototypeMethods = ["getUrl"];

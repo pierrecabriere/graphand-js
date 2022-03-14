@@ -15,6 +15,7 @@ import GraphandModel from "./lib/GraphandModel";
 import GraphandModelList from "./lib/GraphandModelList";
 import GraphandModelListPromise from "./lib/GraphandModelListPromise";
 import GraphandModelPromise from "./lib/GraphandModelPromise";
+import GraphandPlugin from "./lib/GraphandPlugin";
 import GraphandValidationError from "./lib/GraphandValidationError";
 import Account from "./models/Account";
 import Aggregation from "./models/Aggregation";
@@ -69,6 +70,7 @@ export {
   Environment as GraphandModelEnvironment,
   GraphandError,
   GraphandValidationError,
+  GraphandPlugin,
   GraphandModelPromise,
   GraphandModelList,
   GraphandModelListPromise,
