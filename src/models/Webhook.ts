@@ -5,7 +5,7 @@ import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
 class Webhook extends GraphandModel {
-  protected static _customFields = {};
+  static _customFields = {};
 
   static apiIdentifier = "webhooks";
   static baseUrl = "/webhooks";

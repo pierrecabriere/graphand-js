@@ -10,7 +10,7 @@ import GraphandField from "../lib/GraphandField";
 import GraphandModel from "../lib/GraphandModel";
 
 class DataField extends GraphandModel {
-  protected static _customFields = {};
+  static _customFields = {};
 
   static apiIdentifier = "data-fields";
   static baseUrl = "/data-fields";

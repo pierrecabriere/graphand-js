@@ -1,7 +1,7 @@
 import GraphandModel from "../lib/GraphandModel";
 
 class Data extends GraphandModel {
-  protected static _customFields = {};
+  static _customFields = {};
 
   static queryFields = true;
   static apiIdentifier;

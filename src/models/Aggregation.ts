@@ -8,7 +8,7 @@ import GraphandModel from "../lib/GraphandModel";
 import GraphandModelPromise from "../lib/GraphandModelPromise";
 
 class Aggregation extends GraphandModel {
-  protected static _customFields = {};
+  static _customFields = {};
 
   static apiIdentifier = "aggregations";
   static baseUrl = "/aggregations";

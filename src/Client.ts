@@ -1,12 +1,35 @@
 import { BehaviorSubject, Subject } from "rxjs";
 import PluginLifecyclePhases from "./enums/plugin-lifecycle-phases";
-import { ClientOptions, ClientType } from "./interfaces";
 import * as lib from "./lib";
 import GraphandPlugin from "./lib/GraphandPlugin";
 import * as models from "./models";
 import Data from "./models/Data";
 import Sockethook from "./models/Sockethook";
 import { setupAxios, setupSocket, verifyScopeFormat } from "./utils";
+
+interface ClientOptions {
+  host?: string;
+  cdn?: string;
+  ssl?: boolean;
+  unloadTimeout?: number;
+  project?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  locale?: string;
+  translations?: string[];
+  realtime?: boolean;
+  mergeQueries?: boolean;
+  autoSync?: boolean;
+  subscribeFields?: boolean;
+  init?: boolean;
+  initProject?: boolean;
+  initModels?: boolean;
+  models?: any[];
+  cache?: boolean;
+  plugins?: any[];
+  socketOptions?: any;
+  env?: string;
+}
 
 const defaultOptions = {
   host: "api.graphand.io",
@@ -32,7 +55,7 @@ const defaultOptions = {
   env: "master",
 };
 
-class Client implements ClientType {
+class Client {
   static models = models;
 
   private _initPromise;

@@ -6,7 +6,7 @@ import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
 class Rule extends GraphandModel {
-  protected static _customFields = {};
+  static _customFields = {};
 
   static apiIdentifier = "rules";
   static baseUrl = "/rules";

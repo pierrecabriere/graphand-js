@@ -10,7 +10,7 @@ const locales = [
 ];
 
 class Project extends GraphandModel {
-  protected static _customFields = {};
+  static _customFields = {};
 
   static apiIdentifier = "projects";
   static baseUrl = "/projects";

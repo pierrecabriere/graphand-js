@@ -3,7 +3,6 @@ import _ from "lodash";
 import { Observable } from "rxjs";
 import Client from "../Client";
 import Account from "../models/Account";
-import { getPopulatedPaths } from "../utils/getPopulatedPaths";
 import parseQuery from "../utils/parseQuery";
 import { processPopulate } from "../utils/processPopulate";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
@@ -11,14 +10,14 @@ import GraphandFieldId from "./fields/GraphandFieldId";
 import GraphandFieldRelation from "./fields/GraphandFieldRelation";
 import GraphandField from "./GraphandField";
 import GraphandModelList from "./GraphandModelList";
-import GraphandModelListPromise from "./GraphandModelListPromise";
-import GraphandModelPromise from "./GraphandModelPromise";
-
-interface FetchOptions {
-  cache?: boolean;
-  callback?: boolean;
-  hooks?: boolean;
-}
+import fetchModel from "../utils/fetchModel";
+import hydrateModel from "../utils/hydrateModel";
+import queryModel, { QueryOptions } from "../utils/queryModel";
+import { FetchOptions } from "../utils/fetchModel";
+import getModelInstance from "../utils/getModelInstance";
+import updateModel from "../utils/updateModel";
+import deleteModel from "../utils/deleteModel";
+import createModel from "../utils/createModel";
 
 class GraphandModel {
   // configurable fields
@@ -29,24 +28,22 @@ class GraphandModel {
   static schema = {};
   static scope = "GraphandModelAbstract";
 
-  protected static _client: Client;
-  protected static _socketSubscription;
-  protected static _fieldsIds = null;
-  protected static _dataFields = {};
-  protected static _cache;
-  protected static _initialized = false;
-  protected static _fieldsList = null;
-  protected static _registeredAt;
-  protected static _observers;
-  protected static _socketTriggerSubject;
-  protected static _initPromise;
-  protected static _listSubject;
-  protected static _defaultFields = true;
-  protected static _socketOptions;
-  protected static _queryIds = new Set();
-  protected static _queryIdsTimeout;
-  protected static _customFields = {};
-  protected static _cachedFields;
+  static _client: Client;
+  static _socketSubscription;
+  static _fieldsIds = null;
+  static _dataFields = {};
+  static _cache;
+  static _initialized = false;
+  static _fieldsList = null;
+  static _registeredAt;
+  static _observers;
+  static _socketTriggerSubject;
+  static _initPromise;
+  static _listSubject;
+  static _defaultFields = true;
+  static _socketOptions;
+  static _customFields = {};
+  static _cachedFields;
 
   // private fields
   private _data: any = {};
@@ -77,26 +74,8 @@ class GraphandModel {
   static beforeDelete;
   static afterDelete;
 
-  static hydrate(data: any, fields?) {
-    data = data ?? {};
-
-    const Model = data.__scope ? this._client.getModel(data.__scope) : this;
-
-    switch (data.__type) {
-      case "GraphandModelList":
-        return GraphandModelList.hydrate(data, Model);
-      case "GraphandModel":
-        return new Model(data.__payload, fields);
-      default:
-        break;
-    }
-
-    if (Array.isArray(data)) {
-      const list = data.map((i) => new this(i));
-      return new GraphandModelList({ model: this }, ...list);
-    }
-
-    return new this(data);
+  static hydrate(data: any) {
+    return hydrateModel(this, data);
   }
 
   static sync(opts: any = {}) {
@@ -157,81 +136,8 @@ class GraphandModel {
     return {};
   }
 
-  static get(query, fetch: FetchOptions | boolean = true, cache?) {
-    if (!query) {
-      return new GraphandModelPromise(async (resolve, reject) => {
-        try {
-          await this.init();
-          const res = await this.fetch(null);
-          const _id = (res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id;
-          resolve(this.get(_id, false));
-        } catch (e) {
-          reject(e);
-        }
-      }, this);
-    }
-
-    let _id;
-    if (query instanceof GraphandModel) {
-      _id = query._id;
-      cache = cache ?? true;
-    } else if (typeof query === "string") {
-      _id = query;
-      cache = cache ?? true;
-    } else if (typeof query === "object" && query.query?._id && typeof query.query._id === "string") {
-      _id = query.query._id;
-      cache = cache ?? Object.keys(query).length === 1;
-    } else {
-      cache = cache ?? true;
-    }
-
-    const item = cache && _id && this.getList().find((item) => item._id === _id);
-
-    if (!item && fetch) {
-      return new GraphandModelPromise(
-        async (resolve, reject) => {
-          try {
-            await this.init();
-            const fetchOpts: FetchOptions = typeof fetch === "object" ? fetch : {};
-            fetchOpts.cache = fetchOpts.cache ?? cache;
-            const { data } = await this.fetch(query, fetchOpts);
-            let row;
-
-            if (data.data) {
-              if (data.data.rows) {
-                if (_id) {
-                  row = data.data.rows.find((row) => row._id === _id);
-                } else {
-                  row = data.data.rows[0];
-                }
-              } else {
-                row = data.data;
-              }
-            }
-
-            if (row?._id) {
-              let item;
-
-              if (cache) {
-                item = this.get(row?._id, false);
-              }
-
-              item = item || new this(row);
-
-              return resolve(item);
-            }
-
-            return resolve(null);
-          } catch (e) {
-            reject(e);
-          }
-        },
-        this,
-        query,
-      );
-    }
-
-    return item;
+  static get(query: any, fetch: FetchOptions | boolean = true, cache?) {
+    return getModelInstance(this, query, fetch, cache);
   }
 
   static getFields(cache = true) {
@@ -540,223 +446,21 @@ class GraphandModel {
     return false;
   }
 
-  static getList(query?: any) {
+  static getList(query?: any, opts: QueryOptions | boolean = true) {
     if (!query) {
       const list = this._listSubject.getValue();
       return new GraphandModelList({ model: this }, ...list);
     }
 
-    return this.query.apply(this, arguments);
+    return queryModel(this, query, opts);
   }
 
-  static query(query: any, opts: { fetch: boolean; cache: boolean } | boolean = true): GraphandModelList | GraphandModelListPromise {
-    if (Array.isArray(query)) {
-      query = { ids: query };
-    }
-
-    const defaultOptions = { fetch: true, cache: true };
-    opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { fetch: opts });
-
-    const { fetch, cache } = opts;
-
-    let list;
-    let mapIds;
-
-    if (query.ids) {
-      if (query.ids instanceof GraphandModelList || query.ids instanceof GraphandModelListPromise) {
-        query.ids = query.ids.ids;
-      } else if (query.ids instanceof GraphandModel || query.ids instanceof GraphandModelPromise) {
-        query.ids = [query.ids._id];
-      } else if (typeof query.ids === "string") {
-        query.ids = [query.ids];
-      }
-
-      if (cache && "ids" in query && Object.keys(query).length === 1) {
-        mapIds = query.ids;
-        const cacheList = query.ids.map((_id) => this.get(_id, false));
-        if (cacheList.every(Boolean)) {
-          list = new GraphandModelList({ model: this, count: cacheList.length, query }, ...cacheList);
-        }
-      }
-    }
-
-    if (!list && fetch) {
-      return new GraphandModelListPromise(
-        async (resolve) => {
-          try {
-            await this.init();
-
-            let graphandList;
-            const { data } = await this.fetch(query, { cache });
-            const storeList = this._listSubject.getValue();
-            if (mapIds) {
-              const _list = mapIds?.map((_id) => storeList.find((item) => item._id === _id)).filter((r) => r) || [];
-              graphandList = new GraphandModelList({ model: this, count: mapIds.length, query }, ..._list);
-            } else {
-              const _list = data.data.rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
-              graphandList = new GraphandModelList({ model: this, count: data.data.count, query }, ..._list);
-            }
-
-            return resolve(graphandList);
-          } catch (e) {
-            console.error(e);
-            return resolve(new GraphandModelList({ model: this, query }));
-          }
-        },
-        this,
-        query,
-      );
-    }
-
-    return list;
+  static query(query: any, opts: QueryOptions | boolean = true) {
+    return queryModel(this, query, opts);
   }
 
-  static _handleRequestResult(data, query) {
-    const populatedPaths = getPopulatedPaths(query.populate);
-
-    let _rows = data?.rows ? data.rows : data?._id ? [data] : [];
-    if (populatedPaths?.length) {
-      const fields = this.getFields();
-      _rows.forEach((_row) => processPopulate(_row, fields, this._client, populatedPaths));
-    }
-
-    const rows = _rows.map((item) => {
-      const found = item?._id && this.get(item._id, false);
-      if (!found) {
-        return new this(item);
-      }
-
-      found.assign(item);
-      return found;
-    });
-
-    this.upsertStore(rows);
-
-    return rows;
-  }
-
-  static async _request(query, hooks, cacheKey?, opts = {}) {
-    let res;
-
-    try {
-      const isSimpleQuery = typeof query?.query?._id === "string" && Object.keys(query.query).length === 1;
-      if (isSimpleQuery) {
-        const {
-          query: { _id },
-          ...params
-        } = query;
-        const url = `${this.baseUrl}/${_id}`;
-        res = await this._client._axios.get(url, { params }, opts);
-      } else {
-        const url = this.queryUrl || `${this.baseUrl}/query`;
-        res = await this._client._axios.post(url, query, opts);
-      }
-
-      this._handleRequestResult(res.data.data, query);
-    } catch (e) {
-      delete this._cache[cacheKey];
-
-      if (hooks) {
-        await this.afterQuery?.call(this, query, null, e);
-      }
-
-      throw e;
-    }
-
-    if (cacheKey) {
-      this._cache[cacheKey] = this._cache[cacheKey] || {};
-      this._cache[cacheKey].previous = res;
-    }
-
-    if (hooks) {
-      await this.afterQuery?.call(this, query, res);
-    }
-
-    return res;
-  }
-
-  static async fetch(query: any, opts: boolean | any = true) {
-    query = parseQuery(query);
-
-    const defaultOptions = {
-      cache: true,
-      callback: undefined,
-      hooks: true,
-    };
-
-    opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { cache: opts ?? defaultOptions.cache });
-    const { cache, callback, hooks } = opts;
-
-    if (cache && typeof query === "object" && "ids" in query) {
-      if (this._client._options.mergeQueries && Object.keys(query).length === 1 && this._queryIds.size + query.ids.length < 100) {
-        if (this._queryIdsTimeout) {
-          clearTimeout(this._queryIdsTimeout);
-        }
-
-        query.ids.forEach(this._queryIds.add, this._queryIds);
-        await new Promise((resolve) => setTimeout(resolve));
-        query = { ids: [...this._queryIds] };
-      }
-
-      if (Object.keys(query).length === 1 && Object.keys(query.ids).length === 1) {
-        query = { query: { _id: query.ids[0] } };
-      }
-    } else if (typeof query === "string") {
-      query = { query: { _id: query } };
-    }
-
-    // if (this.translatable && !query.translations && this._client._project?.locales?.length) {
-    //   query.translations = this._client._project?.locales;
-    // }
-
-    if (hooks) {
-      await this.beforeQuery?.call(this, query);
-    }
-
-    if (!cache) {
-      return await this._request(query, hooks);
-    }
-
-    let res;
-    const cacheKey = this.getCacheKey(query);
-    const cacheEntry = this._cache[cacheKey];
-
-    try {
-      if (!cacheEntry) {
-        this._cache[cacheKey] = {
-          previous: null,
-          request: this._request(query, hooks, cacheKey),
-        };
-
-        res = await this._cache[cacheKey].request;
-        callback?.call(callback, res);
-      } else {
-        if (cacheEntry.previous) {
-          callback?.call(callback, cacheEntry.previous);
-        }
-
-        if (!cacheEntry.request) {
-          cacheEntry.request = this._request(query, hooks, cacheKey);
-        }
-
-        res = await cacheEntry.request;
-      }
-    } catch (e) {
-      if (e.data) {
-        res = e.response;
-      } else {
-        throw e;
-      }
-
-      if (e.graphandErrors) {
-        console.error(e.graphandErrors);
-      }
-    }
-
-    this._queryIdsTimeout = setTimeout(() => (this._queryIds = new Set()));
-    callback?.call(callback, res);
-
-    return res;
+  static async fetch(query: any, opts: FetchOptions | boolean = true) {
+    return fetchModel(this, query, opts);
   }
 
   static async count(query?: any, ...params): Promise<number> {
@@ -773,53 +477,7 @@ class GraphandModel {
   }
 
   static async create(payload, hooks = true, url = this.baseUrl) {
-    await this.init();
-
-    const config = { params: {} };
-
-    if (payload.locale && this._client._project && payload.locale === this._client._project.defaultLocale) {
-      delete payload.locale;
-    }
-
-    const args = { payload, config };
-
-    if (hooks) {
-      if ((await this.beforeCreate?.call(this, args)) === false) {
-        return;
-      }
-    }
-
-    let inserted;
-    try {
-      args.payload = parseQuery(args.payload);
-      const req = this._client._axios.post(url, args.payload, args.config).then(async (res) => {
-        const { data } = res.data;
-        const inserted = Array.isArray(data) ? data.map((i) => new this(i)) : data ? new this(data) : data;
-
-        this.clearCache();
-        this.upsertStore(inserted, true);
-
-        if (hooks) {
-          await this.afterCreate?.call(this, inserted, null, args);
-        }
-
-        return inserted;
-      });
-
-      const middlewareData = await this.middlewareCreate?.call(this, args, req);
-      if (middlewareData !== undefined) {
-        return middlewareData;
-      }
-      inserted = await req;
-    } catch (e) {
-      if (hooks) {
-        await this.afterCreate?.call(this, null, e, args);
-      }
-
-      throw e;
-    }
-
-    return inserted;
+    return createModel(this, payload, hooks, url);
   }
 
   static refreshList() {
@@ -827,64 +485,7 @@ class GraphandModel {
   }
 
   static async update(payload, options) {
-    await this.init();
-
-    options = Object.assign(
-      {},
-      {
-        hooks: true,
-        clearCache: true,
-        upsert: true,
-      },
-      options,
-    );
-
-    // if (this.translatable && !payload.translations && this._client._project?.locales?.length) {
-    //   payload.translations = this._client._project?.locales;
-    // }
-
-    if (payload.locale && payload.locale === this._client._project?.defaultLocale) {
-      delete payload.locale;
-    }
-
-    if (options.hooks) {
-      if ((await this.beforeUpdate?.call(this, payload)) === false) {
-        return;
-      }
-    }
-
-    try {
-      payload = parseQuery(payload);
-      const { data } = await this.handleUpdateCall(payload);
-
-      if (!data) {
-        return data;
-      }
-
-      const items = data.data.rows.map((item) => new this(item));
-
-      if (options.upsert) {
-        const upserted = this.upsertStore(items);
-
-        if (upserted) {
-          this.clearCache();
-
-          items.forEach((item) => item.HistoryModel.clearCache());
-        }
-      }
-
-      if (options.hooks) {
-        await this.afterUpdate?.call(this, items, null, payload);
-      }
-
-      return items;
-    } catch (e) {
-      if (options.hooks) {
-        await this.afterUpdate?.call(this, null, e, payload);
-      }
-
-      throw e;
-    }
+    return updateModel(this, payload, options);
   }
 
   async update(payload: any, options) {
@@ -966,85 +567,7 @@ class GraphandModel {
   }
 
   static async delete(payload: GraphandModel | any, options) {
-    await this.init();
-
-    options = Object.assign(
-      {},
-      {
-        hooks: true,
-        clearCache: true,
-        updateStore: true,
-      },
-      options,
-    );
-
-    const args = { payload };
-
-    if (options.hooks) {
-      if ((await this.beforeDelete?.call(this, args)) === false) {
-        return;
-      }
-    }
-
-    if (payload instanceof GraphandModel) {
-      try {
-        const { _id } = payload;
-        await this._client._axios.delete(`${this.baseUrl}/${_id}`);
-
-        if (options.updateStore) {
-          const updated = this.deleteFromStore(payload);
-
-          if (updated) {
-            this.clearCache();
-          }
-        }
-
-        if (options.hooks) {
-          await this.afterDelete?.call(this, args);
-        }
-      } catch (e) {
-        this.upsertStore(payload);
-
-        if (options.hooks) {
-          await this.afterDelete?.call(this, args, e);
-        }
-
-        throw e;
-      }
-    } else {
-      try {
-        payload = parseQuery(payload);
-
-        // @ts-ignore
-        const { data } = await this._client._axios.delete(this.baseUrl, { _data: payload });
-
-        if (!data) {
-          return;
-        }
-
-        const ids = data.data.ids;
-
-        if (options.updateStore) {
-          const updated = this.deleteFromStore(ids);
-
-          if (updated) {
-            this.clearCache();
-          }
-        }
-
-        if (options.hooks) {
-          await this.afterDelete?.call(this, args);
-        }
-      } catch (e) {
-        if (options.hooks) {
-          await this.afterDelete?.call(this, args, e);
-        }
-
-        throw e;
-      }
-    }
-
-    return true;
+    return deleteModel(this, payload, options);
   }
 
   static get HistoryModel() {
