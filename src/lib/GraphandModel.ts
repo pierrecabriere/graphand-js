@@ -3,21 +3,21 @@ import _ from "lodash";
 import { Observable } from "rxjs";
 import Client from "../Client";
 import Account from "../models/Account";
+import createModel from "../utils/createModel";
+import deleteModel from "../utils/deleteModel";
+import fetchModel from "../utils/fetchModel";
+import { FetchOptions } from "../utils/fetchModel";
+import getModelInstance from "../utils/getModelInstance";
+import hydrateModel from "../utils/hydrateModel";
 import parseQuery from "../utils/parseQuery";
 import { processPopulate } from "../utils/processPopulate";
+import queryModel, { QueryOptions } from "../utils/queryModel";
+import updateModel from "../utils/updateModel";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldId from "./fields/GraphandFieldId";
 import GraphandFieldRelation from "./fields/GraphandFieldRelation";
 import GraphandField from "./GraphandField";
 import GraphandModelList from "./GraphandModelList";
-import fetchModel from "../utils/fetchModel";
-import hydrateModel from "../utils/hydrateModel";
-import queryModel, { QueryOptions } from "../utils/queryModel";
-import { FetchOptions } from "../utils/fetchModel";
-import getModelInstance from "../utils/getModelInstance";
-import updateModel from "../utils/updateModel";
-import deleteModel from "../utils/deleteModel";
-import createModel from "../utils/createModel";
 
 class GraphandModel {
   // configurable fields
@@ -201,8 +201,8 @@ class GraphandModel {
     return this;
   }
 
-  static customFields(assign) {
-    Object.assign(this._customFields, assign);
+  static customFields(fields = {}) {
+    this._customFields = fields;
     return this;
   }
 
@@ -679,7 +679,6 @@ class GraphandModel {
     if (locale) {
       clone.translate(locale);
     }
-    clone._version = this._version;
     return clone;
   }
 
@@ -773,7 +772,7 @@ class GraphandModel {
       this._storeSub = constructor._listSubject.subscribe((_list) => {
         setTimeout(async () => {
           const item = prev.isTemporary() ? _list.find((i) => i._id === prev._id) : await constructor.get(prev._id);
-          if (!item || item._version > prev._version || !isEqual(item.raw, prev.raw)) {
+          if (!item || !isEqual(item.raw, prev.raw)) {
             if (item) {
               prev = item.clone();
             }

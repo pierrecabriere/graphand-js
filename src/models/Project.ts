@@ -1,4 +1,3 @@
-import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
@@ -20,7 +19,6 @@ class Project extends GraphandModel {
     slug: new GraphandFieldText(),
     locales: new GraphandFieldText({ multiple: true, options: locales }),
     defaultLocale: new GraphandFieldText({ options: locales }),
-    settings: new GraphandFieldJSON(),
     accessTokenLifetime: new GraphandFieldNumber(),
     refreshTokenLifetime: new GraphandFieldNumber(),
   };

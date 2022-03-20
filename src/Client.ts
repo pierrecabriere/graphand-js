@@ -453,7 +453,7 @@ class Client {
     };
 
     this._socketSubject.subscribe((_socket) => _register(_socket));
-    console.log("waiting for socket to connect ...");
+    // console.log("waiting for socket to connect ...");
     this.connectSocket();
   }
 
