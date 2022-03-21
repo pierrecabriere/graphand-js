@@ -74,8 +74,8 @@ class GraphandModel {
   static beforeDelete;
   static afterDelete;
 
-  static hydrate(data: any) {
-    return hydrateModel(this, data);
+  static hydrate(data: any, upsert?: boolean) {
+    return hydrateModel(this, data, upsert);
   }
 
   static sync(opts: any = {}) {
@@ -843,7 +843,7 @@ class GraphandModel {
     const dataFields = await this.getDataFields();
     return JSON.stringify({
       fieldsIds: this._fieldsIds,
-      fields: dataFields.toJSON(),
+      fields: dataFields?.toJSON(),
     });
   }
 

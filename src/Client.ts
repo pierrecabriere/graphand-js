@@ -6,6 +6,7 @@ import * as models from "./models";
 import Data from "./models/Data";
 import Sockethook from "./models/Sockethook";
 import { setupAxios, setupSocket, verifyScopeFormat } from "./utils";
+import hydrateModel from "./utils/hydrateModel";
 
 interface ClientOptions {
   host?: string;
@@ -608,6 +609,10 @@ class Client {
 
   setLocale(locale: string) {
     this._locale = locale;
+  }
+
+  hydrate(data: any, upsert: boolean) {
+    return hydrateModel(this, data, upsert);
   }
 }
 
