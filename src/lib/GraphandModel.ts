@@ -417,14 +417,6 @@ class GraphandModel {
         refresh = true;
         found.assign(item._data, false, false);
         return list;
-        // return list.map((i) => (i === found ? item : i));
-        // return list.map((i) => {
-        //   if (i === found) {
-        //     i.assign(item._data, false, false);
-        //   }
-        //
-        //   return i;
-        // });
       }
 
       return list;

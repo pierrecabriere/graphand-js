@@ -1,5 +1,6 @@
 import { AxiosRequestConfig } from "axios";
 import { GraphandModel } from "../lib";
+import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import { getPopulatedPaths } from "./getPopulatedPaths";
 import parseQuery from "./parseQuery";
 import { processPopulate } from "./processPopulate";
@@ -16,8 +17,45 @@ interface FetchOptions {
 const _queryIds = {};
 const _queryIdsTimeout = {};
 
-const _handleRequestResult = (Model: typeof GraphandModel, data, query) => {
+const _handleRequestResult = async (Model: typeof GraphandModel, data, query) => {
   const populatedPaths = getPopulatedPaths(query.populate);
+
+  if (populatedPaths?.length) {
+    const populatedModels = [];
+
+    const _processPath = (parentModel, path) => {
+      const field = parentModel.fields[path];
+
+      if (field instanceof GraphandFieldRelation) {
+        const nextModel = Model._client.getModel(field.ref);
+        populatedModels.push(nextModel);
+        return nextModel;
+      }
+
+      return;
+    };
+
+    await Promise.all(
+      populatedPaths.map(async (path) => {
+        if (path.includes(".")) {
+          _processPath(Model, path);
+        } else {
+          const paths = path.split(".");
+          await paths.reduce(async (promise, currentPath) => {
+            const parentModel = await promise;
+
+            if (!parentModel) {
+              return;
+            }
+
+            return _processPath(parentModel, currentPath);
+          }, Promise.resolve(Model));
+        }
+      }),
+    );
+
+    await Promise.all(populatedModels.map((model) => model.init()));
+  }
 
   let _rows = data?.rows ? data.rows : data?._id ? [data] : [];
   if (populatedPaths?.length) {
@@ -59,7 +97,7 @@ const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey?, op
       res = await Model._client._axios.post(url, query, axiosOpts);
     }
 
-    _handleRequestResult(Model, res.data.data, query);
+    await _handleRequestResult(Model, res.data.data, query);
   } catch (e) {
     delete Model._cache[cacheKey];
 
