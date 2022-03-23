@@ -11,7 +11,7 @@ class GraphandField {
     return value;
   }
 
-  setter(value: any) {
+  setter(value: any, from: GraphandModel) {
     return value;
   }
 }

@@ -6,53 +6,79 @@ class GraphandFieldJSON extends GraphandField {
 
   fields;
 
-  getter(value) {
-    if (Array.isArray(value)) {
-      return value;
-    }
-
-    const _fields = this.fields || {};
-    const defaults = Object.keys(_fields).reduce((payload, key) => {
-      const field = _fields[key];
-      if (field.defaultValue !== undefined) {
-        payload[key] = field.defaultValue;
-      }
-
-      return payload;
-    }, {});
-
+  getter(value, from) {
     if (typeof value !== "object") {
       value = {};
     }
 
-    return { ...defaults, ...value };
-  }
+    let res = { ...value };
 
-  setter(value) {
     const _fields = this.fields || {};
-    const defaults = Object.keys(_fields).reduce((payload, key) => {
+    Object.keys(_fields).forEach((key) => {
       const field = _fields[key];
-      if (field.defaultValue !== undefined) {
-        payload[key] = field.defaultValue;
+
+      if (!field) {
+        return;
       }
 
-      return payload;
-    }, {});
+      if (res[key] === undefined) {
+        res[key] = field.defaultValue;
+      }
 
-    return (
-      value &&
-      Object.keys(value).reduce(
-        (payload, key) => {
-          if (isEqual(defaults[key], value[key])) {
-            delete payload[key];
-          }
+      if (field?.getter) {
+        res[key] = field.getter(res[key], from);
+      }
+    });
 
-          return payload;
-        },
-        { ...value },
-      )
-    );
+    return res;
   }
+
+  setter(value, from) {
+    if (typeof value !== "object") {
+      value = {};
+    }
+
+    let res = { ...value };
+
+    const _fields = this.fields || {};
+    Object.keys(_fields).forEach((key) => {
+      const field = _fields[key];
+
+      if (!field) {
+        return;
+      }
+
+      if (field?.setter) {
+        res[key] = field.setter(res[key], from);
+      }
+    });
+
+    return res;
+  }
+
+  // const _fields = this.fields || {};
+  // const defaults = Object.keys(_fields).reduce((payload, key) => {
+  //   const field = _fields[key];
+  //   if (field.defaultValue !== undefined) {
+  //     payload[key] = field.defaultValue;
+  //   }
+  //
+  //   return payload;
+  // }, {});
+  //
+  // return (
+  //   value &&
+  //   Object.keys(value).reduce(
+  //     (payload, key) => {
+  //       if (isEqual(defaults[key], value[key])) {
+  //         delete payload[key];
+  //       }
+  //
+  //       return payload;
+  //     },
+  //     { ...value },
+  //   )
+  // );
 }
 
 export default GraphandFieldJSON;

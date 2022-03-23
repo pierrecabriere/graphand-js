@@ -23,14 +23,6 @@ class Role extends GraphandModel {
       ref: "Module",
       multiple: true,
     }),
-    sidebarModules: new GraphandFieldRelation({
-      ref: "Module",
-      multiple: true,
-    }),
-    menuModules: new GraphandFieldRelation({
-      ref: "Module",
-      multiple: true,
-    }),
   };
 }
 
