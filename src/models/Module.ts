@@ -13,7 +13,6 @@ class Module extends GraphandModel {
     name: new GraphandFieldText(),
     type: new GraphandFieldText(),
     default: new GraphandFieldBoolean(),
-    pinned: new GraphandFieldBoolean(),
     configuration: new GraphandFieldJSON(),
   };
 }
