@@ -29,6 +29,14 @@ class GraphandFieldJSON extends GraphandField {
       }
     });
 
+    if (Object.keys(res)?.length) {
+      if (Object.keys(res).every((key) => Number.isInteger(Number(key)))) {
+        return Object.values(res);
+      }
+    } else if (Array.isArray(value)) {
+      return value;
+    }
+
     return res;
   }
 
@@ -54,30 +62,6 @@ class GraphandFieldJSON extends GraphandField {
 
     return res;
   }
-
-  // const _fields = this.fields || {};
-  // const defaults = Object.keys(_fields).reduce((payload, key) => {
-  //   const field = _fields[key];
-  //   if (field.defaultValue !== undefined) {
-  //     payload[key] = field.defaultValue;
-  //   }
-  //
-  //   return payload;
-  // }, {});
-  //
-  // return (
-  //   value &&
-  //   Object.keys(value).reduce(
-  //     (payload, key) => {
-  //       if (isEqual(defaults[key], value[key])) {
-  //         delete payload[key];
-  //       }
-  //
-  //       return payload;
-  //     },
-  //     { ...value },
-  //   )
-  // );
 }
 
 export default GraphandFieldJSON;
