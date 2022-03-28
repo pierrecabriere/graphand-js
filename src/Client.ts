@@ -332,7 +332,7 @@ class Client {
     this._models[_name]._socketSubscription = null;
     this._models[_name]._fieldsIds = options.fieldsIds;
     this._models[_name]._dataFields = {};
-    this._models[_name]._fieldsList = null;
+    this._models[_name]._dataFieldsList = null;
     this._models[_name]._initialized = false;
     this._models[_name]._observers = new Set([]);
     this._models[_name]._socketTriggerSubject = new Subject();

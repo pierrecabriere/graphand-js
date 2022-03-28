@@ -17,24 +17,6 @@ class DataModel extends GraphandModel {
     multiple: new GraphandFieldBoolean({ defaultValue: true }),
     defaultField: new GraphandFieldRelation({ ref: "DataField" }),
   };
-
-  static afterCreate(item, err) {
-    if (!err) {
-      this._client.models.Module.clearCache();
-    }
-  }
-
-  static afterUpdate(res, err) {
-    if (!err) {
-      this._client.models.Module.clearCache();
-    }
-  }
-
-  static afterDelete(args, err) {
-    if (!err) {
-      this._client.models.Module.clearCache();
-    }
-  }
 }
 
 export default DataModel;

@@ -34,7 +34,7 @@ class GraphandModel {
   static _dataFields = {};
   static _cache;
   static _initialized = false;
-  static _fieldsList = null;
+  static _dataFieldsList = null;
   static _registeredAt;
   static _observers;
   static _socketTriggerSubject;
@@ -89,19 +89,19 @@ class GraphandModel {
     return this;
   }
 
-  static get fieldsList() {
+  static get dataFieldsList() {
     if (!this.queryFields) {
       return;
     }
 
     const DataField = this._client.getModel("DataField");
 
-    if (!this._fieldsList) {
-      const query = this._fieldsIds ? { ids: this._fieldsIds } : { query: { scope: this.scope } };
-      this._fieldsList = DataField.getList(query);
+    if (!this._dataFieldsList) {
+      const query = this._fieldsIds && !this._client._options.subscribeFields ? { ids: this._fieldsIds } : { query: { scope: this.scope } };
+      this._dataFieldsList = DataField.getList(query);
     }
 
-    return this._fieldsList;
+    return this._dataFieldsList;
   }
 
   static setPrototypeFields(assignTo?: any) {
@@ -227,14 +227,12 @@ class GraphandModel {
           if (this.queryFields) {
             await this._client.init();
 
-            let fieldsList;
             if (this._client._options.subscribeFields) {
-              fieldsList = await this.fieldsList;
-              fieldsList.subscribe((list) => this.setDataFields(list));
-            }
-
-            if (this._client._options.project) {
-              await this.setDataFields(fieldsList);
+              this.dataFieldsList.subscribe((list) => {
+                this.setDataFields(list);
+              });
+            } else if (this._client._options.project) {
+              await this.setDataFields();
             }
           }
 
@@ -254,15 +252,11 @@ class GraphandModel {
   }
 
   static async setDataFields(dataFields?: any) {
-    dataFields = dataFields ?? (await this.getDataFields());
+    dataFields = dataFields ?? (await this.dataFieldsList);
     const graphandFields = dataFields.map((field) => field.toGraphandField());
     this._dataFields = dataFields.reduce((final, field, index) => Object.assign(final, { [field.slug]: graphandFields[index] }), {});
+    this._cachedFields = null;
     return this._dataFields;
-  }
-
-  static async getDataFields() {
-    const query = this._fieldsIds ? { ids: this._fieldsIds } : { query: { scope: this.scope } };
-    return await this._client.getModel("DataField").getList(query);
   }
 
   static setupSocket(socket?) {
@@ -607,7 +601,7 @@ class GraphandModel {
     Object.defineProperty(this, "_version", { enumerable: false });
 
     if (constructor.queryFields && constructor._client._options.subscribeFields) {
-      constructor.init().then(() => constructor.fieldsList.subscribe(() => setTimeout(() => constructor.setPrototypeFields(this))));
+      constructor.init().then(() => constructor.dataFieldsList.subscribe(() => setTimeout(() => constructor.setPrototypeFields(this))));
     } else {
       constructor.setPrototypeFields(this);
     }
@@ -832,7 +826,7 @@ class GraphandModel {
   }
 
   static async serializeModel(clearCache = false) {
-    const dataFields = await this.getDataFields();
+    const dataFields = await this.dataFieldsList;
     return JSON.stringify({
       fieldsIds: this._fieldsIds,
       fields: dataFields?.toJSON(),
