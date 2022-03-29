@@ -26,6 +26,11 @@ class GraphandFieldRelation extends GraphandField {
 
     let model = this._model;
     if (!model) {
+      if (!from) {
+        console.error(`Unable to get model from field with value ${value}`, this);
+        return null;
+      }
+
       const { constructor } = Object.getPrototypeOf(from);
       const { _client } = constructor;
 
