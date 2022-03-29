@@ -54,14 +54,15 @@ class Account extends GraphandModel {
     return await constructor.generateToken(this._id);
   }
 
-  static async getCurrent(populate = true) {
+  static async getCurrent(populate = true, opts) {
     if (!this._currentId) {
-      this._currentId = this.get("current").then((account) => account?._id || null);
+      const _opts = Object.assign({}, typeof populate === "object" ? populate : {}, opts);
+      this._currentId = this.get({ ..._opts, query: { _id: "current" } }).then((account) => account?._id || null);
     }
 
     const id = await this._currentId;
     if (populate) {
-      return id && this.get(id);
+      return id && this.get({ query: { _id: id } });
     }
 
     return id;
