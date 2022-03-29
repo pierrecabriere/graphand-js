@@ -1,12 +1,7 @@
+import Locales from "../enums/locales";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
-
-const locales = [
-  { value: "fr", label: "Français" },
-  { value: "en", label: "Anglais" },
-  { value: "de", label: "Allemand" },
-];
 
 class Project extends GraphandModel {
   static _customFields = {};
@@ -17,8 +12,8 @@ class Project extends GraphandModel {
   static schema = {
     name: new GraphandFieldText(),
     slug: new GraphandFieldText(),
-    locales: new GraphandFieldText({ multiple: true, options: locales }),
-    defaultLocale: new GraphandFieldText({ options: locales }),
+    locales: new GraphandFieldText({ multiple: true, options: Object.values(Locales) }),
+    defaultLocale: new GraphandFieldText({ options: Object.values(Locales) }),
     accessTokenLifetime: new GraphandFieldNumber(),
     refreshTokenLifetime: new GraphandFieldNumber(),
   };
