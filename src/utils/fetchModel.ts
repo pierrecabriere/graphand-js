@@ -5,14 +5,14 @@ import { getPopulatedPaths } from "./getPopulatedPaths";
 import parseQuery from "./parseQuery";
 import { processPopulate } from "./processPopulate";
 
-interface FetchOptions {
+type FetchOptions = {
   cache?: boolean;
   callback?: (any) => any;
   hooks?: boolean;
   authToken?: string;
   global?: boolean;
   axiosOpts?: AxiosRequestConfig;
-}
+};
 
 const _queryIds = {};
 const _queryIdsTimeout = {};

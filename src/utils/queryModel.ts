@@ -4,10 +4,10 @@ import GraphandModelListPromise from "../lib/GraphandModelListPromise";
 import GraphandModelPromise from "../lib/GraphandModelPromise";
 import { FetchOptions } from "./fetchModel";
 
-interface QueryOptions {
+type QueryOptions = {
   fetch: FetchOptions | boolean;
   cache: boolean;
-}
+};
 
 const queryModel = (Model: typeof GraphandModel, query: any, opts: QueryOptions | boolean = true): GraphandModelList | GraphandModelListPromise => {
   if (Array.isArray(query)) {

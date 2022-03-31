@@ -8,7 +8,7 @@ import Sockethook from "./models/Sockethook";
 import { setupAxios, setupSocket, verifyScopeFormat } from "./utils";
 import hydrateModel from "./utils/hydrateModel";
 
-interface ClientOptions {
+type ClientOptions = {
   host?: string;
   cdn?: string;
   ssl?: boolean;
@@ -30,7 +30,7 @@ interface ClientOptions {
   plugins?: any[];
   socketOptions?: any;
   env?: string;
-}
+};
 
 const defaultOptions = {
   host: "api.graphand.io",
@@ -75,6 +75,17 @@ class Client {
   _initialized;
   _plugins;
 
+  /**
+   * Graphand client options
+   * @typedef ClientOptions
+   * @property host {string}
+   */
+
+  /**
+   * Graphand Client
+   * @param project {ClientOptions|string} - Your project _id or client options
+   * @param options {ClientOptions=} - Client options
+   */
   constructor(project: string | ClientOptions, options: ClientOptions = {}) {
     options = project && typeof project === "object" ? { ...project, ...options } : options;
     if (typeof project === "string" && !options.project) {
@@ -524,6 +535,10 @@ class Client {
     });
   }
 
+  /**
+   * Create a new Graphand Client
+   * @param options {}
+   */
   create(options: ClientOptions) {
     return new Client({ ...this._options, ...options });
   }

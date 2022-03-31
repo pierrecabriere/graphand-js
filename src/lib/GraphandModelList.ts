@@ -3,6 +3,9 @@ import { Observable } from "rxjs";
 import GraphandModel from "./GraphandModel";
 import GraphandModelListPromise from "./GraphandModelListPromise";
 
+/**
+ * @class GraphandModelList
+ */
 class GraphandModelList extends Array implements Array<any> {
   _model;
   count;
@@ -105,12 +108,17 @@ class GraphandModelList extends Array implements Array<any> {
     });
   }
 
-  subscribe(opts?) {
+  /**
+   * Subscribe to the list. The callback will be called each time (an instance inside) the list is updated in store.
+   * If the model is synced (realtime), the callback will be called when the list is updated via socket
+   * @param callback - The function to call when the instance is updated
+   */
+  subscribe(callback) {
     if (!this._observable) {
       this.createObservable();
     }
 
-    const sub = this._observable.subscribe.apply(this._observable, arguments);
+    const sub = this._observable.subscribe(callback);
     this._subscriptions.add(sub);
     const unsubscribe = sub.unsubscribe;
     sub.unsubscribe = () => {
@@ -139,6 +147,11 @@ class GraphandModelList extends Array implements Array<any> {
     return this.map((i) => i.toJSON?.apply(i) || i);
   }
 
+  /**
+   * Hydrate GraphandModelList from serialized data
+   * @param data {any} - Serialized data
+   * @returns {GraphandModelList}
+   */
   static hydrate(data: any, model: any) {
     data = data ?? {};
 
@@ -152,6 +165,10 @@ class GraphandModelList extends Array implements Array<any> {
     return new this({ model, count, query }, ...items);
   }
 
+  /**
+   * Serialize list. Serialized data could be hydrated with GraphandModel.hydrate
+   * @returns {Object}
+   */
   serialize() {
     return {
       __type: "GraphandModelList",

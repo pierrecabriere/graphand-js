@@ -19,6 +19,9 @@ import GraphandFieldRelation from "./fields/GraphandFieldRelation";
 import GraphandField from "./GraphandField";
 import GraphandModelList from "./GraphandModelList";
 
+/**
+ * @class GraphandModel
+ */
 class GraphandModel {
   // configurable fields
   static translatable = true;
@@ -28,6 +31,7 @@ class GraphandModel {
   static schema = {};
   static scope = "GraphandModelAbstract";
 
+  /** @member {Client} */
   static _client: Client;
   static _socketSubscription;
   static _fieldsIds = null;
@@ -74,11 +78,32 @@ class GraphandModel {
   static beforeDelete;
   static afterDelete;
 
+  /**
+   * Hydrate GraphandModel or GraphandModelList from serialized data
+   * @param data {any} - Serialized data
+   * @param upsert {boolean} - Upsert hydrated data in store
+   * @returns {GraphandModel|GraphandModelList}
+   */
   static hydrate(data: any, upsert?: boolean) {
     return hydrateModel(this, data, upsert);
   }
 
-  static sync(opts: any = {}) {
+  /**
+   * Description of the function
+   * @callback handleSocketTrigger
+   * @params opts {Object}
+   * @param opts.action {string} Action
+   * @param opts.payload {string} Payload
+   * @returns {boolean|void}
+   */
+
+  /**
+   * Sync the current Model with the client socket
+   * @param opts {Object}
+   * @param opts.handleSocketTrigger {handleSocketTrigger} - middleware to allow or disallow the model to proceed data when receiving on socket
+   * @param opts.force {boolean} - force Model to resubscribe on socket (even if already subscribed)
+   */
+  static sync(opts: { handleSocketTrigger?: ({ action, payload }) => boolean | void; force?: boolean } = {}) {
     let force = typeof opts === "boolean" ? opts : opts.force ?? false;
     this._socketOptions = opts;
 
@@ -89,6 +114,10 @@ class GraphandModel {
     return this;
   }
 
+  /**
+   * Returns the DataField list of the model
+   * @member {GraphandModelList}
+   */
   static get dataFieldsList() {
     if (!this.queryFields) {
       return;
@@ -578,6 +607,11 @@ class GraphandModel {
 
   // constructor
 
+  /**
+   * Create a new instance of GraphandModel. If getting an instance as data, the instance will be cloned
+   * @param data {*}
+   * @return {GraphandModel}
+   */
   constructor(data: any = {}) {
     const { constructor } = Object.getPrototypeOf(this);
 
@@ -609,6 +643,10 @@ class GraphandModel {
 
   // getters
 
+  /**
+   * Returns raw data of instance
+   * @returns {*}
+   */
   get raw() {
     return this._data;
   }
@@ -769,12 +807,17 @@ class GraphandModel {
     });
   }
 
-  subscribe(...args) {
+  /**
+   * Subscribe to the instance. The callback will be called each time the instance is updated in store.
+   * If the model is synced (realtime), the callback will be called when the instance is updated via socket
+   * @param callback - The function to call when the instance is updated
+   */
+  subscribe(callback) {
     if (!this._observable) {
       this.createObservable();
     }
 
-    const sub = this._observable.subscribe(...args);
+    const sub = this._observable.subscribe(callback);
     this._subscriptions.add(sub);
     const unsubscribe = sub.unsubscribe;
     sub.unsubscribe = () => {
@@ -817,8 +860,18 @@ class GraphandModel {
     return this;
   }
 
+  getInvertedRelation(model: typeof GraphandModel, slug, opts, ...args) {
+    const { constructor } = Object.getPrototypeOf(this);
+    model = typeof model === "string" ? constructor._client.getModel(model) : model;
+    return model.getList({ ...opts, query: { [slug]: this._id } }, ...args);
+  }
+
   // serialization
 
+  /**
+   * Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
+   * @returns {Object}
+   */
   serialize() {
     const { constructor } = Object.getPrototypeOf(this);
 
