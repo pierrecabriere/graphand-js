@@ -165,6 +165,12 @@ class GraphandModel {
     return {};
   }
 
+  /**
+   * Returns a GraphandModel (or Promise) of the model
+   * @param query {string|Object} - the requested _id or the request query (see api doc)
+   * @param opts
+   * @returns {GraphandModel|GraphandModelPromise}
+   */
   static get(query: any, fetch: FetchOptions | boolean = true, cache?) {
     return getModelInstance(this, query, fetch, cache);
   }
@@ -461,6 +467,12 @@ class GraphandModel {
     return false;
   }
 
+  /**
+   * Returns a GraphandModelList (or Promise) of the model
+   * @param query {Object} - the request query (see api doc)
+   * @param opts
+   * @returns {GraphandModelList|GraphandModelListPromise}
+   */
   static getList(query?: any, opts: QueryOptions | boolean = true) {
     if (!query) {
       const list = this._listSubject.getValue();
@@ -491,6 +503,12 @@ class GraphandModel {
     return parseInt(data.data, 10);
   }
 
+  /**
+   * Create and persist a new instance of the model
+   * @param payload {Object} - The payload to persist
+   * @param hooks {boolean} - Enable or disable hooks, default true
+   * @returns {GraphandModel}
+   */
   static async create(payload, hooks = true, url = this.baseUrl) {
     return createModel(this, payload, hooks, url);
   }
@@ -697,6 +715,10 @@ class GraphandModel {
     return this;
   }
 
+  /**
+   * Clone the instance
+   * @param locale
+   */
   clone(locale?) {
     const { constructor } = Object.getPrototypeOf(this);
     const clone = new constructor(_.cloneDeep(this.raw));
@@ -860,10 +882,11 @@ class GraphandModel {
     return this;
   }
 
-  getInvertedRelation(model: typeof GraphandModel, slug, opts, ...args) {
+  getInvertedRelation(model: typeof GraphandModel, query, opts, ...args) {
     const { constructor } = Object.getPrototypeOf(this);
     model = typeof model === "string" ? constructor._client.getModel(model) : model;
-    return model.getList({ ...opts, query: { [slug]: this._id } }, ...args);
+    query = typeof query === "object" ? query : { [query]: this._id };
+    return model.getList({ ...opts, query }, ...args);
   }
 
   // serialization
