@@ -90,7 +90,7 @@ class GraphandModel {
 
   /**
    * Description of the function
-   * @callback handleSocketTrigger
+   * @callback GraphandModel.sync.handleSocketTrigger
    * @params opts {Object}
    * @param opts.action {string} Action
    * @param opts.payload {string} Payload
@@ -100,7 +100,7 @@ class GraphandModel {
   /**
    * Sync the current Model with the client socket
    * @param opts {Object}
-   * @param opts.handleSocketTrigger {handleSocketTrigger} - middleware to allow or disallow the model to proceed data when receiving on socket
+   * @param opts.handleSocketTrigger {GraphandModel.sync.handleSocketTrigger} - middleware to allow or disallow the model to proceed data when receiving on socket
    * @param opts.force {boolean} - force Model to resubscribe on socket (even if already subscribed)
    */
   static sync(opts: { handleSocketTrigger?: ({ action, payload }) => boolean | void; force?: boolean } = {}) {
@@ -341,8 +341,23 @@ class GraphandModel {
     return await this._client._axios.patch(this.baseUrl, payload);
   }
 
-  static on(event, trigger, options: any = {}) {
-    this._client.registerHook({ model: this, action: event, trigger, _await: options.await, ...options });
+  /**
+   * Description of the function
+   * @callback GraphandModel.on.handler
+   * @params payload {Object} - The payload sent by the server
+   * @param resolve {string} - Callback to resolve the handler and validate the sockethook workflow
+   * @param reject {string} - Callback to reject the handler and put error in the sockethook workflow
+   * @returns {*|void}
+   */
+
+  /**
+   * Register a new sockethook on the model (need admin token)
+   * @param event {string} - The event that will trigger the sockethook
+   * @param handler {GraphandModel.on.handler}
+   * @param options
+   */
+  static on(event, handler, options: any = {}) {
+    this._client.registerHook({ model: this, action: event, handler, _await: options.await, ...options });
   }
 
   static unsync() {

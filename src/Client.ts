@@ -388,12 +388,12 @@ class Client {
     );
   }
 
-  async registerHook({ identifier, model, action, trigger, _await, timeout, priority, fields }) {
+  async registerHook({ identifier, model, action, handler, _await, timeout, priority, fields }) {
     await this.init();
     let hook;
     let socket;
 
-    _await = _await === undefined ? trigger.constructor.name === "AsyncFunction" : _await;
+    _await = _await === undefined ? handler.constructor.name === "AsyncFunction" : _await;
 
     if (!identifier) {
       identifier = `${action}:${model.scope}`;
@@ -409,13 +409,12 @@ class Client {
       if (hook.await) {
         let res;
         try {
-          res = await new Promise((resolve, reject) => {
-            const resolver = trigger(payload, resolve, reject);
-            if (typeof resolver.then === "function") {
-              resolver.then(resolve);
-            }
-            if (typeof resolver.catch === "function") {
-              resolver.catch(reject);
+          res = await new Promise(async (resolve, reject) => {
+            const resolver = handler(payload, resolve, reject);
+            try {
+              resolve(await resolver);
+            } catch (e) {
+              reject(e);
             }
           });
           await this._axios.post(`/sockethooks/${hook._id}/end`, res ?? payload);
@@ -425,7 +424,7 @@ class Client {
         }
       } else {
         try {
-          trigger(payload);
+          handler(payload);
         } catch (e) {
           console.error(e);
         }
