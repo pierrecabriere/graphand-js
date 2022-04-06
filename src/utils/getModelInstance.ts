@@ -1,14 +1,15 @@
-import { GraphandModel } from "../lib";
+import { GraphandModel, GraphandModelList } from "../lib";
 import GraphandModelPromise from "../lib/GraphandModelPromise";
+import GraphandQuery from "../lib/GraphandQuery";
 import { FetchOptions } from "./fetchModel";
 
-const getModelInstance = (Model: typeof GraphandModel, query: any, fetch: FetchOptions | boolean = true, cache?) => {
+const getModelInstance = (Model: typeof GraphandModel, query?: any, fetch: FetchOptions | boolean = true, cache?) => {
   if (!query) {
     return new GraphandModelPromise(async (resolve, reject) => {
       try {
         await Model.init();
-        const res = await Model.fetch(null);
-        const _id = (res.data.data.rows && res.data.data.rows[0] && res.data.data.rows[0]._id) || res.data.data._id;
+        const { data } = await new GraphandQuery(Model).execute();
+        const _id = (data.data.rows && data.data.rows[0] && data.data.rows[0]._id) || data.data._id;
         resolve(Model.get(_id, false));
       } catch (e) {
         reject(e);
@@ -33,15 +34,19 @@ const getModelInstance = (Model: typeof GraphandModel, query: any, fetch: FetchO
   const fetchOpts: FetchOptions = typeof fetch === "object" ? fetch : {};
   fetchOpts.cache = fetchOpts.cache ?? cache;
 
-  // @ts-ignore
-  const item = fetchOpts.cache && _id && Model.getList().find((item) => item._id === _id);
+  let item;
+  if (fetchOpts.cache && _id) {
+    const modelList = Model.getList() as GraphandModelList;
+    item = modelList.find((item) => item._id === _id);
+  }
 
   if (!item && fetch) {
     return new GraphandModelPromise(
       async (resolve, reject) => {
         try {
           await Model.init();
-          const { data } = await Model.fetch(query, fetchOpts);
+          const q = _id ? { query: { _id } } : { ...query, pageSize: 1 };
+          const { data } = await new GraphandQuery(Model, q).execute(fetchOpts);
           let row;
 
           if (data.data) {

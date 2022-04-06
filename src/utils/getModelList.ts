@@ -2,27 +2,26 @@ import { GraphandModel } from "../lib";
 import GraphandModelList from "../lib/GraphandModelList";
 import GraphandModelListPromise from "../lib/GraphandModelListPromise";
 import GraphandModelPromise from "../lib/GraphandModelPromise";
+import GraphandQuery from "../lib/GraphandQuery";
 import { FetchOptions } from "./fetchModel";
 
-type QueryOptions = {
+type ModelListOptions = {
   fetch: FetchOptions | boolean;
   cache: boolean;
 };
 
-const queryModel = (Model: typeof GraphandModel, query: any, opts: QueryOptions | boolean = true): GraphandModelList | GraphandModelListPromise => {
-  if (Array.isArray(query)) {
-    query = { ids: query };
-  }
-
+const getModelList = (Model: typeof GraphandModel, _q: any, _opts: FetchOptions | boolean = true): GraphandModelList | GraphandModelListPromise => {
   const defaultOptions = { fetch: true, cache: true };
-  opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { fetch: opts });
+  const opts: ModelListOptions = Object.assign({}, defaultOptions, typeof _opts === "object" ? _opts : { fetch: _opts });
 
   const { fetch, cache } = opts;
 
-  let list;
+  const query = new GraphandQuery(Model, _q);
+
+  let list = query.getCachedList();
   let mapIds;
 
-  if (query.ids) {
+  if (!list && query.ids) {
     if (query.ids instanceof GraphandModelList || query.ids instanceof GraphandModelListPromise) {
       query.ids = query.ids.ids;
     } else if (query.ids instanceof GraphandModel || query.ids instanceof GraphandModelPromise) {
@@ -46,18 +45,20 @@ const queryModel = (Model: typeof GraphandModel, query: any, opts: QueryOptions 
         try {
           await Model.init();
 
-          let graphandList;
-          const { data } = await Model.fetch(query, { cache });
+          let graphandModelList;
+          const fetchOpts: FetchOptions = typeof fetch === "object" ? fetch : {};
+          fetchOpts.cache = fetchOpts.cache ?? cache;
+          const { data } = await query.execute(fetchOpts);
           const storeList = Model._listSubject.getValue();
           if (mapIds) {
             const _list = mapIds?.map((_id) => storeList.find((item) => item._id === _id)).filter((r) => r) || [];
-            graphandList = new GraphandModelList({ model: Model, count: mapIds.length, query }, ..._list);
+            graphandModelList = new GraphandModelList({ model: Model, count: mapIds.length, query }, ..._list);
           } else {
             const _list = data.data.rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
-            graphandList = new GraphandModelList({ model: Model, count: data.data.count, query }, ..._list);
+            graphandModelList = new GraphandModelList({ model: Model, count: data.data.count, query }, ..._list);
           }
 
-          return resolve(graphandList);
+          return resolve(graphandModelList);
         } catch (e) {
           console.error(e);
           return resolve(new GraphandModelList({ model: Model, query }));
@@ -71,5 +72,4 @@ const queryModel = (Model: typeof GraphandModel, query: any, opts: QueryOptions 
   return list;
 };
 
-export default queryModel;
-export { QueryOptions };
+export default getModelList;

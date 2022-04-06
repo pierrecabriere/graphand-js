@@ -5,19 +5,19 @@ import Client from "../Client";
 import Account from "../models/Account";
 import createModel from "../utils/createModel";
 import deleteModel from "../utils/deleteModel";
-import fetchModel from "../utils/fetchModel";
-import { FetchOptions } from "../utils/fetchModel";
+import fetchModel, { FetchOptions } from "../utils/fetchModel";
 import getModelInstance from "../utils/getModelInstance";
+import getModelList, { QueryOptions } from "../utils/getModelList";
 import hydrateModel from "../utils/hydrateModel";
 import parseQuery from "../utils/parseQuery";
 import { processPopulate } from "../utils/processPopulate";
-import queryModel, { QueryOptions } from "../utils/queryModel";
 import updateModel from "../utils/updateModel";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldId from "./fields/GraphandFieldId";
 import GraphandFieldRelation from "./fields/GraphandFieldRelation";
 import GraphandField from "./GraphandField";
 import GraphandModelList from "./GraphandModelList";
+import GraphandModelPromise from "./GraphandModelPromise";
 
 /**
  * @class GraphandModel
@@ -171,7 +171,7 @@ class GraphandModel {
    * @param opts
    * @returns {GraphandModel|GraphandModelPromise}
    */
-  static get(query: any, fetch: FetchOptions | boolean = true, cache?) {
+  static get(query?: any, fetch?: FetchOptions | boolean, cache?): GraphandModel | GraphandModelPromise {
     return getModelInstance(this, query, fetch, cache);
   }
 
@@ -375,24 +375,17 @@ class GraphandModel {
     return this.scope + JSON.stringify([populate || 0, sort || 0, pageSize || 0, page || 0, translations || 0, query || 0, ids || 0, !!count]);
   }
 
+  /**
+   * Clear the local cache for the model
+   * @param query {any} - If specified, clear only the cache for this query
+   * @param clean {boolean} - Default false. If true, the local model store will be reinitialized
+   */
   static clearCache(query?, clean = false) {
     if (query) {
       const cacheKey = this.getCacheKey(query);
-      if (this._cache[cacheKey]) {
-        if (clean) {
-          delete this._cache[cacheKey];
-        } else {
-          delete this._cache[cacheKey].request;
-        }
-      }
+      delete this._cache[cacheKey];
     } else {
-      Object.keys(this._cache).forEach((cacheKey: any) => {
-        if (clean) {
-          delete this._cache[cacheKey];
-        } else {
-          delete this._cache[cacheKey].request;
-        }
-      });
+      this._cache = {};
     }
 
     if (clean) {
@@ -407,8 +400,8 @@ class GraphandModel {
     Object.values(fields)
       .filter((field) => field instanceof GraphandFieldRelation)
       .forEach((field: any) => {
-        const model = this._client.getModel(field.ref);
-        if (model !== this) {
+        if (field.ref !== this.scope) {
+          const model = this._client.getModel(field.ref);
           model?.clearCache();
         }
       });
@@ -439,7 +432,7 @@ class GraphandModel {
     }
 
     if (force || refresh) {
-      this.clearRelationsCache();
+      // this.clearRelationsCache();
       this._listSubject.next(_list);
       return true;
     }
@@ -474,7 +467,7 @@ class GraphandModel {
     }
 
     if (refresh) {
-      this.clearRelationsCache();
+      // this.clearRelationsCache();
       this._listSubject.next(_list);
       return true;
     }
@@ -488,21 +481,17 @@ class GraphandModel {
    * @param opts
    * @returns {GraphandModelList|GraphandModelListPromise}
    */
-  static getList(query?: any, opts: QueryOptions | boolean = true) {
+  static getList(query?: any, opts?: QueryOptions | boolean): GraphandModelList | GraphandModelPromise {
     if (!query) {
       const list = this._listSubject.getValue();
       return new GraphandModelList({ model: this }, ...list);
     }
 
-    return queryModel(this, query, opts);
+    return getModelList(this, query, opts);
   }
 
   static query(query: any, opts: QueryOptions | boolean = true) {
-    return queryModel(this, query, opts);
-  }
-
-  static async fetch(query: any, opts: FetchOptions | boolean = true) {
-    return fetchModel(this, query, opts);
+    return getModelList(this, query, opts);
   }
 
   static async count(query?: any, ...params): Promise<number> {
@@ -941,10 +930,10 @@ class GraphandModel {
   static async serializeFromId(_id) {
     await this.init();
 
-    const [res, modelSerial] = await Promise.all([this.fetch(_id).then((r) => JSON.stringify(r.data.data)), this.serializeModel()]);
+    const [obj, modelSerial] = await Promise.all([this.get(_id), this.serializeModel()]);
 
     return {
-      res,
+      res: obj.serialize(),
       modelSerial,
     };
   }

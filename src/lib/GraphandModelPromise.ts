@@ -17,7 +17,6 @@ const _propertiesMiddleware = (fromModel, toModel, middleware) => {
 
 class GraphandModelPromise {
   executor: Function;
-  cached;
   model;
   promise?;
   query;
@@ -26,9 +25,8 @@ class GraphandModelPromise {
   _observable;
   _resSub;
 
-  constructor(executor, model, query?, cached = false) {
+  constructor(executor, model, query?) {
     this.executor = executor;
-    this.cached = cached;
 
     // if (!model || !(model.prototype instanceof GraphandModel)) {
     //   throw new Error("Please provide a valid model");
@@ -44,7 +42,6 @@ class GraphandModelPromise {
     }
 
     Object.defineProperty(this, "executor", { enumerable: false });
-    Object.defineProperty(this, "cached", { enumerable: false });
     Object.defineProperty(this, "model", { enumerable: false });
 
     if (this._id) {

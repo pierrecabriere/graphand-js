@@ -57,7 +57,8 @@ class Account extends GraphandModel {
   static async getCurrent(populate = true, opts) {
     if (!this._currentId) {
       const _opts = Object.assign({}, typeof populate === "object" ? populate : {}, opts);
-      this._currentId = this.get({ ..._opts, query: { _id: "current" } }).then((account) => account?._id || null);
+      const account = await this.get({ ..._opts, query: { _id: "current" } });
+      this._currentId = account?._id || null;
     }
 
     const id = await this._currentId;

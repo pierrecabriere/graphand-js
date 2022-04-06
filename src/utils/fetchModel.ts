@@ -1,4 +1,4 @@
-import { AxiosRequestConfig } from "axios";
+import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { GraphandModel } from "../lib";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import { getPopulatedPaths } from "./getPopulatedPaths";
@@ -7,13 +7,13 @@ import { processPopulate } from "./processPopulate";
 
 type FetchOptions = {
   cache?: boolean;
-  callback?: (any) => any;
   hooks?: boolean;
   authToken?: string;
   global?: boolean;
   axiosOpts?: AxiosRequestConfig;
 };
 
+const _queries = {};
 const _queryIds = {};
 const _queryIdsTimeout = {};
 
@@ -64,7 +64,7 @@ const _handleRequestResult = async (Model: typeof GraphandModel, data, query) =>
   }
 
   const rows = _rows.map((item) => {
-    const found = item?._id && Model.get(item._id, false);
+    const found: any = item?._id && Model.get(item._id, false);
     if (!found) {
       return new Model(item);
     }
@@ -78,19 +78,33 @@ const _handleRequestResult = async (Model: typeof GraphandModel, data, query) =>
   return rows;
 };
 
-const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey?, opts: FetchOptions = {}) => {
+const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey, opts: FetchOptions = {}) => {
   let res;
 
   try {
     const axiosOpts: AxiosRequestConfig = opts.axiosOpts || {};
     axiosOpts.baseURL = opts.global ? `${Model._client._options.ssl ? "https" : "http"}://${Model._client._options.host}` : undefined;
-    const isSimpleQuery = typeof query?.query?._id === "string" && Object.keys(query.query).length === 1;
-    if (isSimpleQuery) {
+    let singleId, params;
+    if (typeof query?.query?._id === "string" && Object.keys(query.query).length === 1) {
       const {
         query: { _id },
-        ...params
+        ..._params
       } = query;
-      const url = `${Model.baseUrl}/${_id}`;
+
+      singleId = _id;
+      params = _params;
+    } else if (query?.ids?.length === 1 && (!query.query || !Object.keys(query.query).length)) {
+      const {
+        ids: [_id],
+        ..._params
+      } = query;
+
+      singleId = _id;
+      params = _params;
+    }
+
+    if (singleId) {
+      const url = `${Model.baseUrl}/${singleId}`;
       res = await Model._client._axios.get(url, { ...axiosOpts, params });
     } else {
       const url = Model.queryUrl || `${Model.baseUrl}/query`;
@@ -99,8 +113,6 @@ const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey?, op
 
     await _handleRequestResult(Model, res.data.data, query);
   } catch (e) {
-    delete Model._cache[cacheKey];
-
     if (hooks) {
       await Model.afterQuery?.call(Model, query, null, e);
     }
@@ -108,37 +120,17 @@ const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey?, op
     throw e;
   }
 
-  if (cacheKey) {
-    Model._cache[cacheKey] = Model._cache[cacheKey] || {};
-    Model._cache[cacheKey].previous = res;
-  }
-
-  if (hooks) {
-    await Model.afterQuery?.call(Model, query, res);
-  }
-
   return res;
 };
 
-const fetchModel = async (Model: typeof GraphandModel, query: any, opts: FetchOptions | boolean) => {
+const fetchModel = async (Model: typeof GraphandModel, query: any, opts?: FetchOptions | boolean): Promise<AxiosResponse> => {
   _queryIds[Model.scope] = _queryIds[Model.scope] || new Set();
   _queryIdsTimeout[Model.scope] = _queryIdsTimeout[Model.scope] || {};
 
   const queryIds = _queryIds[Model.scope];
   const queryIdsTimeout = _queryIdsTimeout[Model.scope];
 
-  query = parseQuery(query);
-
-  const defaultOptions = {
-    cache: true,
-    callback: undefined,
-    hooks: true,
-  };
-
-  opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { cache: opts ?? defaultOptions.cache });
-  const { cache, callback, hooks } = opts;
-
-  if (cache && typeof query === "object" && "ids" in query) {
+  const _waitForIds = async () => {
     if (Model._client._options.mergeQueries && Object.keys(query).length === 1 && queryIds.size + query.ids.length < 100) {
       if (queryIdsTimeout) {
         clearTimeout(queryIdsTimeout);
@@ -152,8 +144,22 @@ const fetchModel = async (Model: typeof GraphandModel, query: any, opts: FetchOp
     if (Object.keys(query).length === 1 && Object.keys(query.ids).length === 1) {
       query = { query: { _id: query.ids[0] } };
     }
-  } else if (typeof query === "string") {
-    query = { query: { _id: query } };
+  };
+
+  const defaultOptions = {
+    cache: true,
+    hooks: true,
+  };
+
+  opts = Object.assign({}, defaultOptions, typeof opts === "object" ? opts : { cache: opts ?? defaultOptions.cache });
+  const { cache, hooks } = opts;
+
+  if (typeof query === "string") {
+    query = { ids: [query] };
+  }
+
+  if (cache && typeof query === "object" && "ids" in query) {
+    await _waitForIds();
   }
 
   // if (Model.translatable && !query.translations && Model._client._project?.locales?.length) {
@@ -164,33 +170,22 @@ const fetchModel = async (Model: typeof GraphandModel, query: any, opts: FetchOp
     await Model.beforeQuery?.call(Model, query);
   }
 
-  if (!cache) {
-    return await _request(Model, query, hooks, undefined, opts);
+  let res: AxiosResponse;
+  const cacheKey = Model.getCacheKey(query);
+
+  if (cache) {
+    res = Model._cache[cacheKey];
   }
 
-  let res;
-  const cacheKey = Model.getCacheKey(query);
-  const cacheEntry = Model._cache[cacheKey];
-
+  _queries[Model.scope] = _queries[Model.scope] || {};
   try {
-    if (!cacheEntry) {
-      Model._cache[cacheKey] = {
-        previous: null,
-        request: _request(Model, query, hooks, cacheKey, opts),
-      };
+    if (!res) {
+      _queries[Model.scope][cacheKey] = _request(Model, query, hooks, cacheKey, opts);
+      res = await _queries[Model.scope][cacheKey];
 
-      res = await Model._cache[cacheKey].request;
-      callback?.call(callback, res);
-    } else {
-      if (cacheEntry.previous) {
-        callback?.call(callback, cacheEntry.previous);
+      if (hooks) {
+        await Model.afterQuery?.call(Model, query, res);
       }
-
-      if (!cacheEntry.request) {
-        cacheEntry.request = _request(Model, query, hooks, cacheKey, opts);
-      }
-
-      res = await cacheEntry.request;
     }
   } catch (e) {
     if (e.data) {
@@ -204,8 +199,10 @@ const fetchModel = async (Model: typeof GraphandModel, query: any, opts: FetchOp
     }
   }
 
+  Model._cache[cacheKey] = res;
+  delete _queries[Model.scope][cacheKey];
+
   _queryIdsTimeout[Model.scope] = setTimeout(() => (_queryIds[Model.scope] = new Set()));
-  callback?.call(callback, res);
 
   return res;
 };

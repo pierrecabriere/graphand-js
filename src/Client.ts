@@ -56,6 +56,9 @@ const defaultOptions = {
   env: "master",
 };
 
+/**
+ * Class Client
+ */
 class Client {
   static models = models;
 
@@ -476,9 +479,6 @@ class Client {
   logout() {
     this.setAccessToken(undefined);
     this.setRefreshToken(undefined);
-    Object.values(this._models).forEach((model: any) => {
-      model.clearCache();
-    });
   }
 
   async login(credentials) {
