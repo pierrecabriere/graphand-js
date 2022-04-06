@@ -73,3 +73,4 @@ const getModelList = (Model: typeof GraphandModel, _q: any, _opts: FetchOptions 
 };
 
 export default getModelList;
+export { ModelListOptions };

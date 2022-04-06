@@ -5,9 +5,9 @@ import Client from "../Client";
 import Account from "../models/Account";
 import createModel from "../utils/createModel";
 import deleteModel from "../utils/deleteModel";
-import fetchModel, { FetchOptions } from "../utils/fetchModel";
+import { FetchOptions } from "../utils/fetchModel";
 import getModelInstance from "../utils/getModelInstance";
-import getModelList, { QueryOptions } from "../utils/getModelList";
+import getModelList, { ModelListOptions } from "../utils/getModelList";
 import hydrateModel from "../utils/hydrateModel";
 import parseQuery from "../utils/parseQuery";
 import { processPopulate } from "../utils/processPopulate";
@@ -23,6 +23,23 @@ import GraphandModelPromise from "./GraphandModelPromise";
  * @class GraphandModel
  */
 class GraphandModel {
+  /**
+   * Model fetching options
+   * @typedef FetchOptions
+   * @property cache {boolean}
+   * @property hooks {boolean}
+   * @property authToken {string}
+   * @property global {boolean}
+   * @property axiosOpts {AxiosRequestConfig}
+   */
+
+  /**
+   * Model getList options
+   * @typedef ModelListOptions
+   * @property fetch {FetchOptions|boolean}
+   * @property cache {boolean}
+   */
+
   // configurable fields
   static translatable = true;
   static queryFields = false;
@@ -481,7 +498,7 @@ class GraphandModel {
    * @param opts
    * @returns {GraphandModelList|GraphandModelListPromise}
    */
-  static getList(query?: any, opts?: QueryOptions | boolean): GraphandModelList | GraphandModelPromise {
+  static getList(query?: any, opts?: ModelListOptions | boolean): GraphandModelList | GraphandModelPromise {
     if (!query) {
       const list = this._listSubject.getValue();
       return new GraphandModelList({ model: this }, ...list);
@@ -490,7 +507,7 @@ class GraphandModel {
     return getModelList(this, query, opts);
   }
 
-  static query(query: any, opts: QueryOptions | boolean = true) {
+  static query(query: any, opts: ModelListOptions | boolean = true) {
     return getModelList(this, query, opts);
   }
 
