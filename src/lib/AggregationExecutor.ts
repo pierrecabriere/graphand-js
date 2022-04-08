@@ -59,7 +59,7 @@ class AggregationExecutor {
   }
 
   async execute() {
-    await this.client.init();
+    await this.client._init();
 
     if (this.cacheKey) {
       const { constructor } = Object.getPrototypeOf(this);

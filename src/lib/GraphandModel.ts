@@ -1,9 +1,10 @@
 import isEqual from "fast-deep-equal";
 import _ from "lodash";
-import { Observable } from "rxjs";
+import { BehaviorSubject, Observable, Subject } from "rxjs";
 import Client from "../Client";
 import Account from "../models/Account";
 import createModel from "../utils/createModel";
+import extendableMember from "../utils/decorators";
 import deleteModel from "../utils/deleteModel";
 import { FetchOptions } from "../utils/fetchModel";
 import getModelInstance from "../utils/getModelInstance";
@@ -11,7 +12,7 @@ import getModelList, { ModelListOptions } from "../utils/getModelList";
 import hydrateModel from "../utils/hydrateModel";
 import parseQuery from "../utils/parseQuery";
 import { processPopulate } from "../utils/processPopulate";
-import updateModel from "../utils/updateModel";
+import updateModel, { updateModelInstance } from "../utils/updateModel";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldId from "./fields/GraphandFieldId";
 import GraphandFieldRelation from "./fields/GraphandFieldRelation";
@@ -19,10 +20,32 @@ import GraphandField from "./GraphandField";
 import GraphandModelList from "./GraphandModelList";
 import GraphandModelPromise from "./GraphandModelPromise";
 
+interface Query {
+  query?: any;
+  ids?: string[];
+  sort?: string | any;
+  page?: number;
+  pageSize?: number;
+}
+
+class AbstractGraphandModel {
+  static __proto__: any;
+}
+
 /**
  * @class GraphandModel
  */
-class GraphandModel {
+class GraphandModel extends AbstractGraphandModel {
+  /**
+   * Model fetching options
+   * @typedef Query
+   * @property query {Object=} - A mongo query, cf. graphand API documentation
+   * @property ids {string[]=} - A list of ids to query
+   * @property sort {string|Object=}
+   * @property page {number=}
+   * @property pageSize {number=}
+   */
+
   /**
    * Model fetching options
    * @typedef FetchOptions
@@ -47,53 +70,61 @@ class GraphandModel {
   static queryUrl = null;
   static schema = {};
   static scope = "GraphandModelAbstract";
+  static defaultFields = true;
+  static initialize?: () => any;
 
   /** @member {Client} */
+  @extendableMember()
   static _client: Client;
+  @extendableMember()
   static _socketSubscription;
-  static _fieldsIds = null;
-  static _dataFields = {};
+  @extendableMember()
+  static _fieldsIds;
+  @extendableMember(() => ({}))
+  static _dataFields;
+  @extendableMember(() => ({}))
   static _cache;
-  static _initialized = false;
-  static _dataFieldsList = null;
+  @extendableMember(() => false)
+  static _initialized;
+  @extendableMember()
+  static _dataFieldsList;
+  @extendableMember()
   static _registeredAt;
+  @extendableMember(() => new Set())
   static _observers;
+  @extendableMember(() => new Subject())
   static _socketTriggerSubject;
+  @extendableMember()
   static _initPromise;
+  @extendableMember(() => new BehaviorSubject([]))
   static _listSubject;
-  static _defaultFields = true;
+  @extendableMember(() => ({}))
   static _socketOptions;
-  static _customFields = {};
+  @extendableMember(() => ({}), (a, b) => ({ ...a, ...b }))
+  static _customFields;
+  @extendableMember()
   static _cachedFields;
+  @extendableMember(() => ({}))
+  static _hooks;
+  @extendableMember(() => new Set())
+  static _queryIds;
+  @extendableMember()
+  static _queryIdsTimeout;
 
-  // private fields
-  private _data: any = {};
-  private _locale = null;
-  private _version = 1;
+  _data: any = {};
+  _locale = null;
+  _version = 1;
+  _observable;
+  _storeSub;
+  _subscriptions = new Set();
 
-  private _observable;
-  private _storeSub;
-  private _subscriptions = new Set();
-
-  // other fields
   _id: string;
   createdAt: Date;
   updatedAt: Date;
   createdBy: Account;
   updatedBy: Account;
 
-  static universalPrototypeMethods = [];
-
-  // hooks
-  static beforeQuery;
-  static afterQuery;
-  static beforeCreate;
-  static middlewareCreate;
-  static afterCreate;
-  static beforeUpdate;
-  static afterUpdate;
-  static beforeDelete;
-  static afterDelete;
+  static _universalPrototypeMethods = [];
 
   /**
    * Hydrate GraphandModel or GraphandModelList from serialized data
@@ -178,17 +209,13 @@ class GraphandModel {
     Object.defineProperties(assignTo, properties);
   }
 
-  static getCustomFields() {
-    return {};
-  }
-
   /**
    * Returns a GraphandModel (or Promise) of the model
-   * @param query {string|Object} - the requested _id or the request query (see api doc)
+   * @param query {string|Query} - the requested _id or the request query (see api doc)
    * @param opts
    * @returns {GraphandModel|GraphandModelPromise}
    */
-  static get(query?: any, fetch?: FetchOptions | boolean, cache?): GraphandModel | GraphandModelPromise {
+  static get<T extends FetchOptions | boolean>(query: string | Query, fetch?: T, cache?): T extends false ? GraphandModel : GraphandModelPromise {
     return getModelInstance(this, query, fetch, cache);
   }
 
@@ -198,7 +225,7 @@ class GraphandModel {
     }
 
     if (!this._registeredAt || !this._client) {
-      throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
+      throw new Error(`Model ${this.scope} is not registered. Please use Client.registerModel() before`);
     }
 
     let fields: any = {
@@ -207,7 +234,7 @@ class GraphandModel {
       ...this.schema,
     };
 
-    if (this._defaultFields) {
+    if (this.defaultFields) {
       fields = {
         ...fields,
         createdBy: new GraphandFieldRelation({
@@ -248,11 +275,20 @@ class GraphandModel {
     return fields;
   }
 
+  /**
+   * Add a custom field to Model
+   * @param slug {string} - The field identifier
+   * @param field {GraphandField} - The GraphandField instance
+   */
   static customField(slug, field) {
     this._customFields[slug] = field;
     return this;
   }
 
+  /**
+   * Add multiple customFields
+   * @param fields {Object.<string, number>} - example: { customField: new GraphandFieldText() }
+   */
   static customFields(fields = {}) {
     this._customFields = fields;
     return this;
@@ -262,7 +298,11 @@ class GraphandModel {
     return this.getFields();
   }
 
-  static async init(force = false) {
+  static async init() {
+    return this._init.apply(this, arguments);
+  }
+
+  static async _init(force = false) {
     if (!this._registeredAt || !this._client) {
       throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
     }
@@ -277,7 +317,7 @@ class GraphandModel {
       this._initPromise = new Promise(async (resolve, reject) => {
         try {
           if (this.queryFields) {
-            await this._client.init();
+            await this._client._init();
 
             if (this._client._options.subscribeFields) {
               this.dataFieldsList.subscribe((list) => {
@@ -290,6 +330,10 @@ class GraphandModel {
 
           this._cachedFields = null;
           this.setPrototypeFields();
+
+          if (this.initialize) {
+            await this.initialize();
+          }
 
           this._initialized = true;
 
@@ -383,6 +427,9 @@ class GraphandModel {
     this._listSubject.unsubscribe();
   }
 
+  /**
+   * Reinitialize the model (clear cache & empty store)
+   */
   static reinit() {
     this._cache = {};
     return this.reinitStore();
@@ -494,11 +541,12 @@ class GraphandModel {
 
   /**
    * Returns a GraphandModelList (or Promise) of the model
-   * @param query {Object} - the request query (see api doc)
+   * @param query {Query} - the request query (see api doc)
    * @param opts
    * @returns {GraphandModelList|GraphandModelListPromise}
    */
-  static getList(query?: any, opts?: ModelListOptions | boolean): GraphandModelList | GraphandModelPromise {
+  static getList(query?: undefined, opts?: ModelListOptions | boolean): GraphandModelList;
+  static getList(query: Query, opts?: ModelListOptions | boolean): GraphandModelList | GraphandModelPromise {
     if (!query) {
       const list = this._listSubject.getValue();
       return new GraphandModelList({ model: this }, ...list);
@@ -511,14 +559,19 @@ class GraphandModel {
     return getModelList(this, query, opts);
   }
 
-  static async count(query?: any, ...params): Promise<number> {
+  /**
+   * Returns a Promise that resolves the number of results for the given query
+   * @param query {Query} - the request query (see api doc)
+   * @returns {number}
+   */
+  static async count(query?: Query): Promise<number> {
     if (typeof query === "string") {
       query = { query: { _id: query } };
     } else if (!query) {
       query = {};
-    } else {
-      query = parseQuery(query);
     }
+
+    query = parseQuery(query);
 
     const { data } = await this._client._axios.post(`${this.baseUrl}/count`, query);
     return parseInt(data.data, 10);
@@ -526,7 +579,7 @@ class GraphandModel {
 
   /**
    * Create and persist a new instance of the model
-   * @param payload {Object} - The payload to persist
+   * @param payload {Object|Object[]} - The payload to persist in a new instance. You can profite an array to create multiple instances
    * @param hooks {boolean} - Enable or disable hooks, default true
    * @returns {GraphandModel}
    */
@@ -543,80 +596,7 @@ class GraphandModel {
   }
 
   async update(payload: any, options) {
-    options = Object.assign(
-      {},
-      {
-        hooks: true,
-        clearCache: false,
-        preStore: false,
-        upsert: undefined,
-        revertOnError: undefined,
-      },
-      options,
-    );
-
-    options.upsert = options.upsert ?? !options.preStore;
-    options.revertOnError = options.revertOnError ?? options.preStore;
-
-    const constructor = this.constructor as any;
-
-    // if (constructor.translatable && !payload.translations && constructor._client._project?.locales?.length) {
-    //   payload.translations = constructor._client._project?.locales;
-    // }
-
-    if (constructor.translatable && payload.locale === undefined && this._locale) {
-      payload.locale = this._locale;
-    }
-
-    if (options.hooks) {
-      if ((await constructor.beforeUpdate?.call(constructor, payload, this)) === false) {
-        return;
-      }
-    }
-
-    const _id = payload._id || this._id;
-    let backup = this.clone();
-
-    if (options.preStore) {
-      this.assign(payload.set);
-    }
-
-    if (this.isTemporary()) {
-      console.warn("You tried to update a temporary document");
-      return this;
-    }
-
-    try {
-      await constructor.update(
-        { ...payload, query: { _id } },
-        {
-          clearCache: options.clearCache,
-          upsert: options.upsert,
-          hooks: false,
-        },
-      );
-
-      if (options.upsert) {
-        this.assign(constructor.get(_id, false)?.raw, false);
-      } else {
-        this.assign(null, false);
-      }
-
-      if (options.hooks) {
-        await constructor.afterUpdate?.call(constructor, constructor.get(_id), null, payload);
-      }
-    } catch (e) {
-      if (options.revertOnError) {
-        constructor.upsertStore(backup);
-      }
-
-      if (options.hooks) {
-        await constructor.afterUpdate?.call(constructor, null, e, payload);
-      }
-
-      throw e;
-    }
-
+    await updateModelInstance(this, payload, options);
     return this;
   }
 
@@ -652,6 +632,8 @@ class GraphandModel {
    * @return {GraphandModel}
    */
   constructor(data: any = {}) {
+    super();
+
     const { constructor } = Object.getPrototypeOf(this);
 
     if (!constructor._registeredAt || !constructor._client) {
@@ -659,7 +641,7 @@ class GraphandModel {
     }
 
     if (!constructor._initialized) {
-      console.warn(`Model ${constructor.scope} is not initialized yet. You should wait Model.init() berore create instances`);
+      console.warn(`Model ${constructor.scope} is not initialized yet. You should wait Model._init() berore create instances`);
     }
 
     if (data instanceof GraphandModel) {
@@ -674,7 +656,7 @@ class GraphandModel {
     Object.defineProperty(this, "_version", { enumerable: false });
 
     if (constructor.queryFields && constructor._client._options.subscribeFields) {
-      constructor.init().then(() => constructor.dataFieldsList.subscribe(() => setTimeout(() => constructor.setPrototypeFields(this))));
+      constructor._init().then(() => constructor.dataFieldsList.subscribe(() => setTimeout(() => constructor.setPrototypeFields(this))));
     } else {
       constructor.setPrototypeFields(this);
     }
@@ -931,21 +913,21 @@ class GraphandModel {
   }
 
   static rebuildModel(serial) {
-    if (!this._registeredAt || !this._client) {
-      throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
-    }
-
-    const DataField = this._client.getModel("DataField");
-
-    const { fields, fieldsIds } = JSON.parse(serial);
-    this._fieldsIds = fieldsIds;
-
-    const dataFields = fields.map((f) => DataField.hydrate(f));
-    this.setDataFields(dataFields);
+    // if (!this._registeredAt || !this._client) {
+    //   throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
+    // }
+    //
+    // const DataField = this._client.getModel("DataField");
+    //
+    // const { fields, fieldsIds } = JSON.parse(serial);
+    // this._fieldsIds = fieldsIds;
+    //
+    // const dataFields = fields.map((f) => DataField.hydrate(f));
+    // this.setDataFields(dataFields);
   }
 
   static async serializeFromId(_id) {
-    await this.init();
+    await this._init();
 
     const [obj, modelSerial] = await Promise.all([this.get(_id), this.serializeModel()]);
 
@@ -984,6 +966,30 @@ class GraphandModel {
   toPromise() {
     const { constructor } = Object.getPrototypeOf(this);
     return constructor.get(this._id).toPromise();
+  }
+
+  static async execHook(event: string, args: any) {
+    const hook = this.getHook(event);
+    if (!hook?.length) {
+      return;
+    }
+
+    return Promise.all(hook.map((fn) => fn.apply(this, args)));
+  }
+
+  static getHook(event) {
+    const hook = this._hooks[event] ? [...this._hooks[event]] : [];
+
+    if ("getHook" in super.__proto__) {
+      return hook.concat(super.__proto__.getHook(event));
+    }
+
+    return hook;
+  }
+
+  static hook(event, callback) {
+    this._hooks[event] = this._hooks[event] || new Set();
+    this._hooks[event].add(callback);
   }
 }
 

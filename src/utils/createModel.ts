@@ -2,7 +2,7 @@ import { GraphandModel } from "../lib";
 import parseQuery from "./parseQuery";
 
 const createModel = async (Model: typeof GraphandModel, payload, hooks = true, url: string) => {
-  await Model.init();
+  await Model._init();
 
   const config = { params: {} };
 
@@ -13,7 +13,8 @@ const createModel = async (Model: typeof GraphandModel, payload, hooks = true, u
   const args = { payload, config };
 
   if (hooks) {
-    if ((await Model.beforeCreate?.call(Model, args)) === false) {
+    const responses = await Model.execHook("preCreate", [args]);
+    if (responses?.includes(false)) {
       return;
     }
   }
@@ -29,20 +30,16 @@ const createModel = async (Model: typeof GraphandModel, payload, hooks = true, u
       Model.upsertStore(inserted, true);
 
       if (hooks) {
-        await Model.afterCreate?.call(Model, inserted, null, args);
+        await Model.execHook("postCreate", [inserted, null, args]);
       }
 
       return inserted;
     });
 
-    const middlewareData = await Model.middlewareCreate?.call(Model, args, req);
-    if (middlewareData !== undefined) {
-      return middlewareData;
-    }
     inserted = await req;
   } catch (e) {
     if (hooks) {
-      await Model.afterCreate?.call(Model, null, e, args);
+      await Model.execHook("postCreate", [null, e, args]);
     }
 
     throw e;

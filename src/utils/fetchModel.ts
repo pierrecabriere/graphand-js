@@ -2,7 +2,6 @@ import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { GraphandModel } from "../lib";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import { getPopulatedPaths } from "./getPopulatedPaths";
-import parseQuery from "./parseQuery";
 import { processPopulate } from "./processPopulate";
 
 type FetchOptions = {
@@ -54,7 +53,7 @@ const _handleRequestResult = async (Model: typeof GraphandModel, data, query) =>
       }),
     );
 
-    await Promise.all(populatedModels.map((model) => model.init()));
+    await Promise.all(populatedModels.map((model) => model._init()));
   }
 
   let _rows = data?.rows ? data.rows : data?._id ? [data] : [];
@@ -114,7 +113,7 @@ const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey, opt
     await _handleRequestResult(Model, res.data.data, query);
   } catch (e) {
     if (hooks) {
-      await Model.afterQuery?.call(Model, query, null, e);
+      await Model.execHook("postQuery", [query, null, e]);
     }
 
     throw e;
@@ -167,7 +166,7 @@ const fetchModel = async (Model: typeof GraphandModel, query: any, opts?: FetchO
   // }
 
   if (hooks) {
-    await Model.beforeQuery?.call(Model, query);
+    await Model.execHook("preQuery", [query]);
   }
 
   let res: AxiosResponse;
@@ -184,7 +183,7 @@ const fetchModel = async (Model: typeof GraphandModel, query: any, opts?: FetchO
       res = await _queries[Model.scope][cacheKey];
 
       if (hooks) {
-        await Model.afterQuery?.call(Model, query, res);
+        await Model.execHook("postQuery", [query, res]);
       }
     }
   } catch (e) {

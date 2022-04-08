@@ -2,7 +2,7 @@ import { GraphandModel } from "../lib";
 import parseQuery from "./parseQuery";
 
 const deleteModel = async (Model: typeof GraphandModel, payload: GraphandModel | any, options) => {
-  await Model.init();
+  await Model._init();
 
   options = Object.assign(
     {},
@@ -17,7 +17,8 @@ const deleteModel = async (Model: typeof GraphandModel, payload: GraphandModel |
   const args = { payload };
 
   if (options.hooks) {
-    if ((await Model.beforeDelete?.call(Model, args)) === false) {
+    const responses = await Model.execHook("preDelete", [args]);
+    if (responses?.includes(false)) {
       return;
     }
   }
@@ -36,13 +37,13 @@ const deleteModel = async (Model: typeof GraphandModel, payload: GraphandModel |
       }
 
       if (options.hooks) {
-        await Model.afterDelete?.call(Model, args);
+        await Model.execHook("postDelete", [args]);
       }
     } catch (e) {
       Model.upsertStore(payload);
 
       if (options.hooks) {
-        await Model.afterDelete?.call(Model, args, e);
+        await Model.execHook("postDelete", [args, e]);
       }
 
       throw e;
@@ -69,11 +70,11 @@ const deleteModel = async (Model: typeof GraphandModel, payload: GraphandModel |
       }
 
       if (options.hooks) {
-        await Model.afterDelete?.call(Model, args);
+        await Model.execHook("postDelete", [args]);
       }
     } catch (e) {
       if (options.hooks) {
-        await Model.afterDelete?.call(Model, args, e);
+        await Model.execHook("postDelete", [args, e]);
       }
 
       throw e;

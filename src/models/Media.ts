@@ -1,4 +1,3 @@
-import FormData from "form-data";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
@@ -29,33 +28,19 @@ class Media extends GraphandModel {
     height: new GraphandFieldNumber(),
   };
 
-  static universalPrototypeMethods = ["getUrl"];
-
-  static async beforeCreate(args) {
-    if (args.payload?.file?.getAsFile) {
-      args.payload.file = args.payload.file.getAsFile();
-    }
-
-    args.config.params.socket = Math.random().toString(36).substr(2, 9);
-
-    const formData = new FormData();
-    Object.keys(args.payload).forEach((key) => {
-      if (args.payload[key] !== undefined) {
-        formData.append(key, args.payload[key]);
-      }
-    });
-
-    args.config.headers = formData.getHeaders?.call(formData) || {
-      "Content-Type": "multipart/form-data",
-    };
-
-    args.payload = formData;
-  }
+  static _universalPrototypeMethods = ["getUrl"];
 
   getUrl(opts: any = {}) {
     opts = Object.assign({}, defaultLinkOptions, opts);
-    // @ts-ignore
-    const client = this instanceof GraphandModelPromise ? this.model._client : Object.getPrototypeOf(this).constructor._client;
+    let client;
+    if (this instanceof GraphandModelPromise) {
+      const promise = this as unknown as GraphandModelPromise;
+      client = promise.model?._client;
+    } else {
+      const { constructor } = Object.getPrototypeOf(this);
+      client = constructor._client;
+    }
+
     const scope = opts.private ? "private" : "public";
     let url = `https://cdn.graphand.io/${scope}/${client._options.project}/${this._id}?fit=${opts.fit}`;
     if (opts.w > 0) url += `&w=${opts.w}`;
@@ -64,5 +49,26 @@ class Media extends GraphandModel {
     return url;
   }
 }
+
+Media.hook("preCreate", (args) => {
+  if (args.payload?.file?.getAsFile) {
+    args.payload.file = args.payload.file.getAsFile();
+  }
+
+  args.config.params.socket = Math.random().toString(36).substr(2, 9);
+
+  const formData = new FormData();
+  Object.keys(args.payload).forEach((key) => {
+    console.log(key, args.payload[key]);
+    if (args.payload[key] !== undefined) {
+      formData.append(key, args.payload[key]);
+    }
+  });
+
+  args.config.headers = args.config.headers || {};
+  args.config.headers["Content-Type"] = "multipart/form-data";
+
+  args.payload = formData;
+});
 
 export default Media;

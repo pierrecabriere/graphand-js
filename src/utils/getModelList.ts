@@ -43,7 +43,7 @@ const getModelList = (Model: typeof GraphandModel, _q: any, _opts: FetchOptions 
     return new GraphandModelListPromise(
       async (resolve) => {
         try {
-          await Model.init();
+          await Model._init();
 
           let graphandModelList;
           const fetchOpts: FetchOptions = typeof fetch === "object" ? fetch : {};

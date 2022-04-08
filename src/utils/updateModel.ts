@@ -2,7 +2,7 @@ import { GraphandModel } from "../lib";
 import parseQuery from "./parseQuery";
 
 const updateModel = async (Model: typeof GraphandModel, payload, options) => {
-  await Model.init();
+  await Model._init();
 
   options = Object.assign(
     {},
@@ -23,7 +23,8 @@ const updateModel = async (Model: typeof GraphandModel, payload, options) => {
   }
 
   if (options.hooks) {
-    if ((await Model.beforeUpdate?.call(Model, payload)) === false) {
+    const responses = await Model.execHook("preUpdate", [payload]);
+    if (responses?.includes(false)) {
       return;
     }
   }
@@ -49,13 +50,93 @@ const updateModel = async (Model: typeof GraphandModel, payload, options) => {
     }
 
     if (options.hooks) {
-      await Model.afterUpdate?.call(Model, items, null, payload);
+      await Model.execHook("postUpdate", [items, null, payload]);
     }
 
     return items;
   } catch (e) {
     if (options.hooks) {
-      await Model.afterUpdate?.call(Model, null, e, payload);
+      await Model.execHook("postUpdate", [null, e, payload]);
+    }
+
+    throw e;
+  }
+};
+
+const updateModelInstance = async (instance: GraphandModel, payload, options) => {
+  options = Object.assign(
+    {},
+    {
+      hooks: true,
+      clearCache: false,
+      upsert: undefined,
+      preStore: false,
+      revertOnError: undefined,
+    },
+    options,
+  );
+
+  options.upsert = options.upsert ?? !options.preStore;
+  options.revertOnError = options.revertOnError ?? options.preStore;
+
+  const constructor = instance.constructor as typeof GraphandModel;
+
+  // if (constructor.translatable && !payload.translations && constructor._client._project?.locales?.length) {
+  //   payload.translations = constructor._client._project?.locales;
+  // }
+
+  if (constructor.translatable && payload.locale === undefined && instance._locale) {
+    payload.locale = instance._locale;
+  }
+
+  if (options.hooks) {
+    const responses = await constructor.execHook("preUpdate", [payload, instance]);
+    if (responses?.includes(false)) {
+      return;
+    }
+  }
+
+  const _id = payload._id || instance._id;
+  let backup = instance.clone();
+
+  if (options.preStore) {
+    instance.assign(payload.set);
+  }
+
+  if (instance.isTemporary()) {
+    console.warn("You tried to update a temporary document");
+    return instance;
+  }
+
+  try {
+    await constructor.update(
+      { ...payload, query: { _id } },
+      {
+        clearCache: options.clearCache,
+        upsert: options.upsert,
+        hooks: false,
+      },
+    );
+
+    if (options.upsert) {
+      const found = constructor.get(_id, false);
+      if (found) {
+        instance.assign(found.raw, false);
+      }
+    } else {
+      instance.assign(null, false);
+    }
+
+    if (options.hooks) {
+      await constructor.execHook("postUpdate", [constructor.get(_id), null, payload]);
+    }
+  } catch (e) {
+    if (options.revertOnError) {
+      constructor.upsertStore(backup);
+    }
+
+    if (options.hooks) {
+      await constructor.execHook("postUpdate", [e, payload]);
     }
 
     throw e;
@@ -63,3 +144,4 @@ const updateModel = async (Model: typeof GraphandModel, payload, options) => {
 };
 
 export default updateModel;
+export { updateModelInstance };

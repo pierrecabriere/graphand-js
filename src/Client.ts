@@ -125,7 +125,7 @@ class Client {
     }
 
     if (this._options.init) {
-      this.init();
+      this._init();
     }
   }
 
@@ -216,7 +216,7 @@ class Client {
 
   private _locale;
 
-  async init(force = false) {
+  async _init(force = false) {
     if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
         const plugins = [...this._plugins];
@@ -342,21 +342,8 @@ class Client {
 
     this._models[_name] = Model;
     this._models[_name]._client = this;
-    this._models[_name]._cache = {};
-    this._models[_name]._socketSubscription = null;
     this._models[_name]._fieldsIds = options.fieldsIds;
-    this._models[_name]._dataFields = {};
-    this._models[_name]._dataFieldsList = null;
-    this._models[_name]._initialized = false;
-    this._models[_name]._observers = new Set([]);
-    this._models[_name]._socketTriggerSubject = new Subject();
-    this._models[_name]._initPromise = null;
-    this._models[_name]._listSubject = options.cache ? new BehaviorSubject([]) : null;
     this._models[_name]._registeredAt = new Date();
-    this._models[_name]._socketOptions = null;
-    this._models[_name]._queryIds = new Set();
-    this._models[_name]._queryIdsTimeout = null;
-    this._models[_name]._cachedFields = null;
 
     try {
       if (options.sync) {
@@ -368,7 +355,7 @@ class Client {
     }
 
     try {
-      this._models[_name].init();
+      this._models[_name]._init();
     } catch (e) {
       console.error(e);
     }
@@ -392,7 +379,7 @@ class Client {
   }
 
   async registerHook({ identifier, model, action, handler, _await, timeout, priority, fields }) {
-    await this.init();
+    await this._init();
     let hook;
     let socket;
 

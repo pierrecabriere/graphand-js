@@ -30,7 +30,7 @@ class Aggregation extends GraphandModel {
     }),
   };
 
-  static universalPrototypeMethods = ["execute"];
+  static _universalPrototypeMethods = ["execute"];
 
   static execute(_id, vars) {
     return new AggregationExecutor({ _id, vars, client: this._client });

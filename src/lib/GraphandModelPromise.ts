@@ -36,7 +36,7 @@ class GraphandModelPromise {
     this.query = query || {};
 
     if (model) {
-      model.universalPrototypeMethods.forEach((slug) => {
+      model._universalPrototypeMethods.forEach((slug) => {
         this[slug] = model.prototype[slug].bind(this);
       });
     }

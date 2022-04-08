@@ -1,3 +1,4 @@
+import "./utils/decorators";
 import Client from "./Client";
 import AggregationExecutor from "./lib/AggregationExecutor";
 import GraphandFieldBoolean from "./lib/fields/GraphandFieldBoolean";
