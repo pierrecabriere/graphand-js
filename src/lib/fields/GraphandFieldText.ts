@@ -8,7 +8,7 @@ class GraphandFieldText extends GraphandField {
 
   getter(value, from: GraphandModel) {
     if (!value) {
-      return;
+      return value;
     }
 
     if (this.multiple) {

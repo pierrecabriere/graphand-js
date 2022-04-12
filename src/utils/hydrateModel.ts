@@ -6,7 +6,7 @@ const hydrateModel = (input: typeof GraphandModel | Client, data: any, upsert = 
   data = data ?? {};
 
   let client: Client = input instanceof Client ? input : input._client;
-  let Model: typeof GraphandModel = data.__scope ? client.getModel(data.__scope) : input;
+  let Model: typeof GraphandModel = data.__scope ? client?.getModel(data.__scope) || input : input;
 
   switch (data.__type) {
     case "GraphandModelList":

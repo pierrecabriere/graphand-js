@@ -153,6 +153,10 @@ class GraphandModelList extends Array implements Array<any> {
    * @returns {GraphandModelList}
    */
   static hydrate(data: any, model: any) {
+    if (!model) {
+      throw new Error(`You need to provide a model to hydrate a new GraphandModelList`);
+    }
+
     data = data ?? {};
 
     if (Array.isArray(data)) {

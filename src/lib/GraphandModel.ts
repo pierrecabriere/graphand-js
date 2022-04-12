@@ -298,10 +298,6 @@ class GraphandModel extends AbstractGraphandModel {
     return this.getFields();
   }
 
-  static async init() {
-    return this._init.apply(this, arguments);
-  }
-
   static async _init(force = false) {
     if (!this._registeredAt || !this._client) {
       throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
@@ -320,8 +316,11 @@ class GraphandModel extends AbstractGraphandModel {
             await this._client._init();
 
             if (this._client._options.subscribeFields) {
-              this.dataFieldsList.subscribe((list) => {
-                this.setDataFields(list);
+              await new Promise<void>((resolve) => {
+                this.dataFieldsList.subscribe((list) => {
+                  this.setDataFields(list);
+                  resolve();
+                });
               });
             } else if (this._client._options.project) {
               await this.setDataFields();
@@ -731,10 +730,17 @@ class GraphandModel extends AbstractGraphandModel {
     return clone;
   }
 
+  /**
+   * Model instance getter. Returns the value for the specified key
+   * @param slug {string} - The key (field slug) to get
+   * @param decode {boolean=false}
+   * @param _locale
+   * @param fallback
+   */
   get(slug, decode = false, _locale = this._locale, fallback = true) {
     const { constructor } = Object.getPrototypeOf(this);
 
-    const field = constructor.getFields()[slug];
+    const field = constructor.fields[slug];
     if (!field) {
       return undefined;
     }
@@ -763,6 +769,12 @@ class GraphandModel extends AbstractGraphandModel {
     return value;
   }
 
+  /**
+   * Model instance setter. Set value for the specified key
+   * @param slug {string} - The key (field slug) to get
+   * @param value {*}
+   * @param upsert - Define if the setter will trigger a store upsertion action
+   */
   set(slug, value, upsert) {
     const { constructor } = Object.getPrototypeOf(this);
 
@@ -953,10 +965,16 @@ class GraphandModel extends AbstractGraphandModel {
     return Object.keys(fields).reduce((final, slug) => Object.assign(final, { [slug]: this.get(slug) }), {});
   }
 
+  /**
+   * Returns JSON-serialized object
+   * @return {Object}
+   */
   toJSON() {
     const { constructor } = Object.getPrototypeOf(this);
     const fields = constructor.getFields();
-    return Object.keys(fields).reduce((final, slug) => Object.assign(final, { [slug]: this.get(slug, true) }), {});
+    return Object.keys(fields).reduce((final, slug) => {
+      return Object.assign(final, { [slug]: this.get(slug, true) });
+    }, {});
   }
 
   toString() {
