@@ -253,10 +253,6 @@ class Client {
     return this._initPromise;
   }
 
-  then(callback) {
-    return this._init().then(callback);
-  }
-
   get locale() {
     return this._locale;
   }
@@ -472,25 +468,19 @@ class Client {
     this.setRefreshToken(undefined);
   }
 
-  login(credentials): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const {
-          data: {
-            data: { accessToken, refreshToken },
-          },
-        } = await this._axios.post("/auth/login", credentials, {
-          headers: {
-            Authorization: null,
-          },
-        });
-        this.setRefreshToken(refreshToken);
-        this.setAccessToken(accessToken);
-        resolve();
-      } catch (e) {
-        reject(e);
-      }
+  async login(credentials) {
+    const {
+      data: {
+        data: { accessToken, refreshToken },
+      },
+    } = await this._axios.post("/auth/login", credentials, {
+      headers: {
+        Authorization: null,
+      },
     });
+    this.setRefreshToken(refreshToken);
+    this.setAccessToken(accessToken);
+    return this;
   }
 
   loginWithGraphand() {

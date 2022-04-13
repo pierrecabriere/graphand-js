@@ -538,10 +538,6 @@ class GraphandModel extends AbstractGraphandModel {
     return false;
   }
 
-  static then(callback) {
-    return this._init().then(callback);
-  }
-
   /**
    * Returns a GraphandModelList (or Promise) of the model
    * @param query {Query} - the request query (see api doc)
@@ -1002,7 +998,7 @@ class GraphandModel extends AbstractGraphandModel {
   static getHook(event) {
     const hook = this._hooks[event] ? [...this._hooks[event]] : [];
 
-    if ("getHook" in super.__proto__) {
+    if (super.__proto__ && "getHook" in super.__proto__) {
       return hook.concat(super.__proto__.getHook(event));
     }
 
