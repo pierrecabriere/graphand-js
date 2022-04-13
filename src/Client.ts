@@ -472,19 +472,25 @@ class Client {
     this.setRefreshToken(undefined);
   }
 
-  async login(credentials) {
-    const {
-      data: {
-        data: { accessToken, refreshToken },
-      },
-    } = await this._axios.post("/auth/login", credentials, {
-      headers: {
-        Authorization: null,
-      },
+  login(credentials): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const {
+          data: {
+            data: { accessToken, refreshToken },
+          },
+        } = await this._axios.post("/auth/login", credentials, {
+          headers: {
+            Authorization: null,
+          },
+        });
+        this.setRefreshToken(refreshToken);
+        this.setAccessToken(accessToken);
+        resolve();
+      } catch (e) {
+        reject(e);
+      }
     });
-    this.setRefreshToken(refreshToken);
-    this.setAccessToken(accessToken);
-    return this;
   }
 
   loginWithGraphand() {
