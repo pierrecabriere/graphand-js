@@ -6,8 +6,8 @@ import { FetchOptions } from "./fetchModel";
 const getModelInstance = (Model: typeof GraphandModel, query?: any, fetch: FetchOptions | boolean = true, cache?) => {
   if (!query) {
     return new GraphandModelPromise(async (resolve, reject) => {
+      await Model._init();
       try {
-        await Model._init();
         const { data } = await new GraphandQuery(Model).execute();
         const _id = (data.data.rows && data.data.rows[0] && data.data.rows[0]._id) || data.data._id;
         resolve(Model.get(_id, false));
@@ -43,8 +43,8 @@ const getModelInstance = (Model: typeof GraphandModel, query?: any, fetch: Fetch
   if (!item && fetch) {
     return new GraphandModelPromise(
       async (resolve, reject) => {
+        await Model._init();
         try {
-          await Model._init();
           const q = _id ? { query: { _id } } : { ...query, pageSize: 1 };
           const { data } = await new GraphandQuery(Model, q).execute(fetchOpts);
           let row;

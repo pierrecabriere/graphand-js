@@ -84,7 +84,7 @@ class GraphandModel extends AbstractGraphandModel {
   static _dataFields;
   @extendableMember(() => ({}))
   static _cache;
-  @extendableMember(() => false)
+  @extendableMember()
   static _initialized;
   @extendableMember()
   static _dataFieldsList;
@@ -640,7 +640,7 @@ class GraphandModel extends AbstractGraphandModel {
     }
 
     if (!constructor._initialized) {
-      console.warn(`Model ${constructor.scope} is not initialized yet. You should wait Model._init() berore create instances`);
+      console.warn(`Model ${constructor.scope} is not initialized yet. You should wait Model._init() before call constructor`);
     }
 
     if (data instanceof GraphandModel) {
