@@ -253,6 +253,10 @@ class Client {
     return this._initPromise;
   }
 
+  then(callback) {
+    return this._init().then(callback);
+  }
+
   get locale() {
     return this._locale;
   }

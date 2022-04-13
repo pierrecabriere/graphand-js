@@ -538,6 +538,10 @@ class GraphandModel extends AbstractGraphandModel {
     return false;
   }
 
+  static then(callback) {
+    return this._init().then(callback);
+  }
+
   /**
    * Returns a GraphandModelList (or Promise) of the model
    * @param query {Query} - the request query (see api doc)
