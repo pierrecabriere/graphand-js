@@ -906,17 +906,17 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   static rebuildModel(serial) {
-    // if (!this._registeredAt || !this._client) {
-    //   throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
-    // }
-    //
-    // const DataField = this._client.getModel("DataField");
-    //
-    // const { fields, fieldsIds } = JSON.parse(serial);
-    // this._fieldsIds = fieldsIds;
-    //
-    // const dataFields = fields.map((f) => DataField.hydrate(f));
-    // this.setDataFields(dataFields);
+    if (!this._registeredAt || !this._client) {
+      throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
+    }
+
+    const DataField = this._client.getModel("DataField");
+
+    const { fields, fieldsIds } = JSON.parse(serial);
+    this._fieldsIds = fieldsIds;
+
+    const dataFields = fields.map((f) => DataField.hydrate(f));
+    this.setDataFields(dataFields);
   }
 
   static async serializeFromId(_id) {
