@@ -4,7 +4,7 @@ import { BehaviorSubject, Observable, Subject } from "rxjs";
 import Client from "../Client";
 import Account from "../models/Account";
 import createModel from "../utils/createModel";
-import extendableMember from "../utils/decorators";
+import { ownProperty } from "../utils/decorators";
 import deleteModel from "../utils/deleteModel";
 import { FetchOptions } from "../utils/fetchModel";
 import getModelInstance from "../utils/getModelInstance";
@@ -30,6 +30,7 @@ interface Query {
 
 class AbstractGraphandModel {
   static __proto__: any;
+  static scope = "AbstractGraphandModel";
 }
 
 /**
@@ -69,46 +70,44 @@ class GraphandModel extends AbstractGraphandModel {
   static baseUrl = null;
   static queryUrl = null;
   static schema = {};
-  static scope = "GraphandModelAbstract";
-  static defaultFields = true;
-  static initialize?: () => any;
+  static initialize: () => any;
 
   /** @member {Client} */
-  @extendableMember()
+  @ownProperty()
   static _client: Client;
-  @extendableMember()
+  @ownProperty()
   static _socketSubscription;
-  @extendableMember()
+  @ownProperty()
   static _fieldsIds;
-  @extendableMember(() => ({}))
+  @ownProperty(() => ({}))
   static _dataFields;
-  @extendableMember(() => ({}))
+  @ownProperty(() => ({}))
   static _cache;
-  @extendableMember()
+  @ownProperty()
   static _initialized;
-  @extendableMember()
+  @ownProperty()
   static _dataFieldsList;
-  @extendableMember()
+  @ownProperty()
   static _registeredAt;
-  @extendableMember(() => new Set())
+  @ownProperty(() => new Set())
   static _observers;
-  @extendableMember(() => new Subject())
+  @ownProperty(() => new Subject())
   static _socketTriggerSubject;
-  @extendableMember()
+  @ownProperty()
   static _initPromise;
-  @extendableMember(() => new BehaviorSubject([]))
+  @ownProperty(() => new BehaviorSubject([]))
   static _listSubject;
-  @extendableMember(() => ({}))
+  @ownProperty(() => ({}))
   static _socketOptions;
-  @extendableMember(() => ({}), (a, b) => ({ ...a, ...b }))
+  @ownProperty(() => ({}), (a, b) => ({ ...a, ...b }))
   static _customFields;
-  @extendableMember()
+  @ownProperty()
   static _cachedFields;
-  @extendableMember(() => ({}))
+  @ownProperty(() => ({}))
   static _hooks;
-  @extendableMember(() => new Set())
+  @ownProperty(() => new Set())
   static _queryIds;
-  @extendableMember()
+  @ownProperty()
   static _queryIdsTimeout;
 
   _data: any = {};
@@ -234,26 +233,6 @@ class GraphandModel extends AbstractGraphandModel {
       ...this.schema,
     };
 
-    if (this.defaultFields) {
-      fields = {
-        ...fields,
-        createdBy: new GraphandFieldRelation({
-          ref: "Account",
-          multiple: false,
-        }),
-        createdAt: new GraphandFieldDate({
-          time: true,
-        }),
-        updatedBy: new GraphandFieldRelation({
-          ref: "Account",
-          multiple: false,
-        }),
-        updatedAt: new GraphandFieldDate({
-          time: true,
-        }),
-      };
-    }
-
     const customFields = Object.keys(this._customFields).reduce((final, slug) => {
       const input = this._customFields[slug];
       const field = typeof input === "function" ? input(fields) : input;
@@ -282,6 +261,7 @@ class GraphandModel extends AbstractGraphandModel {
    */
   static customField(slug, field) {
     this._customFields[slug] = field;
+    this._cachedFields = null;
     return this;
   }
 
@@ -290,7 +270,8 @@ class GraphandModel extends AbstractGraphandModel {
    * @param fields {Object.<string, number>} - example: { customField: new GraphandFieldText() }
    */
   static customFields(fields = {}) {
-    this._customFields = fields;
+    this._customFields = { ...this._customFields, ...fields };
+    this._cachedFields = null;
     return this;
   }
 
@@ -1010,5 +991,22 @@ class GraphandModel extends AbstractGraphandModel {
     this._hooks[event].add(callback);
   }
 }
+
+GraphandModel.customFields({
+  createdBy: new GraphandFieldRelation({
+    ref: "Account",
+    multiple: false,
+  }),
+  createdAt: new GraphandFieldDate({
+    time: true,
+  }),
+  updatedBy: new GraphandFieldRelation({
+    ref: "Account",
+    multiple: false,
+  }),
+  updatedAt: new GraphandFieldDate({
+    time: true,
+  }),
+});
 
 export default GraphandModel;

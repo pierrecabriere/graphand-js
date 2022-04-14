@@ -59,7 +59,6 @@ Media.hook("preCreate", (args) => {
 
   const formData = new FormData();
   Object.keys(args.payload).forEach((key) => {
-    console.log(key, args.payload[key]);
     if (args.payload[key] !== undefined) {
       formData.append(key, args.payload[key]);
     }

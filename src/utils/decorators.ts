@@ -1,23 +1,26 @@
-const extendableMember = (getDefaultValue?, assignRecursive?: (a: any, b: any) => any) => {
+export const ownProperty = (getDefaultValue?, assignRecursive?: (a: any, b: any) => any) => {
   return <T>(target: T, key: keyof T) => {
+    const _key = `#${key}`;
+
     Object.defineProperty(target, key, {
       get() {
-        const _key = `#${key}`;
-        const proto = super.__proto__ || {};
-        this[_key] = this[_key] === proto[_key] ? getDefaultValue?.apply(this) : this[_key] || getDefaultValue?.apply(this);
+        if (!this.hasOwnProperty(_key)) {
+          this[_key] = getDefaultValue?.apply(this) || null;
+        }
 
-        if (assignRecursive && key in proto) {
-          return assignRecursive(this[_key], proto[key]);
+        try {
+          if (assignRecursive && this !== this.__proto__ && this.__proto__[key] !== undefined) {
+            return assignRecursive(this[_key], this.__proto__[key]);
+          }
+        } catch (e) {
+          console.warn(`Unable to process recursive @ownProperty ${key}`);
         }
 
         return this[_key];
       },
       set(value) {
-        const _key = `#${key}`;
         this[_key] = value;
       },
     });
   };
 };
-
-export default extendableMember;

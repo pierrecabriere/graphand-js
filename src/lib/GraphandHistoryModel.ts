@@ -5,8 +5,6 @@ import GraphandFieldText from "./fields/GraphandFieldText";
 import GraphandModel from "./GraphandModel";
 
 class GraphandHistoryModel extends GraphandModel {
-  static defaultFields = false;
-
   static get baseFields() {
     return {
       diffs: new GraphandFieldJSON(),

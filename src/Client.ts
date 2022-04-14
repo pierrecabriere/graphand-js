@@ -168,6 +168,7 @@ class Client {
     const refreshToken = this._refreshTokenSubject.getValue();
 
     if (!accessToken || !refreshToken) {
+      this.logout();
       throw new Error();
     }
 
