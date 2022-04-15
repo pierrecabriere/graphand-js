@@ -416,7 +416,7 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   static getCacheKey({ populate, sort, pageSize, page, translations, query, ids, count }) {
-    return this.scope + JSON.stringify([populate || 0, sort || 0, pageSize || 0, page || 0, translations || 0, query || 0, ids || 0, !!count]);
+    return this.scope + JSON.stringify([populate || "", sort || "", pageSize || "", page || "", translations || "", query || "", ids || "", !!count]);
   }
 
   /**
