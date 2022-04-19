@@ -4,6 +4,11 @@ import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
+/**
+ * @class Restriction
+ * @augments GraphandModel
+ * @classdesc Restriction model. Use {@link Client#getModel client.getModel("Restriction")} to use this model
+ */
 class Restriction extends GraphandModel {
   static _customFields = {};
 

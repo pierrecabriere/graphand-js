@@ -9,6 +9,11 @@ const defaultLinkOptions = {
   fit: "contain",
 };
 
+/**
+ * @class Media
+ * @augments GraphandModel
+ * @classdesc Media model. Use {@link Client#getModel client.getModel("Media")} to use this model
+ */
 class Media extends GraphandModel {
   static _customFields = {};
 
@@ -30,6 +35,18 @@ class Media extends GraphandModel {
 
   static _universalPrototypeMethods = ["getUrl"];
 
+  /**
+   * {@link Media#getUrl} options
+   * @typedef MediaUrlOptions
+   * @property w {number=} - Image width
+   * @property h {number=} - Image height
+   * @property fit {string=} - Image fit (cover or contain)
+   */
+
+  /**
+   * Get graphand cdn url for current media
+   * @param opts {MediaUrlOptions}
+   */
   getUrl(opts: any = {}) {
     opts = Object.assign({}, defaultLinkOptions, opts);
     let client;

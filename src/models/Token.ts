@@ -3,6 +3,11 @@ import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
+/**
+ * @class Token
+ * @augments GraphandModel
+ * @classdesc Token model. Use {@link Client#getModel client.getModel("Token")} to use this model
+ */
 class Token extends GraphandModel {
   static _customFields = {};
 

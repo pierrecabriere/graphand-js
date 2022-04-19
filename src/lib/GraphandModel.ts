@@ -35,16 +35,17 @@ class AbstractGraphandModel {
 
 /**
  * @class GraphandModel
+ * @classdesc Base GraphandModel class. You can create your own custom models by extending this class.
  */
 class GraphandModel extends AbstractGraphandModel {
   /**
    * Model fetching options
    * @typedef Query
-   * @property query {Object=} - A mongo query, cf. graphand API documentation
-   * @property ids {string[]=} - A list of ids to query
-   * @property sort {string|Object=}
-   * @property page {number=}
-   * @property pageSize {number=}
+   * @property [query] {Object} - A mongo query, cf. graphand API documentation
+   * @property [ids] {string[]} - A list of ids to query
+   * @property [sort] {string|Object}
+   * @property [page] {number}
+   * @property [pageSize] {number}
    */
 
   /**
@@ -714,11 +715,11 @@ class GraphandModel extends AbstractGraphandModel {
   /**
    * Model instance getter. Returns the value for the specified key
    * @param slug {string} - The key (field slug) to get
-   * @param decode {boolean=false}
+   * @param parse {boolean=} - Default true. If false returns raw value
    * @param _locale
    * @param fallback
    */
-  get(slug, decode = false, _locale = this._locale, fallback = true) {
+  get(slug, parse = true, _locale = this._locale, fallback = true) {
     const { constructor } = Object.getPrototypeOf(this);
 
     const field = constructor.fields[slug];
@@ -740,11 +741,8 @@ class GraphandModel extends AbstractGraphandModel {
       value = field.defaultValue;
     }
 
-    if (field?.getter) {
+    if (parse && field?.getter) {
       value = field.getter(value, this);
-      if (decode && field?.setter) {
-        value = field.setter(value, this);
-      }
     }
 
     return value;
@@ -754,16 +752,17 @@ class GraphandModel extends AbstractGraphandModel {
    * Model instance setter. Set value for the specified key
    * @param slug {string} - The key (field slug) to get
    * @param value {*}
-   * @param upsert - Define if the setter will trigger a store upsertion action
+   * @param upsert {boolean=} - Define if the setter will trigger a store upsert action
+   * @param parse {boolean=} - Default true. If false set raw value
    */
-  set(slug, value, upsert) {
+  set(slug, value, upsert, parse = true) {
     const { constructor } = Object.getPrototypeOf(this);
 
     const field = constructor.getFields()[slug];
 
     upsert = upsert ?? (field && !["_id", "createdAt", "createdBy", "updatedAt", "updatedBy"].includes(slug));
 
-    if (field?.setter) {
+    if (parse && field?.setter) {
       value = field.setter(value, this);
     }
 
@@ -776,6 +775,12 @@ class GraphandModel extends AbstractGraphandModel {
     return this;
   }
 
+  /**
+   * Assign multiple values to instance.
+   * @param values {Object}
+   * @param upsert {boolean=} - Define if the setter will trigger a store upsert action
+   * @param updatedAtNow
+   */
   assign(values?, upsert = true, updatedAtNow = true) {
     const { constructor } = Object.getPrototypeOf(this);
     const clone = this.clone();

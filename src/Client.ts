@@ -57,7 +57,8 @@ const defaultOptions = {
 };
 
 /**
- * Class Client
+ * @class Client
+ * @classdesc Base Graphand Client class
  */
 class Client {
   static models = models;
@@ -262,6 +263,12 @@ class Client {
     this.setLocale(locale);
   }
 
+  /**
+   * Get multiple models at once (multiple {@link Client#getModel})
+   * @param scopes {string[]}
+   * @param options
+   * @returns {GraphandModel.constructor[]}
+   */
   getModels(scopes, options: any = {}) {
     return scopes.map((scope: string) => this.getModel(scope, options));
   }
@@ -571,6 +578,12 @@ class Client {
     this.connectSocket(true);
   }
 
+  /**
+   * Get ready-to-use model by scope. Use {@link Client#getModels} to get multiple models at once
+   * @param scope {string}
+   * @param options
+   * @returns {GraphandModel.constructor}
+   */
   getModel(scope, options: any = {}) {
     if (scope?.scope) {
       scope = scope.scope;

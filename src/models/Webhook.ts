@@ -4,6 +4,11 @@ import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
+/**
+ * @class Webhook
+ * @augments GraphandModel
+ * @classdesc Webhook model. Use {@link Client#getModel client.getModel("Webhook")} to use this model
+ */
 class Webhook extends GraphandModel {
   static _customFields = {};
 

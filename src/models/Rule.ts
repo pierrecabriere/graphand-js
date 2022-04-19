@@ -5,6 +5,11 @@ import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
+/**
+ * @class Rule
+ * @augments GraphandModel
+ * @classdesc Rule model. Use {@link Client#getModel client.getModel("Rule")} to use this model
+ */
 class Rule extends GraphandModel {
   static _customFields = {};
 

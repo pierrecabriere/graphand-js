@@ -3,6 +3,11 @@ import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
+/**
+ * @class Project
+ * @augments GraphandModel
+ * @classdesc Project model. Use {@link Client#getModel client.getModel("Project")} to use this model
+ */
 class Project extends GraphandModel {
   static _customFields = {};
 
@@ -18,6 +23,10 @@ class Project extends GraphandModel {
     refreshTokenLifetime: new GraphandFieldNumber(),
   };
 
+  /**
+   * returns current project
+   * @returns {Promise<Project>}
+   */
   static getCurrent() {
     return this.get("current");
   }

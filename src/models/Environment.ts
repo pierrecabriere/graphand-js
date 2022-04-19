@@ -3,6 +3,11 @@ import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
+/**
+ * @class Environment
+ * @augments GraphandModel
+ * @classdesc Environment model. Use {@link Client#getModel client.getModel("Environment")} to use this model
+ */
 class Environment extends GraphandModel {
   static _customFields = {};
 

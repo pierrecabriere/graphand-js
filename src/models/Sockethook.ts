@@ -5,6 +5,11 @@ import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
+/**
+ * @class Sockethook
+ * @augments GraphandModel
+ * @classdesc Sockethook model. Use {@link Client#getModel client.getModel("Sockethook")} to use this model
+ */
 class Sockethook extends GraphandModel {
   static _customFields = {};
 
@@ -46,6 +51,11 @@ class Sockethook extends GraphandModel {
     return super.handleUpdateCall.apply(this, arguments);
   }
 
+  /**
+   * Ping current sockethook
+   * @param waitForReconnections {boolean=}
+   * @returns {number} - time in ms
+   */
   async ping(waitForReconnections = false) {
     const { constructor } = Object.getPrototypeOf(this);
     try {

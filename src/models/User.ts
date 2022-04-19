@@ -1,6 +1,11 @@
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
+/**
+ * @class User
+ * @augments GraphandModel
+ * @classdesc User model. Use {@link Client#getModel client.getModel("User")} to use this model
+ */
 class User extends GraphandModel {
   static _customFields = {};
 

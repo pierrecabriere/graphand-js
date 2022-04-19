@@ -3,6 +3,11 @@ import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
+/**
+ * @class Module
+ * @augments GraphandModel
+ * @classdesc Module model. Use {@link Client#getModel client.getModel("Module")} to use this model
+ */
 class Module extends GraphandModel {
   static _customFields = {};
 

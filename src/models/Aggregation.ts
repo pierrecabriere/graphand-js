@@ -7,6 +7,11 @@ import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 import GraphandModelPromise from "../lib/GraphandModelPromise";
 
+/**
+ * @class Aggregation
+ * @augments GraphandModel
+ * @classdesc Aggregation model. Use {@link Client#getModel client.getModel("Aggregation")} to use this model
+ */
 class Aggregation extends GraphandModel {
   static _customFields = {};
 
@@ -32,12 +37,20 @@ class Aggregation extends GraphandModel {
 
   static _universalPrototypeMethods = ["execute"];
 
+  /**
+   * Execute aggregation by id
+   * @param _id {string} - Id of aggregation
+   * @param vars {Object=} - Values sent to api (used as params for target aggregation)
+   */
   static execute(_id, vars) {
     return new AggregationExecutor({ _id, vars, client: this._client });
   }
 
+  /**
+   * Execute current aggregation
+   * @param vars {Object=} - Values sent to api (used as params for target aggregation)
+   */
   execute(vars) {
-    // @ts-ignore
     const client = this instanceof GraphandModelPromise ? this.model._client : Object.getPrototypeOf(this).constructor._client;
     return new AggregationExecutor({ _id: this._id, vars, client });
   }

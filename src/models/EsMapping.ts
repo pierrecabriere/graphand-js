@@ -4,6 +4,11 @@ import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
+/**
+ * @class EsMapping
+ * @augments GraphandModel
+ * @classdesc EsMapping model. Use {@link Client#getModel client.getModel("EsMapping")} to use this model
+ */
 class EsMapping extends GraphandModel {
   static _customFields = {};
 
