@@ -1,5 +1,6 @@
 import Locales from "../enums/locales";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
+import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
@@ -19,6 +20,7 @@ class Project extends GraphandModel {
     slug: new GraphandFieldText(),
     locales: new GraphandFieldText({ multiple: true, options: Object.values(Locales) }),
     defaultLocale: new GraphandFieldText({ options: Object.values(Locales) }),
+    defaultRegisterRole: new GraphandFieldRelation({ ref: "Role" }),
     accessTokenLifetime: new GraphandFieldNumber(),
     refreshTokenLifetime: new GraphandFieldNumber(),
   };
