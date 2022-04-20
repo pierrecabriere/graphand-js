@@ -28,6 +28,15 @@ interface Query {
   pageSize?: number;
 }
 
+interface Update {
+  query?: any;
+  ids?: string[];
+  sort?: string | any;
+  page?: number;
+  pageSize?: number;
+  set?: any;
+}
+
 class AbstractGraphandModel {
   static __proto__: any;
   static scope = "AbstractGraphandModel";
@@ -46,6 +55,17 @@ class GraphandModel extends AbstractGraphandModel {
    * @property [sort] {string|Object}
    * @property [page] {number}
    * @property [pageSize] {number}
+   */
+
+  /**
+   * Model updating options for {@link GraphandModel#update}
+   * @typedef Update
+   * @property [query] {Object} - A mongo query, cf. graphand API documentation
+   * @property [ids] {string[]} - A list of ids to query
+   * @property [sort] {string|Object}
+   * @property [page] {number}
+   * @property [pageSize] {number}
+   * @property [set] {Object} - The payload to apply on target instances
    */
 
   /**
@@ -219,6 +239,11 @@ class GraphandModel extends AbstractGraphandModel {
     return getModelInstance(this, query, fetch, cache);
   }
 
+  /**
+   * Get the real model schema fields (custom + system + data)
+   * @param [cache] {boolean} - Default true. Returns cached fields
+   * @returns {Object}
+   */
   static getFields(cache = true) {
     if (cache && this._cachedFields) {
       return this._cachedFields;
@@ -572,17 +597,44 @@ class GraphandModel extends AbstractGraphandModel {
     this._listSubject.next(this.getList());
   }
 
-  static async update(payload, options) {
-    return updateModel(this, payload, options);
+  /**
+   * Update one or multiple instances by query
+   * @param update {Update} - query and payload to apply (ex: { query: { ... }, set: { ... } })
+   * @param [options]
+   */
+  static async update(
+    update: Update,
+    options?: { hooks?: boolean; clearCache?: boolean; upsert?: boolean; preStore?: boolean; revertOnError?: boolean },
+  ) {
+    return updateModel(this, update, options);
   }
 
-  async update(payload: any, options) {
-    await updateModelInstance(this, payload, options);
+  /**
+   * Update current instance
+   * @param update {Update} - payload to apply. Query is already set with current instance id (ex: { set: { ... } })
+   * @param [options]
+   */
+  async update(update: Update, options?: { hooks?: boolean; clearCache?: boolean; upsert?: boolean; preStore?: boolean; revertOnError?: boolean }) {
+    await updateModelInstance(this, update, options);
     return this;
   }
 
-  static async delete(payload: GraphandModel | any, options) {
-    return deleteModel(this, payload, options);
+  /**
+   * Delete one or multiple instances by query
+   * @param del {GraphandModel|Query} - query of target instances to delete (ex: { query: { ... } })
+   * @param [options]
+   */
+  static async delete(del: GraphandModel | Query, options?: { hooks?: boolean; clearCache?: boolean; updateStore?: boolean }) {
+    return deleteModel(this, del, options);
+  }
+
+  /**
+   * Delete current instance
+   * @param [options]
+   */
+  delete(options?: { hooks?: boolean; clearCache?: boolean; updateStore?: boolean }) {
+    const constructor = this.constructor as any;
+    return constructor.delete(this, options);
   }
 
   static get HistoryModel() {
@@ -831,7 +883,7 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   /**
-   * Subscribe to the instance. The callback will be called each time the instance is updated in store.
+   * Subscribe to the current instance. The callback will be called each time the instance is updated in store.
    * If the model is synced (realtime), the callback will be called when the instance is updated via socket
    * @param callback - The function to call when the instance is updated
    */
@@ -857,6 +909,9 @@ class GraphandModel extends AbstractGraphandModel {
     return sub;
   }
 
+  /**
+   * Returns true if the current instance is only in memory and not persisted on Graphand.
+   */
   isTemporary() {
     return this._id.startsWith("_");
   }
@@ -865,11 +920,6 @@ class GraphandModel extends AbstractGraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
 
     constructor.setPrototypeFields(this);
-  }
-
-  delete(options) {
-    const constructor = this.constructor as any;
-    return constructor.delete(this, options);
   }
 
   encodeQuery() {
@@ -952,7 +1002,7 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   /**
-   * Returns JSON-serialized object
+   * Returns JSON-serialized object of the current instance
    * @return {Object}
    */
   toJSON() {
@@ -972,7 +1022,13 @@ class GraphandModel extends AbstractGraphandModel {
     return constructor.get(this._id).toPromise();
   }
 
-  static async execHook(event: string, args: any) {
+  /**
+   * Execute all hooks for an event. Returns an array of the reponses of each hook callback.
+   * @param event {"preCreate"|"postCreate"|"preUpdate"|"postUpdate"|"preDelete"|"postDelete"} - The event to execute. Graphand plugins can also implements new events
+   * @param args {any} - Args passed to the callbacks functions
+   * @returns {Promise<any[]>}
+   */
+  static async execHook(event: string, args: any): Promise<any[]> {
     const hook = this.getHook(event);
     if (!hook?.length) {
       return;
@@ -991,6 +1047,11 @@ class GraphandModel extends AbstractGraphandModel {
     return hook;
   }
 
+  /**
+   * Add hook on model
+   * @param event {"preCreate"|"postCreate"|"preUpdate"|"postUpdate"|"preDelete"|"postDelete"} - The event to listen. Graphand plugins can also implements new events
+   * @param callback
+   */
   static hook(event, callback) {
     this._hooks[event] = this._hooks[event] || new Set();
     this._hooks[event].add(callback);
