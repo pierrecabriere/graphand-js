@@ -2,6 +2,7 @@ import isEqual from "fast-deep-equal";
 import _ from "lodash";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
 import Client from "../Client";
+import HooksEvents from "../enums/hooks-events";
 import Account from "../models/Account";
 import createModel from "../utils/createModel";
 import { ownProperty } from "../utils/decorators";
@@ -409,8 +410,7 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   /**
-   * Description of the function
-   * @callback GraphandModel.on.handler
+   * @callback GraphandModelHookHandler
    * @params payload {Object} - The payload sent by the server
    * @param resolve {string} - Callback to resolve the handler and validate the sockethook workflow
    * @param reject {string} - Callback to reject the handler and put error in the sockethook workflow
@@ -418,12 +418,16 @@ class GraphandModel extends AbstractGraphandModel {
    */
 
   /**
-   * Register a new sockethook on the model (need admin token)
-   * @param event {string} - The event that will trigger the sockethook
-   * @param handler {GraphandModel.on.handler}
+   * [admin only] Register a new sockethook on the model. The host that register the sockethook needs to keep connection with graphand. Use {@link GraphandModel#on} for example in a node.js script
+   * @param event {"before_create"|"after_create"|"before_update"|"after_update"|"before_delete"|"after_delete"|"before_execute"|"after_execute"|"before_login"|"after_login"|"before_register"|"after_register"} - The event that will trigger the sockethook
+   * @param handler {GraphandModelHookHandler} - The handler that will be executed
    * @param options
    */
-  static on(event, handler, options: any = {}) {
+  static on(
+    event: HooksEvents,
+    handler,
+    options: { identifier?: string; await?: boolean; timeout?: number; priority?: number; fields?: string[] } = {},
+  ) {
     this._client.registerHook({ model: this, action: event, handler, _await: options.await, ...options });
   }
 
@@ -1052,7 +1056,7 @@ class GraphandModel extends AbstractGraphandModel {
    * @param event {"preCreate"|"postCreate"|"preUpdate"|"postUpdate"|"preDelete"|"postDelete"} - The event to listen. Graphand plugins can also implements new events
    * @param callback
    */
-  static hook(event, callback) {
+  static hook(event: string, callback) {
     this._hooks[event] = this._hooks[event] || new Set();
     this._hooks[event].add(callback);
   }

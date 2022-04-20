@@ -1,6 +1,8 @@
 import { BehaviorSubject, Subject } from "rxjs";
+import HooksEvents from "./enums/hooks-events";
 import PluginLifecyclePhases from "./enums/plugin-lifecycle-phases";
 import * as lib from "./lib";
+import GraphandModel from "./lib/GraphandModel";
 import GraphandPlugin from "./lib/GraphandPlugin";
 import * as models from "./models";
 import Data from "./models/Data";
@@ -66,6 +68,7 @@ class Client {
   private _initPromise;
   private _registerHooks;
   private _refreshTokenPromise;
+  private _locale;
 
   _uid;
   _models;
@@ -216,8 +219,6 @@ class Client {
     }
   }
 
-  private _locale;
-
   async _init(force = false) {
     if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
@@ -273,6 +274,11 @@ class Client {
     return scopes.map((scope: string) => this.getModel(scope, options));
   }
 
+  /**
+   * Create new client
+   * @param options {ClientOptions}
+   * @returns {Client}
+   */
   static createClient(options: ClientOptions) {
     return new Client(options);
   }
@@ -386,7 +392,25 @@ class Client {
     );
   }
 
-  async registerHook({ identifier, model, action, handler, _await, timeout, priority, fields }) {
+  async registerHook({
+    identifier,
+    model,
+    action,
+    handler,
+    _await,
+    timeout,
+    priority,
+    fields,
+  }: {
+    identifier?: string;
+    model?: typeof GraphandModel;
+    action?: HooksEvents;
+    handler?: any;
+    _await?: boolean;
+    timeout?: number;
+    priority?: number;
+    fields?: string[];
+  }) {
     await this._init();
     let hook;
     let socket;
@@ -530,15 +554,28 @@ class Client {
   }
 
   /**
-   * Create a new Graphand Client
-   * @param options {}
+   * Clone the current client
+   * @param options {ClientOptions}
+   * @param login {boolean} - Define if the cloned client inherits of its parent access & refresh token
+   * @returns {Client}
    */
-  create(options: ClientOptions) {
-    return new Client({ ...this._options, ...options });
-  }
+  clone(options: ClientOptions = {}, login = true) {
+    const clone = new Client({ ...this._options, ...options });
 
-  clone() {
-    return this.create.apply(this, arguments);
+    if (login) {
+      const accessToken = this.getAccessToken();
+      const refreshToken = this.getRefreshToken();
+
+      if (accessToken) {
+        clone.setAccessToken(accessToken);
+      }
+
+      if (refreshToken) {
+        clone.setRefreshToken(refreshToken);
+      }
+    }
+
+    return clone;
   }
 
   plugin(_plugin: GraphandPlugin, options: any = {}) {

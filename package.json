@@ -1,6 +1,6 @@
 {
   "name": "graphand-js",
-  "version": "0.24.11-beta",
+  "version": "0.24.12-beta",
   "description": "",
   "main": "dist/index.js",
   "author": "Pierre Cabrière",
@@ -8,7 +8,8 @@
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "build:watch": "tsc --project tsconfig.json --watch",
-    "build:doc": "tsc --project tsconfig.json && jsdoc -c ./jsdoc.config.json"
+    "build:doc": "tsc --project tsconfig.json && jsdoc -c ./jsdoc.config.json",
+    "test": "jest"
   },
   "dependencies": {
     "axios": "^0.26.1",
@@ -22,6 +23,8 @@
     "socket.io-client": "^4.4.1"
   },
   "devDependencies": {
+    "@faker-js/faker": "^6.1.2",
+    "@types/jest": "^27.4.1",
     "@types/node": "^17.0.21",
     "@typescript-eslint/eslint-plugin": "^4.8.1",
     "@typescript-eslint/parser": "^4.8.1",
@@ -32,8 +35,10 @@
     "eslint-config-typescript": "^3.0.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-prettier": "^3.1.4",
+    "jest": "^27.5.1",
     "jsdoc": "^3.6.10",
     "prettier": "^2.6.2",
+    "ts-jest": "^27.1.4",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.3"
   }
