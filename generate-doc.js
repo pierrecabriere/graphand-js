@@ -31,7 +31,7 @@ function renderMain() {
   let output = jsdoc2md.renderSync({ data: templateData, template, separators: true });
   // console.log(output);
   output = decodeLinks(output);
-  fs.writeFileSync(path.resolve(outputDir, `main.md`), output);
+  fs.writeFileSync(path.resolve(outputDir, `README.md`), output);
 }
 
 function renderClasses() {
