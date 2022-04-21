@@ -31,6 +31,7 @@ Base GraphandModel class. You can create your own custom models by extending thi
         * [.on(event, handler, options)](#GraphandModel.on)
         * [.reinit()](#GraphandModel.reinit)
         * [.clearCache(query, clean)](#GraphandModel.clearCache)
+        * [.getList(query, opts)](#GraphandModel.getList) ⇒ [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList) \| <code>GraphandModelListPromise</code>
         * [.count(query)](#GraphandModel.count) ⇒ <code>number</code>
         * [.create(payload, hooks)](#GraphandModel.create) ⇒ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
         * [.update(update, [options])](#GraphandModel.update)
@@ -352,6 +353,25 @@ Clear the local cache for the model
 
 * * *
 
+<a name="GraphandModel.getList"></a>
+
+### GraphandModel.getList(query, opts) ⇒ [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList) \| <code>GraphandModelListPromise</code>
+Returns a GraphandModelList (or Promise) of the model
+
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| query | [<code>Query</code>](#Query) | the request query (see api doc) |
+| opts |  |  |
+
+**Example**  
+```js
+GraphandModel.getList({ query: { title: { $regex: "toto" } }, pageSize: 5, page: 2 })
+```
+
+* * *
+
 <a name="GraphandModel.count"></a>
 
 ### GraphandModel.count(query) ⇒ <code>number</code>
@@ -363,6 +383,10 @@ Returns a Promise that resolves the number of results for the given query
 | --- | --- | --- |
 | query | [<code>Query</code>](#Query) | the request query (see api doc) |
 
+**Example**  
+```js
+GraphandModel.count({ query: { title: { $regex: "toto" } } })
+```
 
 * * *
 
@@ -378,6 +402,10 @@ Create and persist a new instance of the model
 | payload | <code>Object</code> \| <code>Array.&lt;Object&gt;</code> |  | The payload to persist in a new instance. You can profite an array to create multiple instances |
 | hooks | <code>boolean</code> | <code>true</code> | Enable or disable hooks, default true |
 
+**Example**  
+```js
+GraphandModel.create({ title: "toto" })
+```
 
 * * *
 
@@ -393,6 +421,11 @@ Update one or multiple instances by query
 | update | [<code>Update</code>](#Update) | query and payload to apply (ex: { query: { ... }, set: { ... } }) |
 | [options] |  |  |
 
+**Example**  
+```js
+// set title toto on every instance in the query scope
+GraphandModel.create({ query: { title: { $ne: "toto" } }, set: { title: "toto" } })
+```
 
 * * *
 

@@ -549,13 +549,14 @@ class GraphandModel extends AbstractGraphandModel {
     return false;
   }
 
+  static getList(query?: undefined, opts?: ModelListOptions | boolean): GraphandModelList;
   /**
    * Returns a GraphandModelList (or Promise) of the model
    * @param query {Query} - the request query (see api doc)
    * @param opts
    * @returns {GraphandModelList|GraphandModelListPromise}
+   * @example GraphandModel.getList({ query: { title: { $regex: "toto" } }, pageSize: 5, page: 2 })
    */
-  static getList(query?: undefined, opts?: ModelListOptions | boolean): GraphandModelList;
   static getList(query: Query, opts?: ModelListOptions | boolean): GraphandModelList | GraphandModelPromise {
     if (!query) {
       const list = this._listSubject.getValue();
@@ -573,6 +574,7 @@ class GraphandModel extends AbstractGraphandModel {
    * Returns a Promise that resolves the number of results for the given query
    * @param query {Query} - the request query (see api doc)
    * @returns {number}
+   * @example GraphandModel.count({ query: { title: { $regex: "toto" } } })
    */
   static async count(query?: Query): Promise<number> {
     if (typeof query === "string") {
@@ -592,6 +594,7 @@ class GraphandModel extends AbstractGraphandModel {
    * @param payload {Object|Object[]} - The payload to persist in a new instance. You can profite an array to create multiple instances
    * @param hooks {boolean} - Enable or disable hooks, default true
    * @returns {GraphandModel}
+   * @example GraphandModel.create({ title: "toto" })
    */
   static async create(payload, hooks = true, url = this.baseUrl) {
     return createModel(this, payload, hooks, url);
@@ -605,6 +608,9 @@ class GraphandModel extends AbstractGraphandModel {
    * Update one or multiple instances by query
    * @param update {Update} - query and payload to apply (ex: { query: { ... }, set: { ... } })
    * @param [options]
+   * @example
+   * // set title toto on every instance in the query scope
+   * GraphandModel.create({ query: { title: { $ne: "toto" } }, set: { title: "toto" } })
    */
   static async update(
     update: Update,
