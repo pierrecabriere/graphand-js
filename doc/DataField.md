@@ -1,23 +1,23 @@
 <a name="DataField"></a>
 
-## DataField ⇐ [<code>GraphandModel</code>](#GraphandModel)
-DataField model. Use [client.getModel("DataField")](#Client+getModel) to use this model
+## DataField ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
+DataField model. Use [client.getModel("DataField")](Client.md#Client+getModel) to use this model
 
 **Kind**: global class  
-**Extends**: [<code>GraphandModel</code>](#GraphandModel)  
+**Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
-* [DataField](#DataField) ⇐ [<code>GraphandModel</code>](#GraphandModel)
-    * [.raw](#GraphandModel+raw) ⇒ <code>\*</code>
-    * [.update(update, [options])](#GraphandModel+update)
-    * [.delete([options])](#GraphandModel+delete)
-    * [.clone(locale)](#GraphandModel+clone)
-    * [.get(slug, [parse], _locale, fallback)](#GraphandModel+get)
-    * [.set(slug, value, [upsert], [parse])](#GraphandModel+set)
-    * [.assign(values, [upsert], updatedAtNow)](#GraphandModel+assign)
-    * [.subscribe(callback)](#GraphandModel+subscribe)
-    * [.isTemporary()](#GraphandModel+isTemporary)
-    * [.serialize()](#GraphandModel+serialize) ⇒ <code>Object</code>
-    * [.toJSON()](#GraphandModel+toJSON) ⇒ <code>Object</code>
+* [DataField](DataField.md#DataField) ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
+    * [.raw](GraphandModel.md#GraphandModel+raw) ⇒ <code>\*</code>
+    * [.update(update, [options])](GraphandModel.md#GraphandModel+update)
+    * [.delete([options])](GraphandModel.md#GraphandModel+delete)
+    * [.clone(locale)](GraphandModel.md#GraphandModel+clone)
+    * [.get(slug, [parse], _locale, fallback)](GraphandModel.md#GraphandModel+get)
+    * [.set(slug, value, [upsert], [parse])](GraphandModel.md#GraphandModel+set)
+    * [.assign(values, [upsert], updatedAtNow)](GraphandModel.md#GraphandModel+assign)
+    * [.subscribe(callback)](GraphandModel.md#GraphandModel+subscribe)
+    * [.isTemporary()](GraphandModel.md#GraphandModel+isTemporary)
+    * [.serialize()](GraphandModel.md#GraphandModel+serialize) ⇒ <code>Object</code>
+    * [.toJSON()](GraphandModel.md#GraphandModel+toJSON) ⇒ <code>Object</code>
 
 
 * * *
@@ -27,7 +27,7 @@ DataField model. Use [client.getModel("DataField")](#Client+getModel) to use thi
 ### dataField.raw ⇒ <code>\*</code>
 Returns raw data of instance
 
-**Kind**: instance property of [<code>DataField</code>](#DataField)  
+**Kind**: instance property of [<code>DataField</code>](DataField.md#DataField)  
 
 * * *
 
@@ -36,7 +36,7 @@ Returns raw data of instance
 ### dataField.update(update, [options])
 Update current instance
 
-**Kind**: instance method of [<code>DataField</code>](#DataField)  
+**Kind**: instance method of [<code>DataField</code>](DataField.md#DataField)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -51,7 +51,7 @@ Update current instance
 ### dataField.delete([options])
 Delete current instance
 
-**Kind**: instance method of [<code>DataField</code>](#DataField)  
+**Kind**: instance method of [<code>DataField</code>](DataField.md#DataField)  
 
 | Param |
 | --- |
@@ -65,7 +65,7 @@ Delete current instance
 ### dataField.clone(locale)
 Clone the instance
 
-**Kind**: instance method of [<code>DataField</code>](#DataField)  
+**Kind**: instance method of [<code>DataField</code>](DataField.md#DataField)  
 
 | Param |
 | --- |
@@ -79,7 +79,7 @@ Clone the instance
 ### dataField.get(slug, [parse], _locale, fallback)
 Model instance getter. Returns the value for the specified key
 
-**Kind**: instance method of [<code>DataField</code>](#DataField)  
+**Kind**: instance method of [<code>DataField</code>](DataField.md#DataField)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -96,7 +96,7 @@ Model instance getter. Returns the value for the specified key
 ### dataField.set(slug, value, [upsert], [parse])
 Model instance setter. Set value for the specified key
 
-**Kind**: instance method of [<code>DataField</code>](#DataField)  
+**Kind**: instance method of [<code>DataField</code>](DataField.md#DataField)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -113,7 +113,7 @@ Model instance setter. Set value for the specified key
 ### dataField.assign(values, [upsert], updatedAtNow)
 Assign multiple values to instance.
 
-**Kind**: instance method of [<code>DataField</code>](#DataField)  
+**Kind**: instance method of [<code>DataField</code>](DataField.md#DataField)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -130,7 +130,7 @@ Assign multiple values to instance.
 Subscribe to the current instance. The callback will be called each time the instance is updated in store.
 If the model is synced (realtime), the callback will be called when the instance is updated via socket
 
-**Kind**: instance method of [<code>DataField</code>](#DataField)  
+**Kind**: instance method of [<code>DataField</code>](DataField.md#DataField)  
 
 | Param | Description |
 | --- | --- |
@@ -144,7 +144,7 @@ If the model is synced (realtime), the callback will be called when the instance
 ### dataField.isTemporary()
 Returns true if the current instance is only in memory and not persisted on Graphand.
 
-**Kind**: instance method of [<code>DataField</code>](#DataField)  
+**Kind**: instance method of [<code>DataField</code>](DataField.md#DataField)  
 
 * * *
 
@@ -153,7 +153,7 @@ Returns true if the current instance is only in memory and not persisted on Grap
 ### dataField.serialize() ⇒ <code>Object</code>
 Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
 
-**Kind**: instance method of [<code>DataField</code>](#DataField)  
+**Kind**: instance method of [<code>DataField</code>](DataField.md#DataField)  
 
 * * *
 
@@ -162,7 +162,7 @@ Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
 ### dataField.toJSON() ⇒ <code>Object</code>
 Returns JSON-serialized object of the current instance
 
-**Kind**: instance method of [<code>DataField</code>](#DataField)  
+**Kind**: instance method of [<code>DataField</code>](DataField.md#DataField)  
 
 * * *
 

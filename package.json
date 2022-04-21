@@ -2,6 +2,7 @@
   "name": "graphand-js",
   "version": "0.24.13-beta",
   "description": "",
+  "homepage": "https://github.com/pierrecabriere/graphand-js",
   "main": "dist/index.js",
   "author": "Pierre Cabrière",
   "license": "MIT",

@@ -5,14 +5,14 @@ Base Graphand Client class
 
 **Kind**: global class  
 
-* [Client](#Client)
+* [Client](Client.md#Client)
     * [new Client(project, [options])](#new_Client_new)
     * _instance_
-        * [.getModels(scopes, options)](#Client+getModels) ⇒ <code>Array.&lt;GraphandModel.constructor&gt;</code>
-        * [.clone(options, login)](#Client+clone) ⇒ [<code>Client</code>](#Client)
-        * [.getModel(scope, options)](#Client+getModel) ⇒ <code>GraphandModel.constructor</code>
+        * [.getModels(scopes, options)](Client.md#Client+getModels) ⇒ <code>Array.&lt;GraphandModel.constructor&gt;</code>
+        * [.clone(options, login)](Client.md#Client+clone) ⇒ [<code>Client</code>](Client.md#Client)
+        * [.getModel(scope, options)](Client.md#Client+getModel) ⇒ <code>GraphandModel.constructor</code>
     * _static_
-        * [.createClient(options)](#Client.createClient) ⇒ [<code>Client</code>](#Client)
+        * [.createClient(options)](#Client.createClient) ⇒ [<code>Client</code>](Client.md#Client)
 
 
 * * *
@@ -34,9 +34,9 @@ Graphand Client
 <a name="Client+getModels"></a>
 
 ### client.getModels(scopes, options) ⇒ <code>Array.&lt;GraphandModel.constructor&gt;</code>
-Get multiple models at once (multiple [getModel](#Client+getModel))
+Get multiple models at once (multiple [getModel](Client.md#Client+getModel))
 
-**Kind**: instance method of [<code>Client</code>](#Client)  
+**Kind**: instance method of [<code>Client</code>](Client.md#Client)  
 
 | Param | Type |
 | --- | --- |
@@ -48,10 +48,10 @@ Get multiple models at once (multiple [getModel](#Client+getModel))
 
 <a name="Client+clone"></a>
 
-### client.clone(options, login) ⇒ [<code>Client</code>](#Client)
+### client.clone(options, login) ⇒ [<code>Client</code>](Client.md#Client)
 Clone the current client
 
-**Kind**: instance method of [<code>Client</code>](#Client)  
+**Kind**: instance method of [<code>Client</code>](Client.md#Client)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -64,9 +64,9 @@ Clone the current client
 <a name="Client+getModel"></a>
 
 ### client.getModel(scope, options) ⇒ <code>GraphandModel.constructor</code>
-Get ready-to-use model by scope. Use [getModels](#Client+getModels) to get multiple models at once
+Get ready-to-use model by scope. Use [getModels](Client.md#Client+getModels) to get multiple models at once
 
-**Kind**: instance method of [<code>Client</code>](#Client)  
+**Kind**: instance method of [<code>Client</code>](Client.md#Client)  
 
 | Param | Type |
 | --- | --- |
@@ -78,10 +78,10 @@ Get ready-to-use model by scope. Use [getModels](#Client+getModels) to get multi
 
 <a name="Client.createClient"></a>
 
-### Client.createClient(options) ⇒ [<code>Client</code>](#Client)
+### Client.createClient(options) ⇒ [<code>Client</code>](Client.md#Client)
 Create new client
 
-**Kind**: static method of [<code>Client</code>](#Client)  
+**Kind**: static method of [<code>Client</code>](Client.md#Client)  
 
 | Param | Type |
 | --- | --- |

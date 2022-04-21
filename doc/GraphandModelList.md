@@ -3,12 +3,12 @@
 ## GraphandModelList
 **Kind**: global class  
 
-* [GraphandModelList](#GraphandModelList)
+* [GraphandModelList](GraphandModelList.md#GraphandModelList)
     * _instance_
-        * [.subscribe(callback)](#GraphandModelList+subscribe)
-        * [.serialize()](#GraphandModelList+serialize) ⇒ <code>Object</code>
+        * [.subscribe(callback)](GraphandModelList.md#GraphandModelList+subscribe)
+        * [.serialize()](GraphandModelList.md#GraphandModelList+serialize) ⇒ <code>Object</code>
     * _static_
-        * [.hydrate(data)](#GraphandModelList.hydrate) ⇒ [<code>GraphandModelList</code>](#GraphandModelList)
+        * [.hydrate(data)](#GraphandModelList.hydrate) ⇒ [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)
 
 
 * * *
@@ -19,7 +19,7 @@
 Subscribe to the list. The callback will be called each time (an instance inside) the list is updated in store.
 If the model is synced (realtime), the callback will be called when the list is updated via socket
 
-**Kind**: instance method of [<code>GraphandModelList</code>](#GraphandModelList)  
+**Kind**: instance method of [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)  
 
 | Param | Description |
 | --- | --- |
@@ -33,16 +33,16 @@ If the model is synced (realtime), the callback will be called when the list is 
 ### graphandModelList.serialize() ⇒ <code>Object</code>
 Serialize list. Serialized data could be hydrated with GraphandModel.hydrate
 
-**Kind**: instance method of [<code>GraphandModelList</code>](#GraphandModelList)  
+**Kind**: instance method of [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)  
 
 * * *
 
 <a name="GraphandModelList.hydrate"></a>
 
-### GraphandModelList.hydrate(data) ⇒ [<code>GraphandModelList</code>](#GraphandModelList)
+### GraphandModelList.hydrate(data) ⇒ [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)
 Hydrate GraphandModelList from serialized data
 
-**Kind**: static method of [<code>GraphandModelList</code>](#GraphandModelList)  
+**Kind**: static method of [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)  
 
 | Param | Type | Description |
 | --- | --- | --- |

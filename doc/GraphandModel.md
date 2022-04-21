@@ -5,26 +5,26 @@ Base GraphandModel class. You can create your own custom models by extending thi
 
 **Kind**: global class  
 
-* [GraphandModel](#GraphandModel)
+* [GraphandModel](GraphandModel.md#GraphandModel)
     * [new GraphandModel(data)](#new_GraphandModel_new)
     * _instance_
-        * [.raw](#GraphandModel+raw) ⇒ <code>\*</code>
-        * [.update(update, [options])](#GraphandModel+update)
-        * [.delete([options])](#GraphandModel+delete)
-        * [.clone(locale)](#GraphandModel+clone)
-        * [.get(slug, [parse], _locale, fallback)](#GraphandModel+get)
-        * [.set(slug, value, [upsert], [parse])](#GraphandModel+set)
-        * [.assign(values, [upsert], updatedAtNow)](#GraphandModel+assign)
-        * [.subscribe(callback)](#GraphandModel+subscribe)
-        * [.isTemporary()](#GraphandModel+isTemporary)
-        * [.serialize()](#GraphandModel+serialize) ⇒ <code>Object</code>
-        * [.toJSON()](#GraphandModel+toJSON) ⇒ <code>Object</code>
+        * [.raw](GraphandModel.md#GraphandModel+raw) ⇒ <code>\*</code>
+        * [.update(update, [options])](GraphandModel.md#GraphandModel+update)
+        * [.delete([options])](GraphandModel.md#GraphandModel+delete)
+        * [.clone(locale)](GraphandModel.md#GraphandModel+clone)
+        * [.get(slug, [parse], _locale, fallback)](GraphandModel.md#GraphandModel+get)
+        * [.set(slug, value, [upsert], [parse])](GraphandModel.md#GraphandModel+set)
+        * [.assign(values, [upsert], updatedAtNow)](GraphandModel.md#GraphandModel+assign)
+        * [.subscribe(callback)](GraphandModel.md#GraphandModel+subscribe)
+        * [.isTemporary()](GraphandModel.md#GraphandModel+isTemporary)
+        * [.serialize()](GraphandModel.md#GraphandModel+serialize) ⇒ <code>Object</code>
+        * [.toJSON()](GraphandModel.md#GraphandModel+toJSON) ⇒ <code>Object</code>
     * _static_
-        * [.dataFieldsList](#GraphandModel.dataFieldsList) : [<code>GraphandModelList</code>](#GraphandModelList)
-        * [.hydrate(data, upsert)](#GraphandModel.hydrate) ⇒ [<code>GraphandModel</code>](#GraphandModel) \| [<code>GraphandModelList</code>](#GraphandModelList)
+        * [.dataFieldsList](#GraphandModel.dataFieldsList) : [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)
+        * [.hydrate(data, upsert)](#GraphandModel.hydrate) ⇒ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel) \| [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)
         * [.sync(opts)](#GraphandModel.sync)
             * [.handleSocketTrigger](#GraphandModel.sync.handleSocketTrigger) ⇒ <code>boolean</code> \| <code>void</code>
-        * [.get(query, opts)](#GraphandModel.get) ⇒ [<code>GraphandModel</code>](#GraphandModel) \| <code>GraphandModelPromise</code>
+        * [.get(query, opts)](#GraphandModel.get) ⇒ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel) \| <code>GraphandModelPromise</code>
         * [.getFields([cache])](#GraphandModel.getFields) ⇒ <code>Object</code>
         * [.customField(slug, field)](#GraphandModel.customField)
         * [.customFields(fields)](#GraphandModel.customFields)
@@ -32,7 +32,7 @@ Base GraphandModel class. You can create your own custom models by extending thi
         * [.reinit()](#GraphandModel.reinit)
         * [.clearCache(query, clean)](#GraphandModel.clearCache)
         * [.count(query)](#GraphandModel.count) ⇒ <code>number</code>
-        * [.create(payload, hooks)](#GraphandModel.create) ⇒ [<code>GraphandModel</code>](#GraphandModel)
+        * [.create(payload, hooks)](#GraphandModel.create) ⇒ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
         * [.update(update, [options])](#GraphandModel.update)
         * [.delete(del, [options])](#GraphandModel.delete)
         * [.execHook(event, args)](#GraphandModel.execHook) ⇒ <code>Promise.&lt;Array.&lt;any&gt;&gt;</code>
@@ -59,7 +59,7 @@ Create a new instance of GraphandModel. If getting an instance as data, the inst
 ### graphandModel.raw ⇒ <code>\*</code>
 Returns raw data of instance
 
-**Kind**: instance property of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: instance property of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 * * *
 
@@ -68,7 +68,7 @@ Returns raw data of instance
 ### graphandModel.update(update, [options])
 Update current instance
 
-**Kind**: instance method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: instance method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -83,7 +83,7 @@ Update current instance
 ### graphandModel.delete([options])
 Delete current instance
 
-**Kind**: instance method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: instance method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param |
 | --- |
@@ -97,7 +97,7 @@ Delete current instance
 ### graphandModel.clone(locale)
 Clone the instance
 
-**Kind**: instance method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: instance method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param |
 | --- |
@@ -111,7 +111,7 @@ Clone the instance
 ### graphandModel.get(slug, [parse], _locale, fallback)
 Model instance getter. Returns the value for the specified key
 
-**Kind**: instance method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: instance method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -128,7 +128,7 @@ Model instance getter. Returns the value for the specified key
 ### graphandModel.set(slug, value, [upsert], [parse])
 Model instance setter. Set value for the specified key
 
-**Kind**: instance method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: instance method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -145,7 +145,7 @@ Model instance setter. Set value for the specified key
 ### graphandModel.assign(values, [upsert], updatedAtNow)
 Assign multiple values to instance.
 
-**Kind**: instance method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: instance method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -162,7 +162,7 @@ Assign multiple values to instance.
 Subscribe to the current instance. The callback will be called each time the instance is updated in store.
 If the model is synced (realtime), the callback will be called when the instance is updated via socket
 
-**Kind**: instance method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: instance method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Description |
 | --- | --- |
@@ -176,7 +176,7 @@ If the model is synced (realtime), the callback will be called when the instance
 ### graphandModel.isTemporary()
 Returns true if the current instance is only in memory and not persisted on Graphand.
 
-**Kind**: instance method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: instance method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 * * *
 
@@ -185,7 +185,7 @@ Returns true if the current instance is only in memory and not persisted on Grap
 ### graphandModel.serialize() ⇒ <code>Object</code>
 Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
 
-**Kind**: instance method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: instance method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 * * *
 
@@ -194,25 +194,25 @@ Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
 ### graphandModel.toJSON() ⇒ <code>Object</code>
 Returns JSON-serialized object of the current instance
 
-**Kind**: instance method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: instance method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 * * *
 
 <a name="GraphandModel.dataFieldsList"></a>
 
-### GraphandModel.dataFieldsList : [<code>GraphandModelList</code>](#GraphandModelList)
+### GraphandModel.dataFieldsList : [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)
 Returns the DataField list of the model
 
-**Kind**: static property of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static property of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 * * *
 
 <a name="GraphandModel.hydrate"></a>
 
-### GraphandModel.hydrate(data, upsert) ⇒ [<code>GraphandModel</code>](#GraphandModel) \| [<code>GraphandModelList</code>](#GraphandModelList)
+### GraphandModel.hydrate(data, upsert) ⇒ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel) \| [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)
 Hydrate GraphandModel or GraphandModelList from serialized data
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -227,7 +227,7 @@ Hydrate GraphandModel or GraphandModelList from serialized data
 ### GraphandModel.sync(opts)
 Sync the current Model with the client socket
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -256,10 +256,10 @@ Description of the function
 
 <a name="GraphandModel.get"></a>
 
-### GraphandModel.get(query, opts) ⇒ [<code>GraphandModel</code>](#GraphandModel) \| <code>GraphandModelPromise</code>
+### GraphandModel.get(query, opts) ⇒ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel) \| <code>GraphandModelPromise</code>
 Returns a GraphandModel (or Promise) of the model
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -274,7 +274,7 @@ Returns a GraphandModel (or Promise) of the model
 ### GraphandModel.getFields([cache]) ⇒ <code>Object</code>
 Get the real model schema fields (custom + system + data)
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -288,7 +288,7 @@ Get the real model schema fields (custom + system + data)
 ### GraphandModel.customField(slug, field)
 Add a custom field to Model
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -303,7 +303,7 @@ Add a custom field to Model
 ### GraphandModel.customFields(fields)
 Add multiple customFields
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -317,7 +317,7 @@ Add multiple customFields
 ### GraphandModel.on(event, handler, options)
 [admin only] Register a new sockethook on the model. The host that register the sockethook needs to keep connection with graphand. Use [GraphandModel#on](GraphandModel#on) for example in a node.js script
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -333,7 +333,7 @@ Add multiple customFields
 ### GraphandModel.reinit()
 Reinitialize the model (clear cache & empty store)
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 * * *
 
@@ -342,7 +342,7 @@ Reinitialize the model (clear cache & empty store)
 ### GraphandModel.clearCache(query, clean)
 Clear the local cache for the model
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -357,7 +357,7 @@ Clear the local cache for the model
 ### GraphandModel.count(query) ⇒ <code>number</code>
 Returns a Promise that resolves the number of results for the given query
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -368,10 +368,10 @@ Returns a Promise that resolves the number of results for the given query
 
 <a name="GraphandModel.create"></a>
 
-### GraphandModel.create(payload, hooks) ⇒ [<code>GraphandModel</code>](#GraphandModel)
+### GraphandModel.create(payload, hooks) ⇒ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
 Create and persist a new instance of the model
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -386,7 +386,7 @@ Create and persist a new instance of the model
 ### GraphandModel.update(update, [options])
 Update one or multiple instances by query
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -401,11 +401,11 @@ Update one or multiple instances by query
 ### GraphandModel.delete(del, [options])
 Delete one or multiple instances by query
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| del | [<code>GraphandModel</code>](#GraphandModel) \| [<code>Query</code>](#Query) | query of target instances to delete (ex: { query: { ... } }) |
+| del | [<code>GraphandModel</code>](GraphandModel.md#GraphandModel) \| [<code>Query</code>](#Query) | query of target instances to delete (ex: { query: { ... } }) |
 | [options] |  |  |
 
 
@@ -416,7 +416,7 @@ Delete one or multiple instances by query
 ### GraphandModel.execHook(event, args) ⇒ <code>Promise.&lt;Array.&lt;any&gt;&gt;</code>
 Execute all hooks for an event. Returns an array of the reponses of each hook callback.
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -431,7 +431,7 @@ Execute all hooks for an event. Returns an array of the reponses of each hook ca
 ### GraphandModel.hook(event, callback)
 Add hook on model
 
-**Kind**: static method of [<code>GraphandModel</code>](#GraphandModel)  
+**Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Description |
 | --- | --- | --- |

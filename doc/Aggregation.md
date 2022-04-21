@@ -1,25 +1,25 @@
 <a name="Aggregation"></a>
 
-## Aggregation ⇐ [<code>GraphandModel</code>](#GraphandModel)
-Aggregation model. Use [client.getModel("Aggregation")](#Client+getModel) to use this model
+## Aggregation ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
+Aggregation model. Use [client.getModel("Aggregation")](Client.md#Client+getModel) to use this model
 
 **Kind**: global class  
-**Extends**: [<code>GraphandModel</code>](#GraphandModel)  
+**Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
-* [Aggregation](#Aggregation) ⇐ [<code>GraphandModel</code>](#GraphandModel)
+* [Aggregation](Aggregation.md#Aggregation) ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
     * _instance_
-        * [.raw](#GraphandModel+raw) ⇒ <code>\*</code>
-        * [.execute([vars])](#Aggregation+execute)
-        * [.update(update, [options])](#GraphandModel+update)
-        * [.delete([options])](#GraphandModel+delete)
-        * [.clone(locale)](#GraphandModel+clone)
-        * [.get(slug, [parse], _locale, fallback)](#GraphandModel+get)
-        * [.set(slug, value, [upsert], [parse])](#GraphandModel+set)
-        * [.assign(values, [upsert], updatedAtNow)](#GraphandModel+assign)
-        * [.subscribe(callback)](#GraphandModel+subscribe)
-        * [.isTemporary()](#GraphandModel+isTemporary)
-        * [.serialize()](#GraphandModel+serialize) ⇒ <code>Object</code>
-        * [.toJSON()](#GraphandModel+toJSON) ⇒ <code>Object</code>
+        * [.raw](GraphandModel.md#GraphandModel+raw) ⇒ <code>\*</code>
+        * [.execute([vars])](Aggregation.md#Aggregation+execute)
+        * [.update(update, [options])](GraphandModel.md#GraphandModel+update)
+        * [.delete([options])](GraphandModel.md#GraphandModel+delete)
+        * [.clone(locale)](GraphandModel.md#GraphandModel+clone)
+        * [.get(slug, [parse], _locale, fallback)](GraphandModel.md#GraphandModel+get)
+        * [.set(slug, value, [upsert], [parse])](GraphandModel.md#GraphandModel+set)
+        * [.assign(values, [upsert], updatedAtNow)](GraphandModel.md#GraphandModel+assign)
+        * [.subscribe(callback)](GraphandModel.md#GraphandModel+subscribe)
+        * [.isTemporary()](GraphandModel.md#GraphandModel+isTemporary)
+        * [.serialize()](GraphandModel.md#GraphandModel+serialize) ⇒ <code>Object</code>
+        * [.toJSON()](GraphandModel.md#GraphandModel+toJSON) ⇒ <code>Object</code>
     * _static_
         * [.execute(_id, [vars])](#Aggregation.execute)
 
@@ -31,7 +31,7 @@ Aggregation model. Use [client.getModel("Aggregation")](#Client+getModel) to use
 ### aggregation.raw ⇒ <code>\*</code>
 Returns raw data of instance
 
-**Kind**: instance property of [<code>Aggregation</code>](#Aggregation)  
+**Kind**: instance property of [<code>Aggregation</code>](Aggregation.md#Aggregation)  
 
 * * *
 
@@ -40,7 +40,7 @@ Returns raw data of instance
 ### aggregation.execute([vars])
 Execute current aggregation
 
-**Kind**: instance method of [<code>Aggregation</code>](#Aggregation)  
+**Kind**: instance method of [<code>Aggregation</code>](Aggregation.md#Aggregation)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -54,7 +54,7 @@ Execute current aggregation
 ### aggregation.update(update, [options])
 Update current instance
 
-**Kind**: instance method of [<code>Aggregation</code>](#Aggregation)  
+**Kind**: instance method of [<code>Aggregation</code>](Aggregation.md#Aggregation)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -69,7 +69,7 @@ Update current instance
 ### aggregation.delete([options])
 Delete current instance
 
-**Kind**: instance method of [<code>Aggregation</code>](#Aggregation)  
+**Kind**: instance method of [<code>Aggregation</code>](Aggregation.md#Aggregation)  
 
 | Param |
 | --- |
@@ -83,7 +83,7 @@ Delete current instance
 ### aggregation.clone(locale)
 Clone the instance
 
-**Kind**: instance method of [<code>Aggregation</code>](#Aggregation)  
+**Kind**: instance method of [<code>Aggregation</code>](Aggregation.md#Aggregation)  
 
 | Param |
 | --- |
@@ -97,7 +97,7 @@ Clone the instance
 ### aggregation.get(slug, [parse], _locale, fallback)
 Model instance getter. Returns the value for the specified key
 
-**Kind**: instance method of [<code>Aggregation</code>](#Aggregation)  
+**Kind**: instance method of [<code>Aggregation</code>](Aggregation.md#Aggregation)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -114,7 +114,7 @@ Model instance getter. Returns the value for the specified key
 ### aggregation.set(slug, value, [upsert], [parse])
 Model instance setter. Set value for the specified key
 
-**Kind**: instance method of [<code>Aggregation</code>](#Aggregation)  
+**Kind**: instance method of [<code>Aggregation</code>](Aggregation.md#Aggregation)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -131,7 +131,7 @@ Model instance setter. Set value for the specified key
 ### aggregation.assign(values, [upsert], updatedAtNow)
 Assign multiple values to instance.
 
-**Kind**: instance method of [<code>Aggregation</code>](#Aggregation)  
+**Kind**: instance method of [<code>Aggregation</code>](Aggregation.md#Aggregation)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -148,7 +148,7 @@ Assign multiple values to instance.
 Subscribe to the current instance. The callback will be called each time the instance is updated in store.
 If the model is synced (realtime), the callback will be called when the instance is updated via socket
 
-**Kind**: instance method of [<code>Aggregation</code>](#Aggregation)  
+**Kind**: instance method of [<code>Aggregation</code>](Aggregation.md#Aggregation)  
 
 | Param | Description |
 | --- | --- |
@@ -162,7 +162,7 @@ If the model is synced (realtime), the callback will be called when the instance
 ### aggregation.isTemporary()
 Returns true if the current instance is only in memory and not persisted on Graphand.
 
-**Kind**: instance method of [<code>Aggregation</code>](#Aggregation)  
+**Kind**: instance method of [<code>Aggregation</code>](Aggregation.md#Aggregation)  
 
 * * *
 
@@ -171,7 +171,7 @@ Returns true if the current instance is only in memory and not persisted on Grap
 ### aggregation.serialize() ⇒ <code>Object</code>
 Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
 
-**Kind**: instance method of [<code>Aggregation</code>](#Aggregation)  
+**Kind**: instance method of [<code>Aggregation</code>](Aggregation.md#Aggregation)  
 
 * * *
 
@@ -180,7 +180,7 @@ Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
 ### aggregation.toJSON() ⇒ <code>Object</code>
 Returns JSON-serialized object of the current instance
 
-**Kind**: instance method of [<code>Aggregation</code>](#Aggregation)  
+**Kind**: instance method of [<code>Aggregation</code>](Aggregation.md#Aggregation)  
 
 * * *
 
@@ -189,7 +189,7 @@ Returns JSON-serialized object of the current instance
 ### Aggregation.execute(_id, [vars])
 Execute aggregation by id
 
-**Kind**: static method of [<code>Aggregation</code>](#Aggregation)  
+**Kind**: static method of [<code>Aggregation</code>](Aggregation.md#Aggregation)  
 
 | Param | Type | Description |
 | --- | --- | --- |
