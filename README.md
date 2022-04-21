@@ -2,6 +2,6 @@
 
 ---
 
-See [API documentation](doc/README.md)
+See [API documentation](docs/README.md)
 
 🚀
