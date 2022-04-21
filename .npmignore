@@ -1,0 +1,12 @@
+.eslintignore
+.eslintrc.json
+.prettierrc.json
+generate-doc.js
+jest.config.js
+jsdoc.config.json
+README.md
+tsconfig.json
+webpack.config.js
+test
+src
+docs

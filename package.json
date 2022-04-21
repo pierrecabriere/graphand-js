@@ -1,9 +1,9 @@
 {
   "name": "graphand-js",
-  "version": "0.25.0-beta",
+  "version": "0.25.2-beta",
   "description": "",
   "homepage": "https://github.com/pierrecabriere/graphand-js",
-  "main": "index.js",
+  "main": "dist/module.js",
   "author": "Pierre Cabrière",
   "license": "MIT",
   "scripts": {
