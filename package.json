@@ -1,6 +1,6 @@
 {
   "name": "graphand-js",
-  "version": "0.25.6-beta",
+  "version": "0.25.7-beta",
   "description": "",
   "homepage": "https://github.com/pierrecabriere/graphand-js",
   "main": "bundle.js",

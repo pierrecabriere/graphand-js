@@ -1,4 +1,6 @@
+dist
 docs
+node_modules
 src
 test
 .eslintignore
@@ -6,6 +8,7 @@ test
 .gitignore
 .npmignore
 .prettierrc.json
+.idea
 generate-doc.js
 jest.config.js
 jsdoc.config.json
