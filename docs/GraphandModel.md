@@ -73,9 +73,14 @@ Update current instance
 
 | Param | Type | Description |
 | --- | --- | --- |
-| update | [<code>Update</code>](#Update) | payload to apply. Query is already set with current instance id (ex: { set: { ... } }) |
+| update | [<code>Update</code>](#Update) | payload to apply. Query is already set with current instance id |
 | [options] |  |  |
 
+**Example**  
+```js
+// set title toto on the current instance
+instance.update({ set: { title: "toto" } })
+```
 
 * * *
 
@@ -90,6 +95,10 @@ Delete current instance
 | --- |
 | [options] | 
 
+**Example**  
+```js
+instance.delete().then(() => console.log("deleted"))
+```
 
 * * *
 
@@ -418,7 +427,7 @@ Update one or multiple instances by query
 
 | Param | Type | Description |
 | --- | --- | --- |
-| update | [<code>Update</code>](#Update) | query and payload to apply (ex: { query: { ... }, set: { ... } }) |
+| update | [<code>Update</code>](#Update) | query and payload to apply |
 | [options] |  |  |
 
 **Example**  
@@ -441,6 +450,10 @@ Delete one or multiple instances by query
 | del | [<code>GraphandModel</code>](GraphandModel.md#GraphandModel) \| [<code>Query</code>](#Query) | query of target instances to delete (ex: { query: { ... } }) |
 | [options] |  |  |
 
+**Example**  
+```js
+GraphandModel.delete({ query: { title: { $ne: "toto" } } })
+```
 
 * * *
 

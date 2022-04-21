@@ -1,16 +1,15 @@
 {
   "name": "graphand-js",
-  "version": "0.25.7-beta",
+  "version": "0.25.9-beta",
   "description": "",
   "homepage": "https://github.com/pierrecabriere/graphand-js",
-  "main": "bundle.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": "Pierre Cabrière",
   "license": "MIT",
   "scripts": {
-    "build": "tsc --project tsconfig.json",
-    "build:watch": "tsc --project tsconfig.json --watch",
-    "build:doc": "tsc --project tsconfig.json && node generate-doc.js",
-    "bundle": "webpack",
+    "build": "webpack",
+    "build:doc": "tsc --project tsconfig.json && node generate-doc.js && rm -rf dist",
     "test": "jest"
   },
   "dependencies": {
@@ -38,6 +37,7 @@
     "jest": "^27.5.1",
     "jsdoc-to-markdown": "^7.1.1",
     "prettier": "^2.6.2",
+    "ts-loader": "^9.2.8",
     "ts-node": "^10.7.0",
     "typescript": "^4.6.3",
     "webpack": "^5.72.0",

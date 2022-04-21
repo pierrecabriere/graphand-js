@@ -7,15 +7,24 @@ module.exports = {
     minimize: true,
   },
   entry: {
-    main: "./dist/index.js",
+    main: "./src/index.ts",
   },
-  output: {
-    path: path.resolve(__dirname),
-    filename: "bundle.js",
-    library: "graphand-js",
-    libraryTarget: "umd",
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: "ts-loader",
+        exclude: /node_modules/,
+      },
+    ],
   },
   resolve: {
-    extensions: [".js"],
+    extensions: [".tsx", ".ts", ".js"],
+  },
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    filename: "index.js",
+    library: "graphand-js",
+    libraryTarget: "umd",
   },
 };
