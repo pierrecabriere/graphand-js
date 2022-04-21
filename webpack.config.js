@@ -1,5 +1,4 @@
 const path = require("path");
-const CompressionPlugin = require("compression-webpack-plugin");
 
 module.exports = {
   mode: "development",
@@ -11,7 +10,7 @@ module.exports = {
     main: "./dist/index.js",
   },
   output: {
-    path: path.resolve(__dirname, "./dist"),
+    path: path.resolve(__dirname),
     filename: "bundle.js",
     library: "graphand-js",
     libraryTarget: "umd",
@@ -19,5 +18,4 @@ module.exports = {
   resolve: {
     extensions: [".js"],
   },
-  plugins: [new CompressionPlugin()],
 };
