@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "build:watch": "tsc --project tsconfig.json --watch",
-    "build:doc": "tsc --project tsconfig.json && jsdoc -c ./jsdoc.config.json",
+    "build:doc": "tsc --project tsconfig.json && node generate-doc.js",
     "test": "jest"
   },
   "dependencies": {
@@ -37,6 +37,7 @@
     "eslint-plugin-prettier": "^3.1.4",
     "jest": "^27.5.1",
     "jsdoc": "^3.6.10",
+    "jsdoc-to-markdown": "^7.1.1",
     "prettier": "^2.6.2",
     "ts-jest": "^27.1.4",
     "ts-node": "^10.7.0",

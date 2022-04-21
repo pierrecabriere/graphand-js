@@ -6,6 +6,7 @@ describe("Workflow", () => {
   const client = Client.createClient({});
   const [User, Project] = client.getModels(["User", "Project"]);
   let currentUser;
+  let currentAccount;
   let project;
   let projectClient;
 
@@ -39,9 +40,14 @@ describe("Workflow", () => {
   });
 
   it("should get the current account", async () => {
-    const _account = await projectClient.getModel("Account").getCurrent();
-    expect(_account?._id).toBeDefined();
-    expect(_account.raw.user).toEqual(currentUser._id);
+    currentAccount = await projectClient.getModel("Account").getCurrent();
+    expect(currentAccount?._id).toBeDefined();
+    expect(currentAccount.raw.user).toEqual(currentUser._id);
+  });
+
+  it("should has a current admin role", async () => {
+    const role = await currentAccount.role;
+    expect(role?.admin).toBeTruthy();
   });
 
   it("should delete the project", async () => {
