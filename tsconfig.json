@@ -9,11 +9,12 @@
     "experimentalDecorators": true,
     "resolveJsonModule": true,
     "lib": ["es6", "dom", "es2017"],
-    "target": "es6",
+    "target": "es2017",
     "outDir": "dist",
     "baseUrl": ".",
     "allowJs": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "preserveConstEnums": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "**/node_modules/*"]

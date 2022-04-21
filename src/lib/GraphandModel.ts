@@ -606,7 +606,7 @@ class GraphandModel extends AbstractGraphandModel {
 
   /**
    * Update one or multiple instances by query
-   * @param update {Update} - query and payload to apply (ex: { query: { ... }, set: { ... } })
+   * @param update {Update} - query and payload to apply
    * @param [options]
    * @example
    * // set title toto on every instance in the query scope
@@ -621,8 +621,11 @@ class GraphandModel extends AbstractGraphandModel {
 
   /**
    * Update current instance
-   * @param update {Update} - payload to apply. Query is already set with current instance id (ex: { set: { ... } })
+   * @param update {Update} - payload to apply. Query is already set with current instance id
    * @param [options]
+   * @example
+   * // set title toto on the current instance
+   * instance.update({ set: { title: "toto" } })
    */
   async update(update: Update, options?: { hooks?: boolean; clearCache?: boolean; upsert?: boolean; preStore?: boolean; revertOnError?: boolean }) {
     await updateModelInstance(this, update, options);
@@ -633,6 +636,8 @@ class GraphandModel extends AbstractGraphandModel {
    * Delete one or multiple instances by query
    * @param del {GraphandModel|Query} - query of target instances to delete (ex: { query: { ... } })
    * @param [options]
+   * @example
+   * GraphandModel.delete({ query: { title: { $ne: "toto" } } })
    */
   static async delete(del: GraphandModel | Query, options?: { hooks?: boolean; clearCache?: boolean; updateStore?: boolean }) {
     return deleteModel(this, del, options);
@@ -641,6 +646,8 @@ class GraphandModel extends AbstractGraphandModel {
   /**
    * Delete current instance
    * @param [options]
+   * @example
+   * instance.delete().then(() => console.log("deleted"))
    */
   delete(options?: { hooks?: boolean; clearCache?: boolean; updateStore?: boolean }) {
     const constructor = this.constructor as any;
