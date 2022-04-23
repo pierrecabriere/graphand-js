@@ -1,4 +1,4 @@
-import _ from "lodash";
+import { get as lodashGet, set as lodashSet } from "lodash/get";
 import Client from "../Client";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 
@@ -6,7 +6,7 @@ export const processPopulate = (item: any, fields: any, client: Client, populate
   populatedPaths = populatedPaths ?? Object.keys(fields).filter((key) => fields[key] instanceof GraphandFieldRelation);
   for (const path of populatedPaths) {
     const field = fields[path];
-    const populatedData = _.get(item, path);
+    const populatedData = lodashGet(item, path);
 
     if (!field || !populatedData || typeof populatedData !== "object") {
       continue;
@@ -25,7 +25,7 @@ export const processPopulate = (item: any, fields: any, client: Client, populate
       value = _item._id;
     }
 
-    _.set(item, path, value);
+    lodashSet(item, path, value);
   }
 
   return item;

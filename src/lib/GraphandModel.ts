@@ -1,5 +1,5 @@
 import isEqual from "fast-deep-equal";
-import _ from "lodash";
+import { get as lodashGet, set as lodashSet, cloneDeep } from "lodash/get";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
 import Client from "../Client";
 import HooksEvents from "../enums/hooks-events";
@@ -778,7 +778,7 @@ class GraphandModel extends AbstractGraphandModel {
    */
   clone(locale?) {
     const { constructor } = Object.getPrototypeOf(this);
-    const clone = new constructor(_.cloneDeep(this.raw));
+    const clone = new constructor(cloneDeep(this.raw));
     if (locale) {
       clone.translate(locale);
     }
@@ -800,12 +800,12 @@ class GraphandModel extends AbstractGraphandModel {
       return undefined;
     }
 
-    let value = _.get(this._data, slug);
+    let value = lodashGet(this._data, slug);
 
     if (constructor.translatable) {
       let locale = _locale || constructor._client.locale;
       if (locale && constructor._client._project?.locales?.includes(locale) && locale !== constructor._client._project.defaultLocale) {
-        const translationValue = _.get(this._data, `translations.${locale}.${slug}`);
+        const translationValue = lodashGet(this._data, `translations.${locale}.${slug}`);
         value = fallback && translationValue !== undefined ? value : translationValue;
       }
     }
@@ -842,7 +842,7 @@ class GraphandModel extends AbstractGraphandModel {
     if (upsert) {
       return this.assign({ [slug]: value });
     } else {
-      _.set(this._data, slug, value);
+      lodashSet(this._data, slug, value);
     }
 
     return this;
