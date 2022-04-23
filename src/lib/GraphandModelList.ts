@@ -1,4 +1,4 @@
-import isEqual from "fast-deep-equal";
+import { deepEqual } from "fast-equals";
 import { Observable } from "rxjs";
 import GraphandModel from "./GraphandModel";
 import GraphandModelListPromise from "./GraphandModelListPromise";
@@ -91,7 +91,7 @@ class GraphandModelList extends Array implements Array<any> {
             prevSerial = listArray.map((item) => JSON.stringify(item.serialize?.apply(item)).normalize());
           } else {
             const serial = listArray.map((item) => JSON.stringify(item.serialize?.apply(item)).normalize());
-            if (!isEqual(serial, prevSerial)) {
+            if (!deepEqual(serial, prevSerial)) {
               reload = true;
               prevSerial = serial;
             }

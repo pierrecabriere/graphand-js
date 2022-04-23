@@ -1,5 +1,6 @@
-import isEqual from "fast-deep-equal";
-import { get as lodashGet, set as lodashSet, cloneDeep } from "lodash/get";
+import copy from "fast-copy";
+import { deepEqual } from "fast-equals";
+import { get as lodashGet, set as lodashSet } from "lodash/get";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
 import Client from "../Client";
 import HooksEvents from "../enums/hooks-events";
@@ -778,7 +779,7 @@ class GraphandModel extends AbstractGraphandModel {
    */
   clone(locale?) {
     const { constructor } = Object.getPrototypeOf(this);
-    const clone = new constructor(cloneDeep(this.raw));
+    const clone = new constructor(copy(this.raw));
     if (locale) {
       clone.translate(locale);
     }
@@ -892,7 +893,7 @@ class GraphandModel extends AbstractGraphandModel {
       this._storeSub = constructor._listSubject.subscribe((_list) => {
         setTimeout(async () => {
           const item = prev.isTemporary() ? _list.find((i) => i._id === prev._id) : await constructor.get(prev._id);
-          if (!item || !isEqual(item.raw, prev.raw)) {
+          if (!item || !deepEqual(item.raw, prev.raw)) {
             if (item) {
               prev = item.clone();
             }
