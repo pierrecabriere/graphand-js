@@ -1,4 +1,4 @@
-import { get as lodashGet, set as lodashSet } from "lodash/get";
+import { get as lodashGet, set as lodashSet } from "lodash";
 import Client from "../Client";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 

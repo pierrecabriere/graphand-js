@@ -20,9 +20,6 @@ const baseConfig = {
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
-    alias: {
-      request$: "xhr",
-    },
   },
   output: {
     path: path.resolve(__dirname, "dist"),

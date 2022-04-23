@@ -1,6 +1,6 @@
 import copy from "fast-copy";
 import { deepEqual } from "fast-equals";
-import { get as lodashGet, set as lodashSet } from "lodash/get";
+import { get as lodashGet, set as lodashSet } from "lodash";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
 import Client from "../Client";
 import HooksEvents from "../enums/hooks-events";
