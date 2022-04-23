@@ -1,3 +1,4 @@
+import HooksEvents from "../enums/hooks-events";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
@@ -18,7 +19,7 @@ class Sockethook extends GraphandModel {
   static scope = "Sockethook";
   static schema = {
     identifier: new GraphandFieldText(),
-    action: new GraphandFieldText(),
+    actions: new GraphandFieldText({ multiple: true }),
     fields: new GraphandFieldText({ multiple: true }),
     scope: new GraphandFieldScope(),
     await: new GraphandFieldBoolean(),
@@ -27,6 +28,8 @@ class Sockethook extends GraphandModel {
     priority: new GraphandFieldNumber({ defaultValue: 0 }),
     hosts: new GraphandFieldJSON(),
   };
+
+  static Events = HooksEvents;
 
   identifier;
   action;

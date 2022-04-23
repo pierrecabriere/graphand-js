@@ -41,7 +41,12 @@ const setupAxios = (client: Client) => {
         error.graphandErrors = errors.map((e) => GraphandError.fromJSON(e, error.response.status));
       } catch (e) {}
 
-      if (!error.config._retry && error.config.url !== "/auth/login" && error.graphandErrors.find((e) => e.code === "expired_token")) {
+      if (
+        error.config &&
+        !error.config._retry &&
+        error.config.url !== "/auth/login" &&
+        error.graphandErrors.find((e) => e.code === "expired_token")
+      ) {
         return client.refreshToken().then(() => {
           const { config } = error;
           delete config.headers.Authorization;

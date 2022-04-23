@@ -1,3 +1,4 @@
+import Client from "../Client";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
@@ -23,5 +24,20 @@ class DataModel extends GraphandModel {
     defaultField: new GraphandFieldRelation({ ref: "DataField" }),
   };
 }
+
+DataModel.hook("postDelete", ({ payload }) => {
+  const clients = new Set();
+
+  if (Array.isArray(payload)) {
+    payload.forEach((p) => clients.add(p.constructor._client));
+  } else {
+    clients.add(payload.constructor._client);
+  }
+
+  clients.forEach((client: Client) => {
+    const DataField = client.getModel("DataField");
+    DataField.reinit();
+  });
+});
 
 export default DataModel;

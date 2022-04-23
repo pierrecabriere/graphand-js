@@ -8,7 +8,15 @@ const getModelListFromCache = (Model: typeof GraphandModel, query: any) => {
     return;
   }
 
-  const { rows, count } = cacheEntry.data.data;
+  let rows, count;
+  if (cacheEntry.data.data._id) {
+    rows = [cacheEntry.data.data];
+    count = 1;
+  } else {
+    rows = cacheEntry.data.data.rows;
+    count = cacheEntry.data.data.count;
+  }
+
   const ids = rows.map((r) => r._id);
   const cacheList = ids.map((_id) => Model.get(_id, false));
   if (cacheList.every(Boolean)) {

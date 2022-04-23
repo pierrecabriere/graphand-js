@@ -29,6 +29,8 @@ class DataField extends GraphandModel {
     scope: new GraphandFieldScope(),
   };
 
+  static Types = DataFieldTypes;
+
   name;
   slug;
   type;

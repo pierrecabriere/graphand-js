@@ -3,7 +3,10 @@ import GraphandModelPromise from "../lib/GraphandModelPromise";
 import GraphandQuery from "../lib/GraphandQuery";
 import { FetchOptions } from "./fetchModel";
 
-const getModelInstance = (Model: typeof GraphandModel, query?: any, fetch: FetchOptions | boolean = true, cache?) => {
+const getModelInstance = (Model: typeof GraphandModel, query?: any, fetch?: FetchOptions | boolean, cache?) => {
+  cache = cache ?? !fetch;
+  fetch = fetch ?? true;
+
   if (!query) {
     return new GraphandModelPromise(async (resolve, reject) => {
       await Model._init();

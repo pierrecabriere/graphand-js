@@ -11,6 +11,8 @@ test
 generate-doc.js
 jest.config.js
 jsdoc.config.json
+.map
+.txt
 README.md
 tsconfig.json
 webpack.config.js

@@ -2,6 +2,7 @@ import { BehaviorSubject, Subject } from "rxjs";
 import HooksEvents from "./enums/hooks-events";
 import PluginLifecyclePhases from "./enums/plugin-lifecycle-phases";
 import * as lib from "./lib";
+import { GraphandValidationError } from "./lib";
 import GraphandModel from "./lib/GraphandModel";
 import GraphandPlugin from "./lib/GraphandPlugin";
 import * as models from "./models";
@@ -395,7 +396,7 @@ class Client {
   async registerHook({
     identifier,
     model,
-    action,
+    events,
     handler,
     _await,
     timeout,
@@ -404,7 +405,7 @@ class Client {
   }: {
     identifier?: string;
     model?: typeof GraphandModel;
-    action?: HooksEvents;
+    events?: HooksEvents | HooksEvents[];
     handler?: any;
     _await?: boolean;
     timeout?: number;
@@ -418,7 +419,7 @@ class Client {
     _await = _await === undefined ? handler.constructor.name === "AsyncFunction" : _await;
 
     if (!identifier) {
-      identifier = `${action}:${model.scope}`;
+      identifier = `${events.toString()}:${model.scope}`;
     }
 
     if (this._registerHooks.has(identifier)) {
@@ -466,16 +467,22 @@ class Client {
 
       try {
         const Sockethook = this.getModel("Sockethook");
-        hook = await Sockethook.create({
+        const payload: any = {
           socket: socket.id,
           scope: model.scope,
           await: _await,
+          actions: Array.isArray(events) ? events : [events].filter(Boolean),
           identifier,
-          action,
           timeout,
           priority,
           fields,
-        });
+        };
+
+        if (!payload.actions.length) {
+          throw new GraphandValidationError("Field actions is required", "actions", GraphandValidationError.Codes.REQUIRED);
+        }
+
+        hook = await Sockethook.create(payload);
 
         socket.off(`/hooks/${hook._id}`);
         socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));

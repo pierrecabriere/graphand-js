@@ -14,8 +14,9 @@
     "baseUrl": ".",
     "allowJs": true,
     "skipLibCheck": true,
-    "preserveConstEnums": true
+    "preserveConstEnums": true,
+    "declarationDir": "dist/types"
   },
   "include": ["src"],
-  "exclude": ["node_modules", "**/node_modules/*"]
+  "exclude": ["node_modules", "**/node_modules/*"],
 }

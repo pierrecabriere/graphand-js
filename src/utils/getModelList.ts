@@ -19,7 +19,7 @@ const getModelList = (Model: typeof GraphandModel, _q: any, _opts: FetchOptions 
   const query = new GraphandQuery(Model, _q);
 
   let list = query.getCachedList();
-  let mapIds;
+  let mapIds = query.ids;
 
   if (!list && query.ids) {
     if (query.ids instanceof GraphandModelList || query.ids instanceof GraphandModelListPromise) {
@@ -30,8 +30,8 @@ const getModelList = (Model: typeof GraphandModel, _q: any, _opts: FetchOptions 
       query.ids = [query.ids];
     }
 
-    if (cache && "ids" in query && Object.keys(query).length === 1) {
-      mapIds = query.ids;
+    const queryKeys = Object.keys(query).filter((key) => ["query", "ids", "pageSize", "page", "populate"].includes(key));
+    if (cache && queryKeys.includes("ids") && queryKeys.length === 1) {
       const cacheList = query.ids.map((_id) => Model.get(_id, false));
       if (cacheList.every(Boolean)) {
         list = new GraphandModelList({ model: Model, count: cacheList.length, query }, ...cacheList);

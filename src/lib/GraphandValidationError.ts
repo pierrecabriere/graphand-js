@@ -12,6 +12,7 @@ enum GraphandValidationErrorCodes {
 
 class GraphandValidationError extends GraphandError {
   static Codes: any = GraphandValidationErrorCodes;
+
   type: string;
   message: string;
   code: string;

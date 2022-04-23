@@ -27,6 +27,7 @@ interface Query {
   sort?: string | any;
   page?: number;
   pageSize?: number;
+  populate?: string | any;
 }
 
 interface Update {
@@ -35,6 +36,7 @@ interface Update {
   sort?: string | any;
   page?: number;
   pageSize?: number;
+  populate?: string | any;
   set?: any;
 }
 
@@ -56,6 +58,7 @@ class GraphandModel extends AbstractGraphandModel {
    * @property [sort] {string|Object}
    * @property [page] {number}
    * @property [pageSize] {number}
+   * @property [populate] {string|Object}
    */
 
   /**
@@ -66,6 +69,7 @@ class GraphandModel extends AbstractGraphandModel {
    * @property [sort] {string|Object}
    * @property [page] {number}
    * @property [pageSize] {number}
+   * @property [populate] {string|Object}
    * @property [set] {Object} - The payload to apply on target instances
    */
 
@@ -419,16 +423,16 @@ class GraphandModel extends AbstractGraphandModel {
 
   /**
    * [admin only] Register a new sockethook on the model. The host that register the sockethook needs to keep connection with graphand. Use {@link GraphandModel#on} for example in a node.js script
-   * @param event {"before_create"|"after_create"|"before_update"|"after_update"|"before_delete"|"after_delete"|"before_execute"|"after_execute"|"before_login"|"after_login"|"before_register"|"after_register"} - The event that will trigger the sockethook
+   * @param events {"before_create"|"after_create"|"before_update"|"after_update"|"before_delete"|"after_delete"|"before_execute"|"after_execute"|"before_login"|"after_login"|"before_register"|"after_register"} - The event that will trigger the sockethook
    * @param handler {GraphandModelHookHandler} - The handler that will be executed
    * @param options
    */
   static on(
-    event: HooksEvents,
+    events: HooksEvents | HooksEvents[],
     handler,
     options: { identifier?: string; await?: boolean; timeout?: number; priority?: number; fields?: string[] } = {},
   ) {
-    this._client.registerHook({ model: this, action: event, handler, _await: options.await, ...options });
+    this._client.registerHook({ model: this, events, handler, _await: options.await, ...options });
   }
 
   static unsync() {
