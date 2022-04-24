@@ -6,7 +6,7 @@ import GraphandModelListPromise from "./GraphandModelListPromise";
 /**
  * @class GraphandModelList
  */
-class GraphandModelList extends Array implements Array<any> {
+class GraphandModelList<T extends GraphandModel> extends Array implements Array<T> {
   _model;
   count;
   _query;
@@ -65,7 +65,7 @@ class GraphandModelList extends Array implements Array<any> {
     return new Array(...this);
   }
 
-  clone(concatWith?: GraphandModel | GraphandModelList) {
+  clone(concatWith?: GraphandModel | GraphandModelList<GraphandModel>) {
     const elements = concatWith ? this.toArray().concat(concatWith) : this.toArray();
     return new GraphandModelList(this, ...elements);
   }

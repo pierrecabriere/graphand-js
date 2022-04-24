@@ -2,7 +2,7 @@ import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { GraphandModel } from "../lib";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import { getPopulatedPaths } from "./getPopulatedPaths";
-import { processPopulate } from "./processPopulate";
+import processPopulate from "./processPopulate";
 
 type FetchOptions = {
   cache?: boolean;

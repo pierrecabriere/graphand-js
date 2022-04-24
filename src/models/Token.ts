@@ -1,3 +1,4 @@
+import ModelScopes from "../enums/model-scopes";
 import GraphandFieldDate from "../lib/fields/GraphandFieldDate";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
@@ -13,7 +14,7 @@ class Token extends GraphandModel {
 
   static apiIdentifier = "tokens";
   static baseUrl = "/tokens";
-  static scope = "Token";
+  static scope = ModelScopes.Token;
   static schema = {
     name: new GraphandFieldText(),
     description: new GraphandFieldText(),

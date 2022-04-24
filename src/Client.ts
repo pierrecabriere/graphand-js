@@ -1,11 +1,31 @@
-import { BehaviorSubject, Subject } from "rxjs";
+import { Mode } from "fs";
+import { BehaviorSubject } from "rxjs";
 import HooksEvents from "./enums/hooks-events";
+import ModelScopes from "./enums/model-scopes";
 import PluginLifecyclePhases from "./enums/plugin-lifecycle-phases";
 import * as lib from "./lib";
-import { GraphandValidationError } from "./lib";
+import { GraphandModelList, GraphandValidationError } from "./lib";
 import GraphandModel from "./lib/GraphandModel";
 import GraphandPlugin from "./lib/GraphandPlugin";
 import * as models from "./models";
+import {
+  Account,
+  Aggregation,
+  DataField,
+  DataModel,
+  Environment,
+  EsMapping,
+  Log,
+  Media,
+  Module,
+  Project,
+  Restriction,
+  Role,
+  Rule,
+  Token,
+  User,
+  Webhook,
+} from "./models";
 import Data from "./models/Data";
 import Sockethook from "./models/Sockethook";
 import { setupAxios, setupSocket, verifyScopeFormat } from "./utils";
@@ -138,7 +158,7 @@ class Client {
     return new Proxy(this, {
       get: function (oTarget, sKey: string) {
         try {
-          return oTarget.getGraphandModel(sKey);
+          return oTarget.getGraphandModel(sKey as ModelScopes);
         } catch (e) {
           return oTarget.getModelByIdentifier(sKey);
         }
@@ -227,13 +247,12 @@ class Client {
         await Promise.all(plugins.map((p) => p.execute(PluginLifecyclePhases.INIT)));
 
         try {
-          const [Project] = this.getModels(["Project"]);
           await Promise.all([
             (async () => {
               if (this._options.project) {
                 if (this._options.initModels) {
                   const [DataModel] = this.getModels(["DataModel"]);
-                  const dataModels = await DataModel.getList({});
+                  const dataModels = (await DataModel.getList({})) as GraphandModelList<DataModel>;
                   const scopes = ["Account", "Media"].concat(dataModels.map((m) => `Data:${m.slug}`));
                   await this.registerModels(this._options.models.concat(scopes), { extend: true });
                 } else {
@@ -243,7 +262,7 @@ class Client {
             })(),
             (async () => {
               if (this._options.initProject && this._options.project) {
-                await Project.getCurrent();
+                await this.getModel(ModelScopes.Project).getCurrent();
               }
             })(),
           ]);
@@ -271,8 +290,43 @@ class Client {
    * @param options
    * @returns {GraphandModel.constructor[]}
    */
-  getModels(scopes, options: any = {}) {
-    return scopes.map((scope: string) => this.getModel(scope, options));
+  getModels<T extends ModelScopes[] | string[]>(scopes: T, options: any = {}): typeof GraphandModel[] {
+    return scopes.map((scope) => this.getModel(scope, options));
+  }
+
+  getModel<T extends ModelScopes.Account>(scope: T, options?: any): typeof Account;
+  getModel<T extends ModelScopes.Aggregation>(scope: T, options?: any): typeof Aggregation;
+  getModel<T extends ModelScopes.DataField>(scope: T, options?: any): typeof DataField;
+  getModel<T extends ModelScopes.DataModel>(scope: T, options?: any): typeof DataModel;
+  getModel<T extends ModelScopes.Environment>(scope: T, options?: any): typeof Environment;
+  getModel<T extends ModelScopes.EsMapping>(scope: T, options?: any): typeof EsMapping;
+  getModel<T extends ModelScopes.Log>(scope: T, options?: any): typeof Log;
+  getModel<T extends ModelScopes.Media>(scope: T, options?: any): typeof Media;
+  getModel<T extends ModelScopes.Module>(scope: T, options?: any): typeof Module;
+  getModel<T extends ModelScopes.Project>(scope: T, options?: any): typeof Project;
+  getModel<T extends ModelScopes.Restriction>(scope: T, options?: any): typeof Restriction;
+  getModel<T extends ModelScopes.Role>(scope: T, options?: any): typeof Role;
+  getModel<T extends ModelScopes.Rule>(scope: T, options?: any): typeof Rule;
+  getModel<T extends ModelScopes.Sockethook>(scope: T, options?: any): typeof Sockethook;
+  getModel<T extends ModelScopes.Token>(scope: T, options?: any): typeof Token;
+  getModel<T extends ModelScopes.User>(scope: T, options?: any): typeof User;
+  getModel<T extends ModelScopes.Webhook>(scope: T, options?: any): typeof Webhook;
+  getModel<T extends string>(scope: T, options?: any): typeof Data;
+  /**
+   * Get ready-to-use model by scope. Use {@link Client#getModels} to get multiple models at once
+   * @param scope {string}
+   * @param options
+   * @returns {GraphandModel.constructor}
+   */
+  getModel(scope: ModelScopes | string, options: any = {}): typeof Data {
+    verifyScopeFormat(scope);
+
+    try {
+      const { 1: slug } = scope.match(/^Data:([a-zA-Z0-9\-_]+?)$/);
+      return this.getModelByIdentifier(slug, options);
+    } catch (e) {
+      return this.getGraphandModel(scope as ModelScopes, options);
+    }
   }
 
   /**
@@ -284,7 +338,7 @@ class Client {
     return new Client(options);
   }
 
-  getModelByIdentifier(identifier: string, options: any = {}) {
+  getModelByIdentifier(identifier: string, options: any = {}): typeof Data {
     const scope = `Data:${identifier}`;
 
     if (!this._models[scope]) {
@@ -382,7 +436,11 @@ class Client {
     const modelsList = list.map((item) => (Array.isArray(item) ? item[0] : item));
     const scopes = modelsList.map((model) => (typeof model === "string" ? model : model.scope));
     const DataField = this.getModel("DataField");
-    const fields = (await DataField.getList({ query: { scope: { $in: scopes } }, pageSize: 1000 })).toArray();
+    const dataFields: GraphandModelList<GraphandModel> = (await DataField.getList({
+      query: { scope: { $in: scopes } },
+      pageSize: 1000,
+    })) as GraphandModelList<GraphandModel>;
+    const fields = dataFields.toArray();
     await Promise.all(
       modelsList.map(async (model, index) => {
         const scope = typeof model === "string" ? model : model.scope;
@@ -622,28 +680,7 @@ class Client {
     this.connectSocket(true);
   }
 
-  /**
-   * Get ready-to-use model by scope. Use {@link Client#getModels} to get multiple models at once
-   * @param scope {string}
-   * @param options
-   * @returns {GraphandModel.constructor}
-   */
-  getModel(scope, options: any = {}) {
-    if (scope?.scope) {
-      scope = scope.scope;
-    }
-
-    verifyScopeFormat(scope);
-
-    try {
-      const { 1: slug } = scope.match(/^Data:([a-zA-Z0-9\-_]+?)$/);
-      return this.getModelByIdentifier(slug, options);
-    } catch (e) {
-      return this.getGraphandModel(scope, options);
-    }
-  }
-
-  getGraphandModel(scope, options?: any) {
+  getGraphandModel(scope: ModelScopes, options?: any) {
     if (!this._models[scope]?._registeredAt) {
       const found = this._options.models.find((m) => (Array.isArray(m) ? m[0] === scope || m[0]?.scope === scope : m === scope || m.scope === scope));
       if (found && Array.isArray(found) && typeof found[1] === "object") {

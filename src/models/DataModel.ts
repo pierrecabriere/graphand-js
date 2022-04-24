@@ -1,4 +1,5 @@
 import Client from "../Client";
+import ModelScopes from "../enums/model-scopes";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
@@ -14,7 +15,7 @@ class DataModel extends GraphandModel {
 
   static apiIdentifier = "data-models";
   static baseUrl = "/data-models";
-  static scope = "DataModel";
+  static scope = ModelScopes.DataModel;
   static schema = {
     name: new GraphandFieldText(),
     nameSingle: new GraphandFieldText(),

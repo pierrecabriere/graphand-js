@@ -4,6 +4,7 @@ import { get as lodashGet, set as lodashSet } from "lodash";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
 import Client from "../Client";
 import HooksEvents from "../enums/hooks-events";
+import ModelScopes from "../enums/model-scopes";
 import Account from "../models/Account";
 import createModel from "../utils/createModel";
 import { ownProperty } from "../utils/decorators";
@@ -13,13 +14,14 @@ import getModelInstance from "../utils/getModelInstance";
 import getModelList, { ModelListOptions } from "../utils/getModelList";
 import hydrateModel from "../utils/hydrateModel";
 import parseQuery from "../utils/parseQuery";
-import { processPopulate } from "../utils/processPopulate";
+import processPopulate from "../utils/processPopulate";
 import updateModel, { updateModelInstance } from "../utils/updateModel";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldId from "./fields/GraphandFieldId";
 import GraphandFieldRelation from "./fields/GraphandFieldRelation";
 import GraphandField from "./GraphandField";
 import GraphandModelList from "./GraphandModelList";
+import GraphandModelListPromise from "./GraphandModelListPromise";
 import GraphandModelPromise from "./GraphandModelPromise";
 
 interface Query {
@@ -43,7 +45,8 @@ interface Update {
 
 class AbstractGraphandModel {
   static __proto__: any;
-  static scope = "AbstractGraphandModel";
+  static scope?: ModelScopes;
+  static Scopes = ModelScopes;
 }
 
 /**
@@ -200,7 +203,7 @@ class GraphandModel extends AbstractGraphandModel {
     const DataField = this._client.getModel("DataField");
 
     if (!this._dataFieldsList) {
-      const query = this._fieldsIds && !this._client._options.subscribeFields ? { ids: this._fieldsIds } : { query: { scope: this.scope } };
+      const query: Query = this._fieldsIds && !this._client._options.subscribeFields ? { ids: this._fieldsIds } : { query: { scope: this.scope } };
       this._dataFieldsList = DataField.getList(query);
     }
 
@@ -241,7 +244,12 @@ class GraphandModel extends AbstractGraphandModel {
    * @param opts
    * @returns {GraphandModel|GraphandModelPromise}
    */
-  static get<T extends FetchOptions | boolean>(query: string | Query, fetch?: T, cache?): T extends false ? GraphandModel : GraphandModelPromise {
+  static get<T extends FetchOptions | boolean>(
+    query: string | Query,
+    fetch?: T,
+    cache?,
+  ): T extends false ? GraphandModel : GraphandModelPromise<GraphandModel> {
+    // @ts-ignore
     return getModelInstance(this, query, fetch, cache);
   }
 
@@ -554,7 +562,8 @@ class GraphandModel extends AbstractGraphandModel {
     return false;
   }
 
-  static getList(query?: undefined, opts?: ModelListOptions | boolean): GraphandModelList;
+  static getList(query?: undefined, opts?: ModelListOptions | boolean): GraphandModelList<GraphandModel>;
+  static getList(query: Query, opts?: ModelListOptions | boolean): GraphandModelList<GraphandModel> | GraphandModelListPromise<GraphandModel>;
   /**
    * Returns a GraphandModelList (or Promise) of the model
    * @param query {Query} - the request query (see api doc)
@@ -562,7 +571,7 @@ class GraphandModel extends AbstractGraphandModel {
    * @returns {GraphandModelList|GraphandModelListPromise}
    * @example GraphandModel.getList({ query: { title: { $regex: "toto" } }, pageSize: 5, page: 2 })
    */
-  static getList(query: Query, opts?: ModelListOptions | boolean): GraphandModelList | GraphandModelPromise {
+  static getList(query: Query, opts?: ModelListOptions | boolean): GraphandModelList<GraphandModel> | GraphandModelListPromise<GraphandModel> {
     if (!query) {
       const list = this._listSubject.getValue();
       return new GraphandModelList({ model: this }, ...list);

@@ -1,3 +1,4 @@
+import ModelScopes from "../enums/model-scopes";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
@@ -19,7 +20,7 @@ class Media extends GraphandModel {
 
   static apiIdentifier = "medias";
   static baseUrl = "/medias";
-  static scope = "Media";
+  static scope = ModelScopes.Media;
   static queryFields = true;
   static schema = {
     name: new GraphandFieldText(),
@@ -47,12 +48,11 @@ class Media extends GraphandModel {
    * Get graphand cdn url for current media
    * @param opts {MediaUrlOptions}
    */
-  getUrl(opts: any = {}) {
+  getUrl(opts: any = {}): string {
     opts = Object.assign({}, defaultLinkOptions, opts);
     let client;
     if (this instanceof GraphandModelPromise) {
-      const promise = this as unknown as GraphandModelPromise;
-      client = promise.model?._client;
+      client = this.model?._client;
     } else {
       const { constructor } = Object.getPrototypeOf(this);
       client = constructor._client;

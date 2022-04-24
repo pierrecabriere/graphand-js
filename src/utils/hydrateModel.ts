@@ -2,11 +2,11 @@ import Client from "../Client";
 import { GraphandModel } from "../lib";
 import GraphandModelList from "../lib/GraphandModelList";
 
-const hydrateModel = (input: typeof GraphandModel | Client, data: any, upsert = false) => {
+function hydrateModel<T extends typeof GraphandModel | Client>(input: T, data: any, upsert = false) {
   data = data ?? {};
 
   let client: Client = input instanceof Client ? input : input._client;
-  let Model: typeof GraphandModel = data.__scope ? client?.getModel(data.__scope) || input : input;
+  let Model = (data.__scope ? client?.getModel(data.__scope) || input : input) as typeof GraphandModel;
 
   switch (data.__type) {
     case "GraphandModelList":
@@ -30,6 +30,6 @@ const hydrateModel = (input: typeof GraphandModel | Client, data: any, upsert = 
   }
 
   return res;
-};
+}
 
 export default hydrateModel;

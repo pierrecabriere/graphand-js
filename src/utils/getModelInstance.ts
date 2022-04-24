@@ -3,7 +3,12 @@ import GraphandModelPromise from "../lib/GraphandModelPromise";
 import GraphandQuery from "../lib/GraphandQuery";
 import { FetchOptions } from "./fetchModel";
 
-const getModelInstance = (Model: typeof GraphandModel, query?: any, fetch?: FetchOptions | boolean, cache?) => {
+function getModelInstance<T extends typeof GraphandModel>(
+  Model: T,
+  query?: any,
+  fetch?: FetchOptions | boolean,
+  cache?,
+): InstanceType<T> | GraphandModelPromise<InstanceType<T>> {
   cache = cache ?? !fetch;
   fetch = fetch ?? true;
 
@@ -39,12 +44,12 @@ const getModelInstance = (Model: typeof GraphandModel, query?: any, fetch?: Fetc
 
   let item;
   if (fetchOpts.cache && _id) {
-    const modelList = Model.getList() as GraphandModelList;
+    const modelList = Model.getList() as GraphandModelList<InstanceType<T>>;
     item = modelList.find((item) => item._id === _id);
   }
 
   if (!item && fetch) {
-    return new GraphandModelPromise(
+    return new GraphandModelPromise<InstanceType<T>>(
       async (resolve, reject) => {
         await Model._init();
         try {
@@ -87,6 +92,6 @@ const getModelInstance = (Model: typeof GraphandModel, query?: any, fetch?: Fetc
   }
 
   return item;
-};
+}
 
 export default getModelInstance;

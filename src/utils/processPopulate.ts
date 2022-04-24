@@ -2,7 +2,7 @@ import { get as lodashGet, set as lodashSet } from "lodash";
 import Client from "../Client";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 
-export const processPopulate = (item: any, fields: any, client: Client, populatedPaths?: string[]) => {
+function processPopulate(item: any, fields: any, client: Client, populatedPaths?: string[]) {
   populatedPaths = populatedPaths ?? Object.keys(fields).filter((key) => fields[key] instanceof GraphandFieldRelation);
   for (const path of populatedPaths) {
     const field = fields[path];
@@ -29,4 +29,6 @@ export const processPopulate = (item: any, fields: any, client: Client, populate
   }
 
   return item;
-};
+}
+
+export default processPopulate;

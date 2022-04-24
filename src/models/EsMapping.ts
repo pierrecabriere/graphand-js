@@ -1,3 +1,4 @@
+import ModelScopes from "../enums/model-scopes";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
@@ -14,7 +15,7 @@ class EsMapping extends GraphandModel {
 
   static apiIdentifier = "elasticsearch";
   static baseUrl = "/elasticsearch";
-  static scope = "EsMapping";
+  static scope = ModelScopes.EsMapping;
   static schema = {
     name: new GraphandFieldText(),
     description: new GraphandFieldText(),

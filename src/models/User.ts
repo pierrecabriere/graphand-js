@@ -1,3 +1,4 @@
+import ModelScopes from "../enums/model-scopes";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
@@ -11,7 +12,7 @@ class User extends GraphandModel {
 
   static apiIdentifier = "users";
   static baseUrl = "/users";
-  static scope = "User";
+  static scope = ModelScopes.User;
   static schema = {
     firstname: new GraphandFieldText(),
     lastname: new GraphandFieldText(),

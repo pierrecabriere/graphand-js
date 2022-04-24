@@ -3,7 +3,7 @@ import GraphandModel from "./GraphandModel";
 import GraphandModelList from "./GraphandModelList";
 import GraphandModelPromise from "./GraphandModelPromise";
 
-class GraphandModelListPromise extends GraphandModelPromise {
+class GraphandModelListPromise<T extends GraphandModel> extends GraphandModelPromise<GraphandModelList<T>> {
   _observable;
   _resSub;
 
@@ -39,7 +39,9 @@ class GraphandModelListPromise extends GraphandModelPromise {
     return new GraphandModelListPromise(this.executor, this.model, this.query);
   }
 
-  concat(concatWith?: GraphandModel | GraphandModelPromise | GraphandModelList | GraphandModelListPromise) {
+  concat(
+    concatWith?: GraphandModel | GraphandModelPromise<GraphandModel> | GraphandModelList<GraphandModel> | GraphandModelListPromise<GraphandModel>,
+  ) {
     const clone = this.clone();
     if (!concatWith) {
       return clone;

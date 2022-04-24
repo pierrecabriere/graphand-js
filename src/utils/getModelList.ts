@@ -10,7 +10,11 @@ type ModelListOptions = {
   cache: boolean;
 };
 
-const getModelList = (Model: typeof GraphandModel, _q: any, _opts: FetchOptions | boolean = true): GraphandModelList | GraphandModelListPromise => {
+function getModelList<T extends typeof GraphandModel>(
+  Model: T,
+  _q: any,
+  _opts: FetchOptions | boolean = true,
+): GraphandModelList<InstanceType<T>> | GraphandModelListPromise<InstanceType<T>> {
   const defaultOptions = { fetch: true, cache: true };
   const opts: ModelListOptions = Object.assign({}, defaultOptions, typeof _opts === "object" ? _opts : { fetch: _opts });
 
@@ -70,7 +74,7 @@ const getModelList = (Model: typeof GraphandModel, _q: any, _opts: FetchOptions 
   }
 
   return list;
-};
+}
 
 export default getModelList;
 export { ModelListOptions };

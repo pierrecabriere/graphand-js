@@ -1,3 +1,4 @@
+import ModelScopes from "../enums/model-scopes";
 import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
@@ -14,7 +15,7 @@ class Restriction extends GraphandModel {
 
   static apiIdentifier = "restrictions";
   static baseUrl = "/restrictions";
-  static scope = "Restriction";
+  static scope = ModelScopes.Restriction;
   static schema = {
     role: new GraphandFieldRelation({ ref: "Role", multiple: false }),
     scope: new GraphandFieldScope(),

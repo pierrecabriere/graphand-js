@@ -1,3 +1,4 @@
+import ModelScopes from "../enums/model-scopes";
 import GraphandModel from "../lib/GraphandModel";
 
 /**
@@ -11,8 +12,8 @@ class Data extends GraphandModel {
   static queryFields = true;
   static apiIdentifier;
 
-  static get scope() {
-    return this.apiIdentifier ? `Data:${this.apiIdentifier}` : "Data";
+  static get scope(): ModelScopes {
+    return (this.apiIdentifier ? `Data:${this.apiIdentifier}` : "Data") as ModelScopes;
   }
 
   static get baseUrl() {

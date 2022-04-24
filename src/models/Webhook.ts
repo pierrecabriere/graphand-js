@@ -1,3 +1,4 @@
+import ModelScopes from "../enums/model-scopes";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
@@ -14,7 +15,7 @@ class Webhook extends GraphandModel {
 
   static apiIdentifier = "webhooks";
   static baseUrl = "/webhooks";
-  static scope = "Webhook";
+  static scope = ModelScopes.Webhook;
   static schema = {
     name: new GraphandFieldText(),
     description: new GraphandFieldText(),

@@ -1,3 +1,4 @@
+import ModelScopes from "../enums/model-scopes";
 import AggregationExecutor from "../lib/AggregationExecutor";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
@@ -17,7 +18,7 @@ class Aggregation extends GraphandModel {
 
   static apiIdentifier = "aggregations";
   static baseUrl = "/aggregations";
-  static scope = "Aggregation";
+  static scope = ModelScopes.Aggregation;
   static schema = {
     name: new GraphandFieldText(),
     description: new GraphandFieldText(),

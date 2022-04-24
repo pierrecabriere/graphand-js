@@ -1,3 +1,4 @@
+import ModelScopes from "../enums/model-scopes";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
@@ -14,7 +15,7 @@ class Role extends GraphandModel {
 
   static apiIdentifier = "roles";
   static baseUrl = "/roles";
-  static scope = "Role";
+  static scope = ModelScopes.Role;
   static schema = {
     name: new GraphandFieldText(),
     description: new GraphandFieldText(),
