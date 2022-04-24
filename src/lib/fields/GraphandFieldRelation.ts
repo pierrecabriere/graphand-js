@@ -1,11 +1,12 @@
+import ModelScopes from "../../enums/model-scopes";
 import GraphandField from "../GraphandField";
 import GraphandModel from "../GraphandModel";
 
 class GraphandFieldRelation extends GraphandField {
   static __fieldType = "Relation";
 
-  ref;
-  multiple;
+  ref: ModelScopes | string;
+  multiple?: boolean;
   query;
   _model;
 
@@ -24,8 +25,7 @@ class GraphandFieldRelation extends GraphandField {
       return;
     }
 
-    let model = this._model;
-    if (!model) {
+    if (!this._model || this._model.scope !== this.ref) {
       if (!from) {
         console.error(`Unable to get model from field with value ${value}`, this);
         return null;
@@ -34,15 +34,15 @@ class GraphandFieldRelation extends GraphandField {
       const { constructor } = Object.getPrototypeOf(from);
       const { _client } = constructor;
 
-      model = _client.getModel(this.ref);
+      this._model = _client.getModel(this.ref);
     }
 
     if (this.multiple) {
       const ids = typeof value === "string" ? [value] : value.filter(Boolean).map((v) => v._id || v) || [];
-      return model.getList({ ids });
+      return this._model.getList({ ids });
     } else {
       const id = typeof value === "string" ? value : value._id;
-      return model.get(id);
+      return this._model.get(id);
     }
   }
 

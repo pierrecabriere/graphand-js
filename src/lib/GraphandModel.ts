@@ -1051,17 +1051,12 @@ class GraphandModel extends AbstractGraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     const fields = constructor.getFields();
     return Object.keys(fields).reduce((final, slug) => {
-      return Object.assign(final, { [slug]: this.get(slug, true) });
+      return Object.assign(final, { [slug]: this.get(slug, false) });
     }, {});
   }
 
   toString() {
     return this._id;
-  }
-
-  toPromise() {
-    const { constructor } = Object.getPrototypeOf(this);
-    return constructor.get(this._id).toPromise();
   }
 
   /**

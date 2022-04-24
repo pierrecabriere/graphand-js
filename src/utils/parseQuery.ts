@@ -13,7 +13,7 @@ const _decode = (value) => {
     return value.encodeQuery();
   } else if (value && typeof value === "object" && Object.keys(value).length) {
     if (Array.isArray(value)) {
-      return value.map((v) => _decode(v));
+      return value.map(_decode);
     } else {
       return parseQuery(value);
     }

@@ -23,7 +23,6 @@ function getModelList<T extends typeof GraphandModel>(
   const query = new GraphandQuery(Model, _q);
 
   let list = query.getCachedList();
-  let mapIds = query.ids;
 
   if (!list && query.ids) {
     if (query.ids instanceof GraphandModelList || query.ids instanceof GraphandModelListPromise) {
@@ -54,9 +53,9 @@ function getModelList<T extends typeof GraphandModel>(
           fetchOpts.cache = fetchOpts.cache ?? cache;
           const { data } = await query.execute(fetchOpts);
           const storeList = Model._listSubject.getValue();
-          if (mapIds) {
-            const _list = mapIds?.map((_id) => storeList.find((item) => item._id === _id)).filter((r) => r) || [];
-            graphandModelList = new GraphandModelList({ model: Model, count: mapIds.length, query }, ..._list);
+          if (query.ids) {
+            const _list = query.ids?.map((_id) => storeList.find((item) => item._id === _id)).filter((r) => r) || [];
+            graphandModelList = new GraphandModelList({ model: Model, count: query.ids.length, query }, ..._list);
           } else {
             const _list = data.data.rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
             graphandModelList = new GraphandModelList({ model: Model, count: data.data.count, query }, ..._list);
