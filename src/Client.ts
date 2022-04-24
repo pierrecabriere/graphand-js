@@ -294,23 +294,23 @@ class Client {
     return scopes.map((scope) => this.getModel(scope, options));
   }
 
-  getModel<T extends ModelScopes.Account>(scope: T, options?: any): typeof Account;
-  getModel<T extends ModelScopes.Aggregation>(scope: T, options?: any): typeof Aggregation;
-  getModel<T extends ModelScopes.DataField>(scope: T, options?: any): typeof DataField;
-  getModel<T extends ModelScopes.DataModel>(scope: T, options?: any): typeof DataModel;
-  getModel<T extends ModelScopes.Environment>(scope: T, options?: any): typeof Environment;
-  getModel<T extends ModelScopes.EsMapping>(scope: T, options?: any): typeof EsMapping;
-  getModel<T extends ModelScopes.Log>(scope: T, options?: any): typeof Log;
-  getModel<T extends ModelScopes.Media>(scope: T, options?: any): typeof Media;
-  getModel<T extends ModelScopes.Module>(scope: T, options?: any): typeof Module;
-  getModel<T extends ModelScopes.Project>(scope: T, options?: any): typeof Project;
-  getModel<T extends ModelScopes.Restriction>(scope: T, options?: any): typeof Restriction;
-  getModel<T extends ModelScopes.Role>(scope: T, options?: any): typeof Role;
-  getModel<T extends ModelScopes.Rule>(scope: T, options?: any): typeof Rule;
-  getModel<T extends ModelScopes.Sockethook>(scope: T, options?: any): typeof Sockethook;
-  getModel<T extends ModelScopes.Token>(scope: T, options?: any): typeof Token;
-  getModel<T extends ModelScopes.User>(scope: T, options?: any): typeof User;
-  getModel<T extends ModelScopes.Webhook>(scope: T, options?: any): typeof Webhook;
+  getModel<T extends ModelScopes.Account | "Account">(scope: T, options?: any): typeof Account;
+  getModel<T extends ModelScopes.Aggregation | "Aggregation">(scope: T, options?: any): typeof Aggregation;
+  getModel<T extends ModelScopes.DataField | "DataField">(scope: T, options?: any): typeof DataField;
+  getModel<T extends ModelScopes.DataModel | "DataModel">(scope: T, options?: any): typeof DataModel;
+  getModel<T extends ModelScopes.Environment | "Environment">(scope: T, options?: any): typeof Environment;
+  getModel<T extends ModelScopes.EsMapping | "EsMapping">(scope: T, options?: any): typeof EsMapping;
+  getModel<T extends ModelScopes.Log | "Log">(scope: T, options?: any): typeof Log;
+  getModel<T extends ModelScopes.Media | "Media">(scope: T, options?: any): typeof Media;
+  getModel<T extends ModelScopes.Module | "Module">(scope: T, options?: any): typeof Module;
+  getModel<T extends ModelScopes.Project | "Project">(scope: T, options?: any): typeof Project;
+  getModel<T extends ModelScopes.Restriction | "Restriction">(scope: T, options?: any): typeof Restriction;
+  getModel<T extends ModelScopes.Role | "Role">(scope: T, options?: any): typeof Role;
+  getModel<T extends ModelScopes.Rule | "Rule">(scope: T, options?: any): typeof Rule;
+  getModel<T extends ModelScopes.Sockethook | "Sockethook">(scope: T, options?: any): typeof Sockethook;
+  getModel<T extends ModelScopes.Token | "Token">(scope: T, options?: any): typeof Token;
+  getModel<T extends ModelScopes.User | "User">(scope: T, options?: any): typeof User;
+  getModel<T extends ModelScopes.Webhook | "Webhook">(scope: T, options?: any): typeof Webhook;
   getModel<T extends string>(scope: T, options?: any): typeof Data;
   /**
    * Get ready-to-use model by scope. Use {@link Client#getModels} to get multiple models at once
