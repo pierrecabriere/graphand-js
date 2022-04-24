@@ -1,12 +1,14 @@
 import { faker } from "@faker-js/faker";
 import Client from "../src/Client";
+import ModelScopes from "../src/enums/model-scopes";
 import deleteInstance from "./utils/deleteInstance";
 import testGraphandModel from "./utils/testGraphandModel";
 
 describe("GraphandModel", () => {
   const { userAccessToken, projectId } = process.env;
   const client = Client.createClient({ project: projectId, accessToken: userAccessToken });
-  const [DataModel, DataField] = client.getModels(["DataModel", "DataField"]);
+  const DataModel = client.getModel(ModelScopes.DataModel);
+  const DataField = client.getModel(ModelScopes.DataField);
   const dataModel = { current: undefined };
   const dataField = { current: undefined };
   const instance = { current: undefined };

@@ -15,19 +15,20 @@ const _propertiesMiddleware = (fromModel, toModel, middleware) => {
   return Object.assign(toModel.prototype, patch);
 };
 
-class GraphandModelPromise<T> extends Promise<T> {
+class GraphandModelPromise<T> implements Promise<T> {
   executor;
   model;
   promise?;
   query;
   then;
+  catch;
+  finally;
+  [Symbol.toStringTag];
 
   _observable;
   _resSub;
 
-  // @ts-ignore
   constructor(executor, model, query?) {
-    // @ts-ignore
     const self = this;
 
     self.executor = executor;
