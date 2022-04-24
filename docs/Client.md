@@ -9,8 +9,8 @@ Base Graphand Client class
     * [new Client(project, [options])](#new_Client_new)
     * _instance_
         * [.getModels(scopes, options)](Client.md#Client+getModels) ⇒ <code>Array.&lt;GraphandModel.constructor&gt;</code>
-        * [.clone(options, login)](Client.md#Client+clone) ⇒ [<code>Client</code>](Client.md#Client)
         * [.getModel(scope, options)](Client.md#Client+getModel) ⇒ <code>GraphandModel.constructor</code>
+        * [.clone(options, login)](Client.md#Client+clone) ⇒ [<code>Client</code>](Client.md#Client)
     * _static_
         * [.createClient(options)](#Client.createClient) ⇒ [<code>Client</code>](Client.md#Client)
 
@@ -40,7 +40,22 @@ Get multiple models at once (multiple [getModel](Client.md#Client+getModel))
 
 | Param | Type |
 | --- | --- |
-| scopes | <code>Array.&lt;string&gt;</code> | 
+| scopes | [<code>Array.&lt;ModelScopes&gt;</code>](#ModelScopes) \| <code>&quot;Data:\*&quot;</code> | 
+| options |  | 
+
+
+* * *
+
+<a name="Client+getModel"></a>
+
+### client.getModel(scope, options) ⇒ <code>GraphandModel.constructor</code>
+Get ready-to-use model by scope. Use [getModels](Client.md#Client+getModels) to get multiple models at once
+
+**Kind**: instance method of [<code>Client</code>](Client.md#Client)  
+
+| Param | Type |
+| --- | --- |
+| scope | [<code>ModelScopes</code>](#ModelScopes) \| <code>&quot;Data:\*&quot;</code> | 
 | options |  | 
 
 
@@ -57,21 +72,6 @@ Clone the current client
 | --- | --- | --- | --- |
 | options | [<code>ClientOptions</code>](#ClientOptions) |  |  |
 | login | <code>boolean</code> | <code>true</code> | Define if the cloned client inherits of its parent access & refresh token |
-
-
-* * *
-
-<a name="Client+getModel"></a>
-
-### client.getModel(scope, options) ⇒ <code>GraphandModel.constructor</code>
-Get ready-to-use model by scope. Use [getModels](Client.md#Client+getModels) to get multiple models at once
-
-**Kind**: instance method of [<code>Client</code>](Client.md#Client)  
-
-| Param | Type |
-| --- | --- |
-| scope | <code>string</code> | 
-| options |  | 
 
 
 * * *

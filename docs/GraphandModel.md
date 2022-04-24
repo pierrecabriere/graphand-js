@@ -21,6 +21,7 @@ Base GraphandModel class. You can create your own custom models by extending thi
         * [.toJSON()](GraphandModel.md#GraphandModel+toJSON) ⇒ <code>Object</code>
     * _static_
         * [.dataFieldsList](#GraphandModel.dataFieldsList) : [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)
+        * [.Scopes](#GraphandModel.Scopes) : [<code>ModelScopes</code>](#ModelScopes)
         * [.hydrate(data, upsert)](#GraphandModel.hydrate) ⇒ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel) \| [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)
         * [.sync(opts)](#GraphandModel.sync)
             * [.handleSocketTrigger](#GraphandModel.sync.handleSocketTrigger) ⇒ <code>boolean</code> \| <code>void</code>
@@ -28,7 +29,7 @@ Base GraphandModel class. You can create your own custom models by extending thi
         * [.getFields([cache])](#GraphandModel.getFields) ⇒ <code>Object</code>
         * [.customField(slug, field)](#GraphandModel.customField)
         * [.customFields(fields)](#GraphandModel.customFields)
-        * [.on(event, handler, options)](#GraphandModel.on)
+        * [.on(events, handler, options)](#GraphandModel.on)
         * [.reinit()](#GraphandModel.reinit)
         * [.clearCache(query, clean)](#GraphandModel.clearCache)
         * [.getList(query, opts)](#GraphandModel.getList) ⇒ [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList) \| <code>GraphandModelListPromise</code>
@@ -217,6 +218,13 @@ Returns the DataField list of the model
 
 * * *
 
+<a name="GraphandModel.Scopes"></a>
+
+### GraphandModel.Scopes : [<code>ModelScopes</code>](#ModelScopes)
+**Kind**: static property of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
+
+* * *
+
 <a name="GraphandModel.hydrate"></a>
 
 ### GraphandModel.hydrate(data, upsert) ⇒ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel) \| [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)
@@ -324,14 +332,14 @@ Add multiple customFields
 
 <a name="GraphandModel.on"></a>
 
-### GraphandModel.on(event, handler, options)
+### GraphandModel.on(events, handler, options)
 [admin only] Register a new sockethook on the model. The host that register the sockethook needs to keep connection with graphand. Use [GraphandModel#on](GraphandModel#on) for example in a node.js script
 
 **Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| event | <code>&quot;before\_create&quot;</code> \| <code>&quot;after\_create&quot;</code> \| <code>&quot;before\_update&quot;</code> \| <code>&quot;after\_update&quot;</code> \| <code>&quot;before\_delete&quot;</code> \| <code>&quot;after\_delete&quot;</code> \| <code>&quot;before\_execute&quot;</code> \| <code>&quot;after\_execute&quot;</code> \| <code>&quot;before\_login&quot;</code> \| <code>&quot;after\_login&quot;</code> \| <code>&quot;before\_register&quot;</code> \| <code>&quot;after\_register&quot;</code> | The event that will trigger the sockethook |
+| events | <code>&quot;before\_create&quot;</code> \| <code>&quot;after\_create&quot;</code> \| <code>&quot;before\_update&quot;</code> \| <code>&quot;after\_update&quot;</code> \| <code>&quot;before\_delete&quot;</code> \| <code>&quot;after\_delete&quot;</code> \| <code>&quot;before\_execute&quot;</code> \| <code>&quot;after\_execute&quot;</code> \| <code>&quot;before\_login&quot;</code> \| <code>&quot;after\_login&quot;</code> \| <code>&quot;before\_register&quot;</code> \| <code>&quot;after\_register&quot;</code> | The event that will trigger the sockethook |
 | handler | [<code>GraphandModelHookHandler</code>](#GraphandModelHookHandler) | The handler that will be executed |
 | options |  |  |
 

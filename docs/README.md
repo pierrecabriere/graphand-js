@@ -86,6 +86,9 @@
 <dt><a href="#FetchOptions">FetchOptions</a></dt>
 <dd><p>Model fetching options</p>
 </dd>
+<dt><a href="#ModelScopes">ModelScopes</a></dt>
+<dd><p>Model fetching options</p>
+</dd>
 <dt><a href="#ModelListOptions">ModelListOptions</a></dt>
 <dd><p>Model getList options</p>
 </dd>

@@ -88,6 +88,12 @@ class GraphandModel extends AbstractGraphandModel {
    */
 
   /**
+   * Model fetching options
+   * @typedef ModelScopes
+   * @property scope {"Account"|"Aggregation"|"DataField"|"DataModel"|"Environment"|"EsMapping"|"Log"|"Media"|"Module"|"Project"|"Restriction"|"Role"|"Rule"|"Sockethook"|"Token"|"User"|"Webhook"}
+   */
+
+  /**
    * Model getList options
    * @typedef ModelListOptions
    * @property fetch {FetchOptions|boolean}
@@ -101,6 +107,11 @@ class GraphandModel extends AbstractGraphandModel {
   static queryUrl = null;
   static schema = {};
   static initialize: () => any;
+
+  /**
+   * @member {ModelScopes}
+   */
+  static Scopes = ModelScopes;
 
   /** @member {Client} */
   @ownProperty()

@@ -1,4 +1,3 @@
-import { Mode } from "fs";
 import { BehaviorSubject } from "rxjs";
 import HooksEvents from "./enums/hooks-events";
 import ModelScopes from "./enums/model-scopes";
@@ -78,6 +77,42 @@ const defaultOptions = {
   socketOptions: {},
   env: "master",
 };
+
+type ScopedModelType<T> = T extends ModelScopes.Account | "Account"
+  ? typeof Account
+  : T extends ModelScopes.Aggregation | "Aggregation"
+  ? typeof Aggregation
+  : T extends ModelScopes.DataField | "DataField"
+  ? typeof DataField
+  : T extends ModelScopes.DataModel | "DataModel"
+  ? typeof DataModel
+  : T extends ModelScopes.Environment | "Environment"
+  ? typeof Environment
+  : T extends ModelScopes.EsMapping | "EsMapping"
+  ? typeof EsMapping
+  : T extends ModelScopes.Log | "Log"
+  ? typeof Log
+  : T extends ModelScopes.Media | "Media"
+  ? typeof Media
+  : T extends ModelScopes.Module | "Module"
+  ? typeof Module
+  : T extends ModelScopes.Project | "Project"
+  ? typeof Project
+  : T extends ModelScopes.Restriction | "Restriction"
+  ? typeof Restriction
+  : T extends ModelScopes.Role | "Role"
+  ? typeof Role
+  : T extends ModelScopes.Rule | "Rule"
+  ? typeof Rule
+  : T extends ModelScopes.Sockethook | "Sockethook"
+  ? typeof Sockethook
+  : T extends ModelScopes.Token | "Token"
+  ? typeof Token
+  : T extends ModelScopes.User | "User"
+  ? typeof User
+  : T extends ModelScopes.Webhook | "Webhook"
+  ? typeof Webhook
+  : typeof Data;
 
 /**
  * @class Client
@@ -286,35 +321,22 @@ class Client {
 
   /**
    * Get multiple models at once (multiple {@link Client#getModel})
-   * @param scopes {string[]}
+   * @param scopes {ModelScopes[]|"Data:*"}
    * @param options
    * @returns {GraphandModel.constructor[]}
    */
-  getModels<T extends ModelScopes[] | string[]>(scopes: T, options: any = {}): typeof GraphandModel[] {
+  getModels<T1 extends ModelScopes | string, T2 extends ModelScopes | string, T3 extends ModelScopes | string, T4 extends ModelScopes | string>(
+    scopes: [T1?, T2?, T3?, T4?, ...(string[] | ModelScopes[])],
+    options: any = {},
+  ): [ScopedModelType<T1>, ScopedModelType<T2>, ScopedModelType<T3>, ScopedModelType<T4>, ...typeof GraphandModel[]] {
+    // @ts-ignore
     return scopes.map((scope) => this.getModel(scope, options));
   }
 
-  getModel<T extends ModelScopes.Account | "Account">(scope: T, options?: any): typeof Account;
-  getModel<T extends ModelScopes.Aggregation | "Aggregation">(scope: T, options?: any): typeof Aggregation;
-  getModel<T extends ModelScopes.DataField | "DataField">(scope: T, options?: any): typeof DataField;
-  getModel<T extends ModelScopes.DataModel | "DataModel">(scope: T, options?: any): typeof DataModel;
-  getModel<T extends ModelScopes.Environment | "Environment">(scope: T, options?: any): typeof Environment;
-  getModel<T extends ModelScopes.EsMapping | "EsMapping">(scope: T, options?: any): typeof EsMapping;
-  getModel<T extends ModelScopes.Log | "Log">(scope: T, options?: any): typeof Log;
-  getModel<T extends ModelScopes.Media | "Media">(scope: T, options?: any): typeof Media;
-  getModel<T extends ModelScopes.Module | "Module">(scope: T, options?: any): typeof Module;
-  getModel<T extends ModelScopes.Project | "Project">(scope: T, options?: any): typeof Project;
-  getModel<T extends ModelScopes.Restriction | "Restriction">(scope: T, options?: any): typeof Restriction;
-  getModel<T extends ModelScopes.Role | "Role">(scope: T, options?: any): typeof Role;
-  getModel<T extends ModelScopes.Rule | "Rule">(scope: T, options?: any): typeof Rule;
-  getModel<T extends ModelScopes.Sockethook | "Sockethook">(scope: T, options?: any): typeof Sockethook;
-  getModel<T extends ModelScopes.Token | "Token">(scope: T, options?: any): typeof Token;
-  getModel<T extends ModelScopes.User | "User">(scope: T, options?: any): typeof User;
-  getModel<T extends ModelScopes.Webhook | "Webhook">(scope: T, options?: any): typeof Webhook;
-  getModel<T extends string>(scope: T, options?: any): typeof Data;
+  getModel<T extends ModelScopes | string>(scope: T, options?: any): ScopedModelType<T>;
   /**
    * Get ready-to-use model by scope. Use {@link Client#getModels} to get multiple models at once
-   * @param scope {string}
+   * @param scope {ModelScopes|"Data:*"}
    * @param options
    * @returns {GraphandModel.constructor}
    */
