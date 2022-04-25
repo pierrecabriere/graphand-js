@@ -25,7 +25,7 @@ class GraphandValidationError extends GraphandError {
     Object.assign(this, { field });
   }
 
-  toJSON() {
+  toJSON(): any {
     return {
       type: this.name,
       message: this.message,

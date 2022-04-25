@@ -4,6 +4,7 @@ import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
+import Role from "./Role";
 
 /**
  * @class Project
@@ -26,13 +27,13 @@ class Project extends GraphandModel {
     refreshTokenLifetime: new GraphandFieldNumber(),
   };
 
-  /**
-   * returns current project
-   * @returns {Promise<Project>}
-   */
-  static getCurrent() {
-    return this.get("current");
-  }
+  name;
+  slug;
+  locales;
+  defaultLocale;
+  defaultRegisterRole;
+  accessTokenLifetime;
+  refreshTokenLifetime;
 }
 
 export default Project;

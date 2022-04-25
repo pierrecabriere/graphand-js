@@ -36,6 +36,16 @@ class Media extends GraphandModel {
 
   static _universalPrototypeMethods = ["getUrl"];
 
+  name;
+  description;
+  url;
+  mimetype;
+  originalname;
+  size;
+  private;
+  width;
+  height;
+
   /**
    * {@link Media#getUrl} options
    * @typedef MediaUrlOptions

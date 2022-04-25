@@ -33,15 +33,14 @@ class Sockethook extends GraphandModel {
   static Events = HooksEvents;
 
   identifier;
-  action;
+  actions;
+  fields;
   scope;
   await;
   blocked;
   timeout;
   priority;
-  revision;
-  socket;
-  ip;
+  hosts;
 
   static async handleUpdateCall(payload) {
     if (payload.query._id) {
@@ -65,7 +64,6 @@ class Sockethook extends GraphandModel {
     try {
       const startTime = new Date().getTime();
       await constructor._client._axios.post(`${constructor.baseUrl}/ping`, {
-        ip: this.ip,
         identifier: this.identifier,
         waitForReconnections,
       });

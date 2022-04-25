@@ -30,6 +30,13 @@ class Role extends GraphandModel {
       multiple: true,
     }),
   };
+
+  name;
+  description;
+  admin;
+  level;
+  inherits;
+  modules;
 }
 
 export default Role;

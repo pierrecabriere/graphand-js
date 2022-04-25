@@ -23,6 +23,12 @@ class Restriction extends GraphandModel {
     fields: new GraphandFieldText({ multiple: true }),
     conditions: new GraphandFieldJSON(),
   };
+
+  role;
+  scope;
+  actions;
+  fields;
+  conditions;
 }
 
 export default Restriction;

@@ -21,6 +21,11 @@ class Module extends GraphandModel {
     default: new GraphandFieldBoolean(),
     configuration: new GraphandFieldJSON(),
   };
+
+  name;
+  type;
+  default;
+  configuration;
 }
 
 export default Module;

@@ -1,5 +1,6 @@
 import { GraphandModel } from "../lib";
 import parsePayload from "./parsePayload";
+import parseQuery from "./parseQuery";
 
 const updateModel = async (Model: typeof GraphandModel, payload, options) => {
   await Model._init();
@@ -30,14 +31,20 @@ const updateModel = async (Model: typeof GraphandModel, payload, options) => {
   }
 
   try {
-    payload = parsePayload(payload);
+    if (payload.query) {
+      payload.query = parseQuery(payload.query);
+    }
+    if (payload.set) {
+      payload.set = parsePayload(payload.set);
+    }
+
     const { data } = await Model.handleUpdateCall(payload);
 
     if (!data) {
       return data;
     }
 
-    const items = data.data.rows.map((item) => new Model(item));
+    const items = Model.hydrate(data.data.rows);
 
     if (options.upsert) {
       const upserted = Model.upsertStore(items);
@@ -97,7 +104,7 @@ const updateModelInstance = async (instance: GraphandModel, payload, options) =>
   }
 
   const _id = payload._id || instance._id;
-  let backup = instance.clone();
+  const backup = instance.clone();
 
   if (options.preStore) {
     instance.assign(payload.set);
@@ -132,7 +139,7 @@ const updateModelInstance = async (instance: GraphandModel, payload, options) =>
     }
   } catch (e) {
     if (options.revertOnError) {
-      constructor.upsertStore(backup);
+      constructor.upsertStore([backup]);
     }
 
     if (options.hooks) {

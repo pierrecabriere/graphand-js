@@ -64,7 +64,7 @@ class GraphandModelPromise<T> implements Promise<T> {
     return typeof _id === "string" ? _id : null;
   }
 
-  toString() {
+  toString(): string {
     return this._id;
   }
 

@@ -68,7 +68,7 @@ class GraphandModelListPromise<T extends GraphandModel> extends GraphandModelPro
     return this.ids;
   }
 
-  toString() {
+  toString(): string {
     return JSON.stringify(this.toJSON());
   }
 

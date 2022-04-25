@@ -22,6 +22,12 @@ class Token extends GraphandModel {
     role: new GraphandFieldRelation({ ref: "Role", multiple: false }),
     expiration: new GraphandFieldDate(),
   };
+
+  name;
+  description;
+  accessToken;
+  role;
+  expiration;
 }
 
 export default Token;

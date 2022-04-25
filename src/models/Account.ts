@@ -27,6 +27,9 @@ class Account extends GraphandModel {
 
   firstname;
   lastname;
+  email;
+  password;
+  role;
 
   get fullname() {
     return `${this.firstname} ${this.lastname}`;
@@ -83,7 +86,7 @@ class Account extends GraphandModel {
    * @param opts
    * @returns {Account}
    */
-  static async getCurrent(populate = true, opts = {}) {
+  static async getCurrent(populate = true, opts = {}): Promise<Account> {
     if (!this._currentId) {
       const _opts = Object.assign({}, typeof populate === "object" ? populate : {}, opts);
       const account = await this.get({ ..._opts, query: { _id: "current" } });
@@ -92,7 +95,8 @@ class Account extends GraphandModel {
 
     const id = await this._currentId;
     if (populate) {
-      return id && this.get({ query: { _id: id } });
+      // @ts-ignore
+      return id && (await this.get({ query: { _id: id } }));
     }
 
     return id;

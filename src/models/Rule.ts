@@ -27,6 +27,12 @@ class Rule extends GraphandModel {
     prohibition: new GraphandFieldBoolean({ defaultValue: false }),
     conditions: new GraphandFieldJSON(),
   };
+
+  role;
+  scope;
+  actions;
+  prohibition;
+  conditions;
 }
 
 export default Rule;

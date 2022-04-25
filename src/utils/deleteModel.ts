@@ -1,5 +1,5 @@
 import { GraphandModel } from "../lib";
-import parsePayload from "./parsePayload";
+import parseQuery from "./parseQuery";
 
 const deleteModel = async (Model: typeof GraphandModel, payload: GraphandModel | any, options) => {
   await Model._init();
@@ -29,7 +29,7 @@ const deleteModel = async (Model: typeof GraphandModel, payload: GraphandModel |
       await Model._client._axios.delete(`${Model.baseUrl}/${_id}`);
 
       if (options.updateStore) {
-        const updated = Model.deleteFromStore(payload);
+        const updated = Model.deleteFromStore([payload]);
 
         if (updated) {
           Model.clearCache();
@@ -40,7 +40,7 @@ const deleteModel = async (Model: typeof GraphandModel, payload: GraphandModel |
         await Model.execHook("postDelete", [args]);
       }
     } catch (e) {
-      Model.upsertStore(payload);
+      Model.upsertStore([payload]);
 
       if (options.hooks) {
         await Model.execHook("postDelete", [args, e]);
@@ -50,7 +50,9 @@ const deleteModel = async (Model: typeof GraphandModel, payload: GraphandModel |
     }
   } else {
     try {
-      payload = parsePayload(payload);
+      if (payload.query) {
+        payload.query = parseQuery(payload.query);
+      }
 
       // @ts-ignore
       const { data } = await Model._client._axios.delete(Model.baseUrl, { _data: payload });

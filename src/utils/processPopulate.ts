@@ -16,12 +16,10 @@ function processPopulate(item: any, fields: any, client: Client, populatedPaths?
 
     let value;
     if (field.multiple && Array.isArray(populatedData)) {
-      const _items = populatedData.map((populatedItem) => new model(populatedItem));
-      model.upsertStore(_items);
-      value = populatedData.map((i) => i && i._id).filter(Boolean);
+      const _items = model.hydrate(populatedData, true);
+      value = _items.map((i) => i && i._id).filter(Boolean);
     } else {
-      const _item = new model(populatedData);
-      model.upsertStore(_item);
+      const _item = model.hydrate(populatedData, true);
       value = _item._id;
     }
 

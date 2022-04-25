@@ -1,5 +1,5 @@
 import { deepEqual } from "fast-equals";
-import { Observable } from "rxjs";
+import { Observable, Subscriber, Subscription } from "rxjs";
 import GraphandModel from "./GraphandModel";
 import GraphandModelListPromise from "./GraphandModelListPromise";
 
@@ -113,7 +113,7 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
    * If the model is synced (realtime), the callback will be called when the list is updated via socket
    * @param callback - The function to call when the instance is updated
    */
-  subscribe(callback) {
+  subscribe(callback: Subscriber<any>): Subscription {
     if (!this._observable) {
       this.createObservable();
     }
@@ -139,7 +139,7 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
     return this.ids;
   }
 
-  toString() {
+  toString(): string {
     return JSON.stringify(this.ids);
   }
 

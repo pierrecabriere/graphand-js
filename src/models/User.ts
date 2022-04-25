@@ -23,6 +23,9 @@ class User extends GraphandModel {
 
   firstname;
   lastname;
+  picture;
+  email;
+  password;
 
   get fullname() {
     return `${this.firstname} ${this.lastname}`;

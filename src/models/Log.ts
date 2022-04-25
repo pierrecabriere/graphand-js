@@ -19,6 +19,10 @@ class Log extends GraphandModel {
     status: new GraphandFieldNumber(),
     ip: new GraphandFieldText(),
   };
+
+  path;
+  status;
+  ip;
 }
 
 export default Log;

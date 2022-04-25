@@ -69,7 +69,7 @@ class GraphandError extends Error {
     return errors.map((e) => GraphandError.fromJSON(e));
   }
 
-  toJSON(): any {
+  toJSON() {
     return {
       type: this.name,
       message: this.message,

@@ -4,6 +4,7 @@ import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
+import DataField from "./DataField";
 
 /**
  * @class DataModel
@@ -24,6 +25,13 @@ class DataModel extends GraphandModel {
     multiple: new GraphandFieldBoolean({ defaultValue: true }),
     defaultField: new GraphandFieldRelation({ ref: "DataField" }),
   };
+
+  name;
+  nameSingle;
+  nameMultiple;
+  slug;
+  multiple;
+  defaultField;
 }
 
 DataModel.hook("postDelete", ({ payload }) => {

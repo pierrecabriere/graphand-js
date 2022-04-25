@@ -1,7 +1,7 @@
 import copy from "fast-copy";
 import { deepEqual } from "fast-equals";
 import { get as lodashGet, set as lodashSet } from "lodash";
-import { BehaviorSubject, Observable, Subject } from "rxjs";
+import { BehaviorSubject, Observable, Subject, Subscriber, Subscription } from "rxjs";
 import Client from "../Client";
 import HooksEvents from "../enums/hooks-events";
 import ModelScopes from "../enums/model-scopes";
@@ -13,6 +13,7 @@ import { FetchOptions } from "../utils/fetchModel";
 import getModelInstance from "../utils/getModelInstance";
 import getModelList, { ModelListOptions } from "../utils/getModelList";
 import hydrateModel from "../utils/hydrateModel";
+import isId from "../utils/isId";
 import parseQuery from "../utils/parseQuery";
 import processPopulate from "../utils/processPopulate";
 import updateModel, { updateModelInstance } from "../utils/updateModel";
@@ -48,6 +49,10 @@ class AbstractGraphandModel {
   static scope?: ModelScopes;
   static Scopes = ModelScopes;
 }
+
+// type This<T extends GraphandModel> = {
+//   new (...args: any[]): T;
+// } & typeof GraphandModel;
 
 /**
  * @class GraphandModel
@@ -192,7 +197,7 @@ class GraphandModel extends AbstractGraphandModel {
    * @param opts.force {boolean} - force Model to resubscribe on socket (even if already subscribed)
    */
   static sync(opts: { handleSocketTrigger?: ({ action, payload }) => boolean | void; force?: boolean } = {}) {
-    let force = typeof opts === "boolean" ? opts : opts.force ?? false;
+    const force = typeof opts === "boolean" ? opts : opts.force ?? false;
     this._socketOptions = opts;
 
     if (force || (this._client && !this._socketSubscription)) {
@@ -255,11 +260,12 @@ class GraphandModel extends AbstractGraphandModel {
    * @param opts
    * @returns {GraphandModel|GraphandModelPromise}
    */
-  static get<T extends FetchOptions | boolean>(
+  static get<C extends typeof GraphandModel, T extends FetchOptions | boolean>(
+    this: C,
     query: string | Query,
     fetch?: T,
     cache?,
-  ): T extends false ? GraphandModel : GraphandModelPromise<GraphandModel> {
+  ): T extends false ? InstanceType<C> : GraphandModelPromise<InstanceType<C>> {
     // @ts-ignore
     return getModelInstance(this, query, fetch, cache);
   }
@@ -278,7 +284,7 @@ class GraphandModel extends AbstractGraphandModel {
       throw new Error(`Model ${this.scope} is not registered. Please use Client.registerModel() before`);
     }
 
-    let fields: any = {
+    const fields: any = {
       _id: new GraphandFieldId(),
       ...this._dataFields,
       ...this.schema,
@@ -407,20 +413,19 @@ class GraphandModel extends AbstractGraphandModel {
 
       this._socketTriggerSubject.next({ action, payload });
 
-      let updated;
+      let storeUpdated;
       switch (action) {
         case "create":
-          updated = this.upsertStore(payload.map((item) => new this(item)));
-          break;
         case "update":
-          updated = this.upsertStore(payload.map((item) => new this(item)));
+          const items = this.hydrate(payload);
+          storeUpdated = this.upsertStore(items);
           break;
         case "delete":
-          updated = this.deleteFromStore(payload);
+          storeUpdated = this.deleteFromStore(payload);
           break;
       }
 
-      if (updated) {
+      if (storeUpdated) {
         this.clearCache();
       }
     };
@@ -511,10 +516,10 @@ class GraphandModel extends AbstractGraphandModel {
     return this;
   }
 
-  static deleteFromStore(payload, force = false) {
+  static deleteFromStore(payload: GraphandModel[] | string[], force = false) {
     let refresh = false;
     const _delete = (list, item) => {
-      const _id = typeof item === "string" ? item : item._id;
+      const _id = isId(item) ? item : item._id;
       const found = list.find((i) => i._id === _id);
       if (found) {
         refresh = true;
@@ -523,11 +528,7 @@ class GraphandModel extends AbstractGraphandModel {
     };
 
     let _list: any = this.getList();
-    if (Array.isArray(payload)) {
-      payload.forEach((item) => (_list = _delete(_list, item)));
-    } else {
-      _list = _delete(_list, payload);
-    }
+    payload.forEach((item) => (_list = _delete(_list, item)));
 
     if (force || refresh) {
       // this.clearRelationsCache();
@@ -538,7 +539,7 @@ class GraphandModel extends AbstractGraphandModel {
     return false;
   }
 
-  static upsertStore(payload, force = false) {
+  static upsertStore(payload: GraphandModel[], force = false) {
     let refresh = false;
     const _upsert = (list, item) => {
       const found = list.find((i) => i._id === item._id);
@@ -558,11 +559,7 @@ class GraphandModel extends AbstractGraphandModel {
     };
 
     let _list = this.getList();
-    if (Array.isArray(payload)) {
-      payload.forEach((item) => (_list = _upsert(_list, item)));
-    } else {
-      _list = _upsert(_list, payload);
-    }
+    payload.forEach((item) => (_list = _upsert(_list, item)));
 
     if (refresh) {
       // this.clearRelationsCache();
@@ -573,8 +570,12 @@ class GraphandModel extends AbstractGraphandModel {
     return false;
   }
 
-  static getList(query?: undefined, opts?: ModelListOptions | boolean): GraphandModelList<GraphandModel>;
-  static getList(query: Query, opts?: ModelListOptions | boolean): GraphandModelList<GraphandModel> | GraphandModelListPromise<GraphandModel>;
+  static getList<T extends typeof GraphandModel>(this: T, query?: undefined, opts?: ModelListOptions | boolean): GraphandModelList<InstanceType<T>>;
+  static getList<T extends typeof GraphandModel>(
+    this: T,
+    query: Query,
+    opts?: ModelListOptions | boolean,
+  ): GraphandModelList<InstanceType<T>> | GraphandModelListPromise<InstanceType<T>>;
   /**
    * Returns a GraphandModelList (or Promise) of the model
    * @param query {Query} - the request query (see api doc)
@@ -582,7 +583,11 @@ class GraphandModel extends AbstractGraphandModel {
    * @returns {GraphandModelList|GraphandModelListPromise}
    * @example GraphandModel.getList({ query: { title: { $regex: "toto" } }, pageSize: 5, page: 2 })
    */
-  static getList(query: Query, opts?: ModelListOptions | boolean): GraphandModelList<GraphandModel> | GraphandModelListPromise<GraphandModel> {
+  static getList<T extends typeof GraphandModel>(
+    this: T,
+    query: Query,
+    opts?: ModelListOptions | boolean,
+  ): GraphandModelList<InstanceType<T>> | GraphandModelListPromise<InstanceType<T>> {
     if (!query) {
       const list = this._listSubject.getValue();
       return new GraphandModelList({ model: this }, ...list);
@@ -623,7 +628,12 @@ class GraphandModel extends AbstractGraphandModel {
    * @returns {GraphandModel}
    * @example GraphandModel.create({ title: "toto" })
    */
-  static async create(payload, hooks = true, url = this.baseUrl) {
+  static create<T extends typeof GraphandModel>(
+    this: T,
+    payload: Partial<InstanceType<T>>,
+    hooks = true,
+    url = this.baseUrl,
+  ): Promise<InstanceType<T>> {
     return createModel(this, payload, hooks, url);
   }
 
@@ -663,10 +673,11 @@ class GraphandModel extends AbstractGraphandModel {
    * Delete one or multiple instances by query
    * @param del {GraphandModel|Query} - query of target instances to delete (ex: { query: { ... } })
    * @param [options]
+   * @returns {boolean} - is deleted
    * @example
    * GraphandModel.delete({ query: { title: { $ne: "toto" } } })
    */
-  static async delete(del: GraphandModel | Query, options?: { hooks?: boolean; clearCache?: boolean; updateStore?: boolean }) {
+  static async delete(del: GraphandModel | Query, options?: { hooks?: boolean; clearCache?: boolean; updateStore?: boolean }): Promise<boolean> {
     return deleteModel(this, del, options);
   }
 
@@ -681,7 +692,7 @@ class GraphandModel extends AbstractGraphandModel {
     return constructor.delete(this, options);
   }
 
-  static get HistoryModel() {
+  static get HistoryModel(): typeof GraphandModel {
     const modelName = `${this.scope}_history`;
     const parent = this;
     if (!this._client._models[modelName]) {
@@ -756,7 +767,7 @@ class GraphandModel extends AbstractGraphandModel {
     return translations.concat(constructor._client._project?.defaultLocale);
   }
 
-  get HistoryModel() {
+  get HistoryModel(): typeof GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     const modelName = `${constructor.scope}_${this._id}_history`;
     const parent = this;
@@ -826,7 +837,7 @@ class GraphandModel extends AbstractGraphandModel {
     let value = lodashGet(this._data, slug);
 
     if (constructor.translatable) {
-      let locale = _locale || constructor._client.locale;
+      const locale = _locale || constructor._client.locale;
       if (locale && constructor._client._project?.locales?.includes(locale) && locale !== constructor._client._project.defaultLocale) {
         const translationValue = lodashGet(this._data, `translations.${locale}.${slug}`);
         value = fallback && translationValue !== undefined ? value : translationValue;
@@ -892,7 +903,7 @@ class GraphandModel extends AbstractGraphandModel {
         });
       }
 
-      constructor.upsertStore(clone);
+      constructor.upsertStore([clone]);
     }
 
     if (values) {
@@ -931,7 +942,7 @@ class GraphandModel extends AbstractGraphandModel {
    * If the model is synced (realtime), the callback will be called when the instance is updated via socket
    * @param callback - The function to call when the instance is updated
    */
-  subscribe(callback) {
+  subscribe(callback: Subscriber<any>): Subscription {
     if (!this._observable) {
       this.createObservable();
     }
@@ -1049,7 +1060,7 @@ class GraphandModel extends AbstractGraphandModel {
    * Returns JSON-serialized object of the current instance
    * @return {Object}
    */
-  toJSON() {
+  toJSON<T extends GraphandModel>(this: T): Partial<T> {
     const { constructor } = Object.getPrototypeOf(this);
     const fields = constructor.getFields();
     return Object.keys(fields).reduce((final, slug) => {
@@ -1057,7 +1068,7 @@ class GraphandModel extends AbstractGraphandModel {
     }, {});
   }
 
-  toString() {
+  toString(): string {
     return this._id;
   }
 

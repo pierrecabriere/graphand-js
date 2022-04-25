@@ -34,6 +34,16 @@ class EsMapping extends GraphandModel {
     }),
   };
 
+  name;
+  description;
+  scope;
+  fields;
+  settings;
+  externalHost;
+  host;
+  conditions;
+  defaultQuery;
+
   async count(query) {
     const { constructor } = Object.getPrototypeOf(this);
     const {

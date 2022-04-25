@@ -22,6 +22,11 @@ class Environment extends GraphandModel {
     status: new GraphandFieldText({ options: Object.values(ModelEnvScopes) }),
   };
 
+  name;
+  description;
+  cloneFrom;
+  status;
+
   async merge(opts) {
     const { constructor } = Object.getPrototypeOf(this);
     await constructor._client._axios.post(`/environments/${this._id}/merge`, opts);

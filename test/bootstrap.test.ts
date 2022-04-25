@@ -25,8 +25,9 @@ describe("Bootstrap", () => {
   test("should create new project", async () => {
     const name = faker.lorem.words(2);
     const slug = faker.lorem.slug();
-    project = await Project.create({ name, slug, locales: [Locales.FR], defaultLocale: Locales.FR });
-    expect(project?._id).toBeDefined();
+    const _project = await Project.create({ name, slug, locales: [Locales.FR], defaultLocale: Locales.FR });
+    expect(_project?._id).toBeDefined();
+    project = _project;
   });
 
   test("should get the project by id", async () => {
@@ -36,7 +37,7 @@ describe("Bootstrap", () => {
   });
 
   test("should get the current project", async () => {
-    const _project = await projectClient.getModel("Project").getCurrent();
+    const _project = await projectClient.getModel("Project").get("current");
     expect(_project._id).toEqual(project._id);
   });
 

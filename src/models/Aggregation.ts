@@ -38,6 +38,16 @@ class Aggregation extends GraphandModel {
 
   static _universalPrototypeMethods = ["execute"];
 
+  name;
+  description;
+  scope;
+  pipeline;
+  defaultVars;
+  cache;
+  cacheExpiredToleration;
+  cacheMaxAge;
+  cacheKey;
+
   /**
    * Execute aggregation by id
    * @param _id {string} - Id of aggregation

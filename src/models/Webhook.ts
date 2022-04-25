@@ -32,6 +32,17 @@ class Webhook extends GraphandModel {
     active: new GraphandFieldBoolean({ defaultValue: true }),
   };
 
+  name;
+  description;
+  endpoint;
+  method;
+  scope;
+  actions;
+  await;
+  timeout;
+  priority;
+  active;
+
   get LogsModel() {
     const parent = this;
     const { constructor } = Object.getPrototypeOf(this);
