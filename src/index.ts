@@ -37,11 +37,13 @@ import Sockethook from "./models/Sockethook";
 import Token from "./models/Token";
 import User from "./models/User";
 import Webhook from "./models/Webhook";
+import parsePayload from "./utils/parsePayload";
 import parseQuery from "./utils/parseQuery";
 
 export default Client;
 export {
   parseQuery,
+  parsePayload,
   Client,
   GraphandModel,
   GraphandField,
