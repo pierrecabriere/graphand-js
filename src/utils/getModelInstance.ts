@@ -2,6 +2,7 @@ import { GraphandModel, GraphandModelList } from "../lib";
 import GraphandModelPromise from "../lib/GraphandModelPromise";
 import GraphandQuery from "../lib/GraphandQuery";
 import { FetchOptions } from "./fetchModel";
+import isId from "./isId";
 
 function getModelInstance<T extends typeof GraphandModel>(
   Model: T,
@@ -16,8 +17,8 @@ function getModelInstance<T extends typeof GraphandModel>(
     return new GraphandModelPromise(async (resolve, reject) => {
       await Model._init();
       try {
-        const { data } = await new GraphandQuery(Model).execute();
-        const _id = (data.data.rows && data.data.rows[0] && data.data.rows[0]._id) || data.data._id;
+        const { rows } = await new GraphandQuery(Model).execute();
+        const _id = rows[0]._id;
         resolve(Model.get(_id, false));
       } catch (e) {
         reject(e);
@@ -28,9 +29,11 @@ function getModelInstance<T extends typeof GraphandModel>(
   let _id;
   if (query instanceof GraphandModel) {
     _id = query._id;
+    query = { query: { _id } };
     cache = cache ?? true;
   } else if (typeof query === "string") {
     _id = query;
+    query = { query: { _id } };
     cache = cache ?? true;
   } else if (typeof query === "object" && query.query?._id && typeof query.query._id === "string") {
     _id = query.query._id;
@@ -53,21 +56,10 @@ function getModelInstance<T extends typeof GraphandModel>(
       async (resolve, reject) => {
         await Model._init();
         try {
-          const q = _id ? { query: { _id } } : { ...query, pageSize: 1 };
-          const { data } = await new GraphandQuery(Model, q).execute(fetchOpts);
-          let row;
-
-          if (data.data) {
-            if (data.data.rows) {
-              if (_id) {
-                row = data.data.rows.find((row) => row._id === _id);
-              } else {
-                row = data.data.rows[0];
-              }
-            } else {
-              row = data.data;
-            }
-          }
+          const _isId = isId(_id);
+          const q = _isId ? { ids: [_id] } : { ...query, pageSize: 1 };
+          const { rows } = await new GraphandQuery(Model, q).execute(fetchOpts);
+          const row = _isId ? rows.find((row) => row._id === _id) : rows[0];
 
           if (row?._id) {
             let item;

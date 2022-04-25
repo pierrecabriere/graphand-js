@@ -1,5 +1,5 @@
 import { GraphandModel } from "../lib";
-import parseQuery from "./parseQuery";
+import parsePayload from "./parsePayload";
 
 const updateModel = async (Model: typeof GraphandModel, payload, options) => {
   await Model._init();
@@ -30,7 +30,7 @@ const updateModel = async (Model: typeof GraphandModel, payload, options) => {
   }
 
   try {
-    payload = parseQuery(payload);
+    payload = parsePayload(payload);
     const { data } = await Model.handleUpdateCall(payload);
 
     if (!data) {

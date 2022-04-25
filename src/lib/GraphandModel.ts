@@ -608,7 +608,9 @@ class GraphandModel extends AbstractGraphandModel {
       query = {};
     }
 
-    query = parseQuery(query);
+    if (query.query) {
+      query.query = parseQuery(query.query);
+    }
 
     const { data } = await this._client._axios.post(`${this.baseUrl}/count`, query);
     return parseInt(data.data, 10);

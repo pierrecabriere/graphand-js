@@ -33,8 +33,7 @@ function getModelList<T extends typeof GraphandModel>(
       query.ids = [query.ids];
     }
 
-    const queryKeys = Object.keys(query).filter((key) => ["query", "ids", "pageSize", "page", "populate"].includes(key));
-    if (cache && queryKeys.includes("ids") && queryKeys.length === 1) {
+    if (cache && query.isReturnableByIds()) {
       const cacheList = query.ids.map((_id) => Model.get(_id, false));
       if (cacheList.every(Boolean)) {
         list = new GraphandModelList({ model: Model, count: cacheList.length, query }, ...cacheList);
@@ -51,14 +50,14 @@ function getModelList<T extends typeof GraphandModel>(
           let graphandModelList;
           const fetchOpts: FetchOptions = typeof fetch === "object" ? fetch : {};
           fetchOpts.cache = fetchOpts.cache ?? cache;
-          const { data } = await query.execute(fetchOpts);
+          const { rows, count } = await query.execute(fetchOpts);
           const storeList = Model._listSubject.getValue();
           if (query.ids) {
             const _list = query.ids?.map((_id) => storeList.find((item) => item._id === _id)).filter((r) => r) || [];
             graphandModelList = new GraphandModelList({ model: Model, count: query.ids.length, query }, ..._list);
           } else {
-            const _list = data.data.rows?.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
-            graphandModelList = new GraphandModelList({ model: Model, count: data.data.count, query }, ..._list);
+            const _list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
+            graphandModelList = new GraphandModelList({ model: Model, count, query }, ..._list);
           }
 
           return resolve(graphandModelList);

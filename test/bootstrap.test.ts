@@ -9,7 +9,7 @@ describe("Bootstrap", () => {
   let currentUser;
   let currentAccount;
   let project;
-  let projectClient;
+  let projectClient: Client;
 
   test("should login user", async () => {
     await client.login({ email: "test@graphand.io", password: "test123" });

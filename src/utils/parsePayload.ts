@@ -2,7 +2,6 @@ import GraphandModel from "../lib/GraphandModel";
 import GraphandModelList from "../lib/GraphandModelList";
 import GraphandModelListPromise from "../lib/GraphandModelListPromise";
 import GraphandModelPromise from "../lib/GraphandModelPromise";
-import isId from "./isId";
 
 const _decode = (value) => {
   if (
@@ -16,36 +15,31 @@ const _decode = (value) => {
     if (Array.isArray(value)) {
       return value.map(_decode);
     } else {
-      return parseQuery(value);
+      return parsePayload(value);
     }
   }
 
   return value;
 };
 
-const parseQuery = (input) => {
-  if (!input) {
+const parsePayload = (payload) => {
+  if (!payload) {
     return {};
   }
 
-  if (isId(input)) {
-    return { _id: input };
-  }
-
-  if (Array.isArray(input) && input.every((row) => typeof row === "string" || row?._id)) {
-    const ids = input.map((row) => row._id || row);
-    input = { _id: { $in: ids } };
+  if (payload.constructor?.name === "FormData") {
+    return payload;
   }
 
   let res;
 
-  if (Array.isArray(input)) {
-    res = input.map((row) => _decode(row));
+  if (Array.isArray(payload)) {
+    res = payload.map((row) => _decode(row));
   } else {
-    res = Object.keys(input).reduce((final, key) => Object.assign(final, { [key]: _decode(input[key]) }), {});
+    res = Object.keys(payload).reduce((final, key) => Object.assign(final, { [key]: _decode(payload[key]) }), {});
   }
 
   return res;
 };
 
-export default parseQuery;
+export default parsePayload;

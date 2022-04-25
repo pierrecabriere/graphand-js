@@ -1,5 +1,5 @@
 import { GraphandModel } from "../lib";
-import parseQuery from "./parseQuery";
+import parsePayload from "./parsePayload";
 
 const deleteModel = async (Model: typeof GraphandModel, payload: GraphandModel | any, options) => {
   await Model._init();
@@ -50,7 +50,7 @@ const deleteModel = async (Model: typeof GraphandModel, payload: GraphandModel |
     }
   } else {
     try {
-      payload = parseQuery(payload);
+      payload = parsePayload(payload);
 
       // @ts-ignore
       const { data } = await Model._client._axios.delete(Model.baseUrl, { _data: payload });

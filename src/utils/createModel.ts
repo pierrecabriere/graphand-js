@@ -1,5 +1,5 @@
 import { GraphandModel } from "../lib";
-import parseQuery from "./parseQuery";
+import parsePayload from "./parsePayload";
 
 const createModel = async (Model: typeof GraphandModel, payload, hooks = true, url: string) => {
   await Model._init();
@@ -21,7 +21,7 @@ const createModel = async (Model: typeof GraphandModel, payload, hooks = true, u
 
   let inserted;
   try {
-    args.payload = parseQuery(args.payload);
+    args.payload = parsePayload(args.payload);
     const req = Model._client._axios.post(url, args.payload, args.config).then(async (res) => {
       const { data } = res.data;
       const inserted = Array.isArray(data) ? data.map((i) => new Model(i)) : data ? new Model(data) : data;

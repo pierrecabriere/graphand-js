@@ -34,7 +34,6 @@ type ClientOptions = {
   host?: string;
   cdn?: string;
   ssl?: boolean;
-  unloadTimeout?: number;
   project?: string;
   accessToken?: string;
   refreshToken?: string;
@@ -58,7 +57,6 @@ const defaultOptions = {
   host: "api.graphand.io",
   cdn: "cdn.graphand.io",
   ssl: true,
-  unloadTimeout: 100,
   project: undefined,
   accessToken: undefined,
   refreshToken: undefined,
@@ -356,7 +354,7 @@ class Client {
    * @param options {ClientOptions}
    * @returns {Client}
    */
-  static createClient(options: ClientOptions) {
+  static createClient(options: ClientOptions): Client {
     return new Client(options);
   }
 
@@ -646,7 +644,7 @@ class Client {
    * @param login {boolean} - Define if the cloned client inherits of its parent access & refresh token
    * @returns {Client}
    */
-  clone(options: ClientOptions = {}, login = true) {
+  clone(options: ClientOptions = {}, login = true): Client {
     const clone = new Client({ ...this._options, ...options });
 
     if (login) {

@@ -1,6 +1,7 @@
 import { AxiosRequestConfig, AxiosResponse } from "axios";
 import { GraphandModel } from "../lib";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
+import GraphandQuery, { GraphandQueryResponse } from "../lib/GraphandQuery";
 import { getPopulatedPaths } from "./getPopulatedPaths";
 import processPopulate from "./processPopulate";
 
@@ -16,7 +17,7 @@ const _queries = {};
 const _queryIds = {};
 const _queryIdsTimeout = {};
 
-const _handleRequestResult = async (Model: typeof GraphandModel, data, query) => {
+const _handleRequestResult = async (Model: typeof GraphandModel, rows, query) => {
   const populatedPaths = getPopulatedPaths(query.populate);
 
   if (populatedPaths?.length) {
@@ -56,29 +57,16 @@ const _handleRequestResult = async (Model: typeof GraphandModel, data, query) =>
     await Promise.all(populatedModels.map((model) => model._init()));
   }
 
-  let _rows = data?.rows ? data.rows : data?._id ? [data] : [];
   if (populatedPaths?.length) {
     const fields = Model.getFields();
-    _rows.forEach((_row) => processPopulate(_row, fields, Model._client, populatedPaths));
+    rows.forEach((row) => processPopulate(row, fields, Model._client, populatedPaths));
   }
 
-  const rows = _rows.map((item) => {
-    const found: any = item?._id && Model.get(item._id, false);
-    if (!found) {
-      return new Model(item);
-    }
-
-    found.assign(item);
-    return found;
-  });
-
-  Model.upsertStore(rows);
-
-  return rows;
+  return Model.hydrate(rows, true);
 };
 
-const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey, opts: FetchOptions = {}) => {
-  let res;
+const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey, opts: FetchOptions = {}): Promise<GraphandQueryResponse> => {
+  let axiosRes: AxiosResponse, res: GraphandQueryResponse;
 
   try {
     const axiosOpts: AxiosRequestConfig = opts.axiosOpts || {};
@@ -104,13 +92,22 @@ const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey, opt
 
     if (singleId) {
       const url = `${Model.baseUrl}/${singleId}`;
-      res = await Model._client._axios.get(url, { ...axiosOpts, params });
+      axiosRes = await Model._client._axios.get(url, { ...axiosOpts, params });
+      res = { axiosRes, rows: [axiosRes.data.data], count: 1 };
     } else {
       const url = Model.queryUrl || `${Model.baseUrl}/query`;
-      res = await Model._client._axios.post(url, query, axiosOpts);
+      axiosRes = await Model._client._axios.post(url, query, axiosOpts);
+      res = { axiosRes, rows: [], count: 0 };
+      if (axiosRes.data.data?.rows) {
+        res.rows = axiosRes.data.data.rows;
+        res.count = axiosRes.data.data.count;
+      } else if (axiosRes.data.data?._id) {
+        res.rows = [axiosRes.data.data];
+        res.count = 1;
+      }
     }
 
-    await _handleRequestResult(Model, res.data.data, query);
+    await _handleRequestResult(Model, res.rows, query);
   } catch (e) {
     if (hooks) {
       await Model.execHook("postQuery", [query, null, e]);
@@ -122,26 +119,26 @@ const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey, opt
   return res;
 };
 
-const fetchModel = async (Model: typeof GraphandModel, query: any, opts?: FetchOptions | boolean): Promise<AxiosResponse> => {
+const fetchModel = async (Model: typeof GraphandModel, query: any, opts?: FetchOptions | boolean): Promise<GraphandQueryResponse> => {
   _queryIds[Model.scope] = _queryIds[Model.scope] || new Set();
   _queryIdsTimeout[Model.scope] = _queryIdsTimeout[Model.scope] || {};
 
   const queryIds = _queryIds[Model.scope];
   const queryIdsTimeout = _queryIdsTimeout[Model.scope];
 
-  const _waitForIds = async () => {
-    if (Model._client._options.mergeQueries && Object.keys(query).length === 1 && queryIds.size + query.ids.length < 100) {
+  const mergeIds = async () => {
+    if (Model._client._options.mergeQueries && query.isReturnableByIds() && queryIds.size + query.ids.length < 100) {
       if (queryIdsTimeout) {
         clearTimeout(queryIdsTimeout);
       }
 
       query.ids.forEach(queryIds.add, queryIds);
       await new Promise((resolve) => setTimeout(resolve));
-      query = { ids: [...queryIds] };
+      query.ids = [...queryIds];
     }
 
-    if (Object.keys(query).length === 1 && Object.keys(query.ids).length === 1) {
-      query = { query: { _id: query.ids[0] } };
+    if (query.isReturnableByIds() && query.ids?.length === 1) {
+      query = new GraphandQuery(query._model, { query: { _id: query.ids[0] } });
     }
   };
 
@@ -158,7 +155,7 @@ const fetchModel = async (Model: typeof GraphandModel, query: any, opts?: FetchO
   }
 
   if (cache && typeof query === "object" && "ids" in query) {
-    await _waitForIds();
+    await mergeIds();
   }
 
   // if (Model.translatable && !query.translations && Model._client._project?.locales?.length) {
@@ -169,32 +166,20 @@ const fetchModel = async (Model: typeof GraphandModel, query: any, opts?: FetchO
     await Model.execHook("preQuery", [query]);
   }
 
-  let res: AxiosResponse;
+  let res: GraphandQueryResponse;
   const cacheKey = Model.getCacheKey(query);
 
   if (cache) {
     res = Model._cache[cacheKey];
   }
 
-  _queries[Model.scope] = _queries[Model.scope] || {};
-  try {
-    if (!res) {
-      _queries[Model.scope][cacheKey] = _request(Model, query, hooks, cacheKey, opts);
-      res = await _queries[Model.scope][cacheKey];
+  if (!res) {
+    _queries[Model.scope] = _queries[Model.scope] || {};
+    _queries[Model.scope][cacheKey] = _queries[Model.scope][cacheKey] || _request(Model, query, hooks, cacheKey, opts);
+    res = await _queries[Model.scope][cacheKey];
 
-      if (hooks) {
-        await Model.execHook("postQuery", [query, res]);
-      }
-    }
-  } catch (e) {
-    if (e.data) {
-      res = e.response;
-    } else {
-      throw e;
-    }
-
-    if (e.graphandErrors) {
-      console.error(e.graphandErrors);
+    if (hooks) {
+      await Model.execHook("postQuery", [query, res]);
     }
   }
 
