@@ -5,8 +5,8 @@ import GraphandModelList from "../lib/GraphandModelList";
 function hydrateModel<T extends typeof GraphandModel | Client>(input: T, data: any, upsert = false) {
   data = data ?? {};
 
-  let client: Client = input instanceof Client ? input : input._client;
-  let Model = (data.__scope ? client?.getModel(data.__scope) || input : input) as typeof GraphandModel;
+  const client: Client = input instanceof Client ? input : input._client;
+  const Model = (data.__scope ? client?.getModel(data.__scope) || input : input) as typeof GraphandModel;
 
   switch (data.__type) {
     case "GraphandModelList":
@@ -26,7 +26,7 @@ function hydrateModel<T extends typeof GraphandModel | Client>(input: T, data: a
   }
 
   if (upsert) {
-    Model.upsertStore(res);
+    Model.upsertStore(Array.isArray(res) ? res : [res]);
   }
 
   return res;

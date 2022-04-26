@@ -2,13 +2,18 @@ import Client from "../Client";
 import { parseQuery } from "../utils";
 
 class AggregationExecutor {
+  static cache = {};
   _id: string;
   vars;
   cacheKey;
   client: Client;
   res: any;
 
-  static cache = {};
+  constructor(options: { _id?: string; vars?: any; client?: Client }) {
+    this._id = options._id;
+    this.vars = options.vars ?? {};
+    this.client = options.client;
+  }
 
   static clearCache(cacheKey) {
     if (cacheKey) {
@@ -16,12 +21,6 @@ class AggregationExecutor {
     } else {
       this.cache = {};
     }
-  }
-
-  constructor(options: { _id?: string; vars?: any; client?: Client }) {
-    this._id = options._id;
-    this.vars = options.vars ?? {};
-    this.client = options.client;
   }
 
   cache(key?: string) {

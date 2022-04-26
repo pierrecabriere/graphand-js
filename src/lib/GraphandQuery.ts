@@ -45,11 +45,11 @@ class GraphandQuery {
   }
 
   async execute(opts?: FetchOptions) {
-    const query = this.isReturnableByIds() ? this.clone() : this;
+    const query = this.isMergeable() ? this.clone() : this;
     return fetchModel(this._model, query, opts);
   }
 
-  isReturnableByIds() {
+  isMergeable() {
     const queryKeys = Object.keys(this).filter((key) => this[key] && ["query", "ids", "pageSize", "page", "populate"].includes(key));
     return queryKeys.includes("ids") && queryKeys.length === 1;
   }

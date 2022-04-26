@@ -7,10 +7,7 @@ import GraphandModelListPromise from "./GraphandModelListPromise";
  * @class GraphandModelList
  */
 class GraphandModelList<T extends GraphandModel> extends Array implements Array<T> {
-  _model;
   count;
-  _query;
-
   private _observable;
   private _storeSub;
   private _subscriptions;
@@ -37,18 +34,22 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
     Object.defineProperty(this, "_query", { enumerable: false });
   }
 
-  get ids() {
-    return this.toArray()
-      .map((item) => item?._id || item)
-      .filter(Boolean);
-  }
+  _model;
 
   get model() {
     return this._model || this[0]?.constructor;
   }
 
+  _query;
+
   get query() {
     return this._query || { ids: this.ids };
+  }
+
+  get ids() {
+    return this.toArray()
+      .map((item) => item?._id || item)
+      .filter(Boolean);
   }
 
   get promise() {
@@ -59,6 +60,28 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
       this.model,
       this.query,
     );
+  }
+
+  /**
+   * Hydrate GraphandModelList from serialized data
+   * @param data {any} - Serialized data
+   * @returns {GraphandModelList}
+   */
+  static hydrate(data: any, model: any) {
+    if (!model) {
+      throw new Error(`You need to provide a model to hydrate a new GraphandModelList`);
+    }
+
+    data = data ?? {};
+
+    if (Array.isArray(data)) {
+      const list = data.map((i) => new model(i));
+      return new this({ model }, ...list);
+    }
+
+    const { __count: count, __query: query, __payload } = data;
+    const items = __payload ? __payload.map((i) => model.hydrate(i)) : [];
+    return new this({ model, count, query }, ...items);
   }
 
   toArray() {
@@ -113,7 +136,7 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
    * If the model is synced (realtime), the callback will be called when the list is updated via socket
    * @param callback - The function to call when the instance is updated
    */
-  subscribe(callback: Subscriber<any>): Subscription {
+  subscribe(callback): Subscription {
     if (!this._observable) {
       this.createObservable();
     }
@@ -145,28 +168,6 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
 
   toJSON() {
     return this.map((i) => i.toJSON?.apply(i) || i);
-  }
-
-  /**
-   * Hydrate GraphandModelList from serialized data
-   * @param data {any} - Serialized data
-   * @returns {GraphandModelList}
-   */
-  static hydrate(data: any, model: any) {
-    if (!model) {
-      throw new Error(`You need to provide a model to hydrate a new GraphandModelList`);
-    }
-
-    data = data ?? {};
-
-    if (Array.isArray(data)) {
-      const list = data.map((i) => new model(i));
-      return new this({ model }, ...list);
-    }
-
-    const { __count: count, __query: query, __payload } = data;
-    const items = __payload ? __payload.map((i) => model.hydrate(i)) : [];
-    return new this({ model, count, query }, ...items);
   }
 
   /**

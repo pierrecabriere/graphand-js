@@ -25,8 +25,8 @@ Graphand Client
 
 | Param | Type | Description |
 | --- | --- | --- |
-| project | [<code>ClientOptions</code>](#ClientOptions) \| <code>string</code> | Your project _id or client options |
-| [options] | [<code>ClientOptions</code>](#ClientOptions) | Client options |
+| project | <code>ClientOptions</code> \| <code>string</code> | Your project _id or client options |
+| [options] | <code>ClientOptions</code> | Client options |
 
 
 * * *
@@ -70,7 +70,7 @@ Clone the current client
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| options | [<code>ClientOptions</code>](#ClientOptions) |  |  |
+| options | <code>ClientOptions</code> |  |  |
 | login | <code>boolean</code> | <code>true</code> | Define if the cloned client inherits of its parent access & refresh token |
 
 
@@ -85,7 +85,7 @@ Create new client
 
 | Param | Type |
 | --- | --- |
-| options | [<code>ClientOptions</code>](#ClientOptions) | 
+| options | <code>ClientOptions</code> | 
 
 
 * * *

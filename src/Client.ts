@@ -118,14 +118,8 @@ type ScopedModelType<T> = T extends ModelScopes.Account | "Account"
  */
 class Client {
   static models = models;
-
-  private _initPromise;
-  private _registerHooks;
-  private _refreshTokenPromise;
-  private _locale;
-
+  static lib = lib;
   _uid;
-  _models;
   _options;
   _axios;
   _project;
@@ -135,12 +129,9 @@ class Client {
   _refreshTokenSubject;
   _initialized;
   _plugins;
-
-  /**
-   * Graphand client options
-   * @typedef ClientOptions
-   * @property host {string}
-   */
+  private _initPromise;
+  private _registerHooks;
+  private _refreshTokenPromise;
 
   /**
    * Graphand Client
@@ -187,6 +178,43 @@ class Client {
     }
   }
 
+  /**
+   * Graphand client options
+   * @typedef ClientOptions
+   * @property host {string="api.graphand.io"}
+   * @property cdn {string="cdn.graphand.io"}
+   * @property ssl {boolean=true}
+   * @property project {string} - The project id to query on
+   * @property accessToken {string} - The initial access token
+   * @property refreshToken {string} - The initial refresh token,
+   * @property locale {string}
+   * @property translations {string[]}
+   * @property realtime {boolean} - Connect client to the socket
+   * @property mergeQueries {boolean=true} - Automatically merge queries when querying by _id or ids
+   * @property autoSync {boolean=false} - Automatically sync all registered models with the socket
+   * @property subscribeFields {boolean=false} - Subscribe to DataFields
+   * @property init {string=false} - Initialize client at startup
+   * @property initProject {boolean=false} - Initialize project on construct (not needed if you don't need to use the Project model instance)
+   * @property initModels {boolean=false} - Automatically init all DataModels at startup
+   * @property models {*}: []
+   * @property cache {boolean=true} - Cache queries
+   * @property plugins {*}: []
+   * @property socketOptions {*}
+   * @property env {string=master} - Graphand environment to query on
+   */
+
+  private _locale;
+
+  get locale() {
+    return this._locale;
+  }
+
+  set locale(locale: string) {
+    this.setLocale(locale);
+  }
+
+  _models;
+
   get models(): any {
     return new Proxy(this, {
       get: function (oTarget, sKey: string) {
@@ -199,10 +227,21 @@ class Client {
     });
   }
 
-  static lib = lib;
-
   get socket() {
     return this._socketSubject.getValue();
+  }
+
+  set accessToken(token: string) {
+    this.setAccessToken(token);
+  }
+
+  /**
+   * Create new client
+   * @param options {ClientOptions}
+   * @returns {Client}
+   */
+  static createClient(options: ClientOptions): Client {
+    return new Client(options);
   }
 
   getAccessToken() {
@@ -211,10 +250,6 @@ class Client {
 
   getRefreshToken() {
     return this._refreshTokenSubject.getValue();
-  }
-
-  set accessToken(token: string) {
-    this.setAccessToken(token);
   }
 
   async refreshToken() {
@@ -309,14 +344,6 @@ class Client {
     return this._initPromise;
   }
 
-  get locale() {
-    return this._locale;
-  }
-
-  set locale(locale: string) {
-    this.setLocale(locale);
-  }
-
   /**
    * Get multiple models at once (multiple {@link Client#getModel})
    * @param scopes {ModelScopes[]|"Data:*"}
@@ -332,6 +359,7 @@ class Client {
   }
 
   getModel<T extends ModelScopes | string>(scope: T, options?: any): ScopedModelType<T>;
+
   /**
    * Get ready-to-use model by scope. Use {@link Client#getModels} to get multiple models at once
    * @param scope {ModelScopes|"Data:*"}
@@ -347,15 +375,6 @@ class Client {
     } catch (e) {
       return this.getGraphandModel(scope as ModelScopes, options);
     }
-  }
-
-  /**
-   * Create new client
-   * @param options {ClientOptions}
-   * @returns {Client}
-   */
-  static createClient(options: ClientOptions): Client {
-    return new Client(options);
   }
 
   getModelByIdentifier(identifier: string, options: any = {}): typeof Data {
@@ -404,7 +423,17 @@ class Client {
       return;
     }
 
-    options = Object.assign({}, { sync: undefined, name: undefined, force: false, fieldsIds: undefined, extend: false }, options);
+    options = Object.assign(
+      {},
+      {
+        sync: undefined,
+        name: undefined,
+        force: false,
+        fieldsIds: undefined,
+        extend: false,
+      },
+      options,
+    );
     options.sync = options.sync ?? this._options.autoSync;
     options.cache = options.cache ?? this._options.cache;
 

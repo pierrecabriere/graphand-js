@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const jsdoc2md = require("jsdoc-to-markdown");
 
-const inputFile = "./dist/**/*.js";
+const inputFile = "./dist-docs/**/*.js";
 const outputDir = "./docs";
 const templateData = jsdoc2md.getTemplateDataSync({ files: inputFile });
 const classNames = [...new Set(templateData.filter((identifier) => identifier.kind === "class").map((identifier) => identifier.name))];

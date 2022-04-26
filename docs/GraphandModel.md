@@ -36,7 +36,7 @@ Base GraphandModel class. You can create your own custom models by extending thi
         * [.count(query)](#GraphandModel.count) ⇒ <code>number</code>
         * [.create(payload, hooks)](#GraphandModel.create) ⇒ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
         * [.update(update, [options])](#GraphandModel.update)
-        * [.delete(del, [options])](#GraphandModel.delete)
+        * [.delete(del, [options])](#GraphandModel.delete) ⇒ <code>boolean</code>
         * [.execHook(event, args)](#GraphandModel.execHook) ⇒ <code>Promise.&lt;Array.&lt;any&gt;&gt;</code>
         * [.hook(event, callback)](#GraphandModel.hook)
 
@@ -448,10 +448,11 @@ GraphandModel.create({ query: { title: { $ne: "toto" } }, set: { title: "toto" }
 
 <a name="GraphandModel.delete"></a>
 
-### GraphandModel.delete(del, [options])
+### GraphandModel.delete(del, [options]) ⇒ <code>boolean</code>
 Delete one or multiple instances by query
 
 **Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
+**Returns**: <code>boolean</code> - - is deleted  
 
 | Param | Type | Description |
 | --- | --- | --- |

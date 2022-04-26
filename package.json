@@ -1,6 +1,6 @@
 {
   "name": "graphand-js",
-  "version": "0.26.1-beta",
+  "version": "0.26.2-beta",
   "description": "",
   "homepage": "https://github.com/pierrecabriere/graphand-js",
   "main": "dist/index.min.js",
@@ -11,7 +11,7 @@
   "scripts": {
     "build": "webpack",
     "build:watch": "WATCH=1 webpack",
-    "build:doc": "tsc --project tsconfig.json && node generate-doc.js && rm -rf dist",
+    "build:doc": "mkdir -p docs && tsc --project tsconfig.json --outDir dist-docs && node generate-doc.js && rm -rf dist-docs",
     "test": "jest"
   },
   "dependencies": {

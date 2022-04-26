@@ -5,7 +5,11 @@ const setupSocket = (client: Client) => {
   const endpoint = `${client._options.ssl ? "https" : "http"}://${client._options.host}`;
   const socket = io(endpoint, {
     ...client._options.socketOptions,
-    query: { token: client.getAccessToken(), projectId: client._options.project, env: client._options.env || "master" },
+    query: {
+      token: client.getAccessToken(),
+      projectId: client._options.project,
+      env: client._options.env || "master",
+    },
   });
 
   socket.on("/uploads", ({ action, payload }) => {

@@ -73,14 +73,6 @@ class Account extends GraphandModel {
   }
 
   /**
-   * [admin only] Generate a new token for current account
-   */
-  async generateToken() {
-    const { constructor } = Object.getPrototypeOf(this);
-    return await constructor.generateToken(this._id);
-  }
-
-  /**
    * Returns current account
    * @param populate {boolean=}. If false, returns only the current account id
    * @param opts
@@ -100,6 +92,14 @@ class Account extends GraphandModel {
     }
 
     return id;
+  }
+
+  /**
+   * [admin only] Generate a new token for current account
+   */
+  async generateToken() {
+    const { constructor } = Object.getPrototypeOf(this);
+    return await constructor.generateToken(this._id);
   }
 }
 

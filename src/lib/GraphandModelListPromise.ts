@@ -1,4 +1,4 @@
-import { Observable } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import GraphandModel from "./GraphandModel";
 import GraphandModelList from "./GraphandModelList";
 import GraphandModelPromise from "./GraphandModelPromise";
@@ -78,7 +78,7 @@ class GraphandModelListPromise<T extends GraphandModel> extends GraphandModelPro
     });
   }
 
-  subscribe() {
+  subscribe(callback): Subscription {
     if (!this._observable) {
       this.createObservable();
     }

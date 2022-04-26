@@ -33,7 +33,7 @@ function getModelList<T extends typeof GraphandModel>(
       query.ids = [query.ids];
     }
 
-    if (cache && query.isReturnableByIds()) {
+    if (cache && query.isMergeable()) {
       const cacheList = query.ids.map((_id) => Model.get(_id, false));
       if (cacheList.every(Boolean)) {
         list = new GraphandModelList({ model: Model, count: cacheList.length, query }, ...cacheList);
@@ -54,7 +54,14 @@ function getModelList<T extends typeof GraphandModel>(
           const storeList = Model._listSubject.getValue();
           if (query.ids) {
             const _list = query.ids?.map((_id) => storeList.find((item) => item._id === _id)).filter((r) => r) || [];
-            graphandModelList = new GraphandModelList({ model: Model, count: query.ids.length, query }, ..._list);
+            graphandModelList = new GraphandModelList(
+              {
+                model: Model,
+                count: query.ids.length,
+                query,
+              },
+              ..._list,
+            );
           } else {
             const _list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
             graphandModelList = new GraphandModelList({ model: Model, count, query }, ..._list);

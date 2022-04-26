@@ -127,7 +127,7 @@ const fetchModel = async (Model: typeof GraphandModel, query: any, opts?: FetchO
   const queryIdsTimeout = _queryIdsTimeout[Model.scope];
 
   const mergeIds = async () => {
-    if (Model._client._options.mergeQueries && query.isReturnableByIds() && queryIds.size + query.ids.length < 100) {
+    if (Model._client._options.mergeQueries && query.isMergeable() && queryIds.size + query.ids.length < 100) {
       if (queryIdsTimeout) {
         clearTimeout(queryIdsTimeout);
       }
@@ -137,7 +137,7 @@ const fetchModel = async (Model: typeof GraphandModel, query: any, opts?: FetchO
       query.ids = [...queryIds];
     }
 
-    if (query.isReturnableByIds() && query.ids?.length === 1) {
+    if (query.isMergeable() && query.ids?.length === 1) {
       query = new GraphandQuery(query._model, { query: { _id: query.ids[0] } });
     }
   };

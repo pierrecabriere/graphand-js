@@ -44,18 +44,18 @@ class EsMapping extends GraphandModel {
   conditions;
   defaultQuery;
 
+  static async search(id, query) {
+    const {
+      data: { data },
+    } = await this._client._axios.post(`/elasticsearch/${id}/search`, query);
+    return data;
+  }
+
   async count(query) {
     const { constructor } = Object.getPrototypeOf(this);
     const {
       data: { data },
     } = await constructor._client._axios.post(`/elasticsearch/${this._id}/index-count`, query);
-    return data;
-  }
-
-  static async search(id, query) {
-    const {
-      data: { data },
-    } = await this._client._axios.post(`/elasticsearch/${id}/search`, query);
     return data;
   }
 

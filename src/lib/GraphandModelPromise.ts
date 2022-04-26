@@ -1,4 +1,4 @@
-import { Observable } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 
 const _propertiesMiddleware = (fromModel, toModel, middleware) => {
   const fromKeys = Object.getOwnPropertyNames(fromModel.prototype);
@@ -82,7 +82,7 @@ class GraphandModelPromise<T> implements Promise<T> {
     });
   }
 
-  subscribe() {
+  subscribe(callback): Subscription {
     if (!this._observable) {
       this.createObservable();
     }

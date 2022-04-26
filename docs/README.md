@@ -72,9 +72,6 @@
 ## Typedefs
 
 <dl>
-<dt><a href="#ClientOptions">ClientOptions</a></dt>
-<dd><p>Graphand client options</p>
-</dd>
 <dt><a href="#GraphandModelHookHandler">GraphandModelHookHandler</a> ⇒ <code>*</code> | <code>void</code></dt>
 <dd></dd>
 <dt><a href="#Query">Query</a></dt>

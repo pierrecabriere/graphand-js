@@ -7,20 +7,17 @@ Project model. Use [client.getModel("Project")](Client.md#Client+getModel) to us
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 * [Project](Project.md#Project) ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-    * _instance_
-        * [.raw](GraphandModel.md#GraphandModel+raw) ⇒ <code>\*</code>
-        * [.update(update, [options])](GraphandModel.md#GraphandModel+update)
-        * [.delete([options])](GraphandModel.md#GraphandModel+delete)
-        * [.clone(locale)](GraphandModel.md#GraphandModel+clone)
-        * [.get(slug, [parse], _locale, fallback)](GraphandModel.md#GraphandModel+get)
-        * [.set(slug, value, [upsert], [parse])](GraphandModel.md#GraphandModel+set)
-        * [.assign(values, [upsert], updatedAtNow)](GraphandModel.md#GraphandModel+assign)
-        * [.subscribe(callback)](GraphandModel.md#GraphandModel+subscribe)
-        * [.isTemporary()](GraphandModel.md#GraphandModel+isTemporary)
-        * [.serialize()](GraphandModel.md#GraphandModel+serialize) ⇒ <code>Object</code>
-        * [.toJSON()](GraphandModel.md#GraphandModel+toJSON) ⇒ <code>Object</code>
-    * _static_
-        * [.getCurrent()](#Project.getCurrent) ⇒ [<code>Promise.&lt;Project&gt;</code>](Project.md#Project)
+    * [.raw](GraphandModel.md#GraphandModel+raw) ⇒ <code>\*</code>
+    * [.update(update, [options])](GraphandModel.md#GraphandModel+update)
+    * [.delete([options])](GraphandModel.md#GraphandModel+delete)
+    * [.clone(locale)](GraphandModel.md#GraphandModel+clone)
+    * [.get(slug, [parse], _locale, fallback)](GraphandModel.md#GraphandModel+get)
+    * [.set(slug, value, [upsert], [parse])](GraphandModel.md#GraphandModel+set)
+    * [.assign(values, [upsert], updatedAtNow)](GraphandModel.md#GraphandModel+assign)
+    * [.subscribe(callback)](GraphandModel.md#GraphandModel+subscribe)
+    * [.isTemporary()](GraphandModel.md#GraphandModel+isTemporary)
+    * [.serialize()](GraphandModel.md#GraphandModel+serialize) ⇒ <code>Object</code>
+    * [.toJSON()](GraphandModel.md#GraphandModel+toJSON) ⇒ <code>Object</code>
 
 
 * * *
@@ -175,15 +172,6 @@ Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
 Returns JSON-serialized object of the current instance
 
 **Kind**: instance method of [<code>Project</code>](Project.md#Project)  
-
-* * *
-
-<a name="Project.getCurrent"></a>
-
-### Project.getCurrent() ⇒ [<code>Promise.&lt;Project&gt;</code>](Project.md#Project)
-returns current project
-
-**Kind**: static method of [<code>Project</code>](Project.md#Project)  
 
 * * *
 

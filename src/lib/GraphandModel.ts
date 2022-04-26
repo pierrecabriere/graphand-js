@@ -132,8 +132,6 @@ class GraphandModel extends AbstractGraphandModel {
   @ownProperty()
   static _initialized;
   @ownProperty()
-  static _dataFieldsList;
-  @ownProperty()
   static _registeredAt;
   @ownProperty(() => new Set())
   static _observers;
@@ -155,6 +153,10 @@ class GraphandModel extends AbstractGraphandModel {
   static _queryIds;
   @ownProperty()
   static _queryIdsTimeout;
+  @ownProperty()
+  static _dataFieldsList;
+
+  static _universalPrototypeMethods = [];
 
   _data: any = {};
   _locale = null;
@@ -169,16 +171,40 @@ class GraphandModel extends AbstractGraphandModel {
   createdBy: Account;
   updatedBy: Account;
 
-  static _universalPrototypeMethods = [];
-
   /**
-   * Hydrate GraphandModel or GraphandModelList from serialized data
-   * @param data {any} - Serialized data
-   * @param upsert {boolean} - Upsert hydrated data in store
-   * @returns {GraphandModel|GraphandModelList}
+   * Create a new instance of GraphandModel. If getting an instance as data, the instance will be cloned
+   * @param data {*}
+   * @return {GraphandModel}
    */
-  static hydrate(data: any, upsert?: boolean) {
-    return hydrateModel(this, data, upsert);
+  constructor(data: any = {}) {
+    super();
+
+    const { constructor } = Object.getPrototypeOf(this);
+
+    if (!constructor._registeredAt || !constructor._client) {
+      throw new Error(`Model ${constructor.scope} is not register. Please use Client.registerModel() before`);
+    }
+
+    if (!constructor._initialized) {
+      console.warn(`Model ${constructor.scope} is not initialized yet. You should wait Model._init() before call constructor`);
+    }
+
+    if (data instanceof GraphandModel) {
+      return data.clone();
+    }
+
+    this._id = data._id || `_${Date.now()}`;
+    this._data = Object.assign({}, data);
+
+    Object.defineProperty(this, "_data", { enumerable: false });
+    Object.defineProperty(this, "_locale", { enumerable: false });
+    Object.defineProperty(this, "_version", { enumerable: false });
+
+    if (constructor.queryFields && constructor._client._options.subscribeFields) {
+      constructor._init().then(() => constructor.dataFieldsList.subscribe(() => setTimeout(() => constructor.setPrototypeFields(this))));
+    } else {
+      constructor.setPrototypeFields(this);
+    }
   }
 
   /**
@@ -189,23 +215,6 @@ class GraphandModel extends AbstractGraphandModel {
    * @param opts.payload {string} Payload
    * @returns {boolean|void}
    */
-
-  /**
-   * Sync the current Model with the client socket
-   * @param opts {Object}
-   * @param opts.handleSocketTrigger {GraphandModel.sync.handleSocketTrigger} - middleware to allow or disallow the model to proceed data when receiving on socket
-   * @param opts.force {boolean} - force Model to resubscribe on socket (even if already subscribed)
-   */
-  static sync(opts: { handleSocketTrigger?: ({ action, payload }) => boolean | void; force?: boolean } = {}) {
-    const force = typeof opts === "boolean" ? opts : opts.force ?? false;
-    this._socketOptions = opts;
-
-    if (force || (this._client && !this._socketSubscription)) {
-      this._socketSubscription = this._client._socketSubject.subscribe((socket) => this.setupSocket(socket));
-    }
-
-    return this;
-  }
 
   /**
    * Returns the DataField list of the model
@@ -224,6 +233,93 @@ class GraphandModel extends AbstractGraphandModel {
     }
 
     return this._dataFieldsList;
+  }
+
+  static get fields() {
+    return this.getFields();
+  }
+
+  static get HistoryModel(): typeof GraphandModel {
+    const modelName = `${this.scope}_history`;
+    const parent = this;
+    if (!this._client._models[modelName]) {
+      const GraphandHistoryModel = require("./GraphandHistoryModel").default;
+      const HistoryModel = class extends GraphandHistoryModel {
+        static baseUrl = `${parent.baseUrl}/history`;
+        static queryUrl = `${parent.baseUrl}/history`;
+
+        static get scope() {
+          return modelName;
+        }
+      };
+
+      this._client.registerModel(HistoryModel, { name: modelName });
+    }
+
+    return this._client.models[modelName];
+  }
+
+  /**
+   * Returns raw data of instance
+   * @returns {*}
+   */
+  get raw() {
+    return this._data;
+  }
+
+  get _translations() {
+    const { constructor } = Object.getPrototypeOf(this);
+
+    const translations = this._data.translations ? Object.keys(this._data.translations) : [];
+    return translations.concat(constructor._client._project?.defaultLocale);
+  }
+
+  get HistoryModel(): typeof GraphandModel {
+    const { constructor } = Object.getPrototypeOf(this);
+    const modelName = `${constructor.scope}_${this._id}_history`;
+    const parent = this;
+    if (!constructor._client._models[modelName]) {
+      const GraphandHistoryModel = require("./GraphandHistoryModel").default;
+      const HistoryModel = class extends GraphandHistoryModel {
+        static baseUrl = `${constructor.baseUrl}/${parent._id}/history`;
+        static queryUrl = `${constructor.baseUrl}/${parent._id}/history`;
+
+        static get scope() {
+          return modelName;
+        }
+      };
+
+      constructor._client.registerModel(HistoryModel, { name: modelName });
+    }
+
+    return constructor._client.models[modelName];
+  }
+
+  /**
+   * Hydrate GraphandModel or GraphandModelList from serialized data
+   * @param data {any} - Serialized data
+   * @param upsert {boolean} - Upsert hydrated data in store
+   * @returns {GraphandModel|GraphandModelList}
+   */
+  static hydrate(data: any, upsert?: boolean) {
+    return hydrateModel(this, data, upsert);
+  }
+
+  /**
+   * Sync the current Model with the client socket
+   * @param opts {Object}
+   * @param opts.handleSocketTrigger {GraphandModel.sync.handleSocketTrigger} - middleware to allow or disallow the model to proceed data when receiving on socket
+   * @param opts.force {boolean} - force Model to resubscribe on socket (even if already subscribed)
+   */
+  static sync(opts: { handleSocketTrigger?: ({ action, payload }) => boolean | void; force?: boolean } = {}) {
+    const force = typeof opts === "boolean" ? opts : opts.force ?? false;
+    this._socketOptions = opts;
+
+    if (force || (this._client && !this._socketSubscription)) {
+      this._socketSubscription = this._client._socketSubject.subscribe((socket) => this.setupSocket(socket));
+    }
+
+    return this;
   }
 
   static setPrototypeFields(assignTo?: any) {
@@ -323,6 +419,14 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   /**
+   * @callback GraphandModelHookHandler
+   * @params payload {Object} - The payload sent by the server
+   * @param resolve {string} - Callback to resolve the handler and validate the sockethook workflow
+   * @param reject {string} - Callback to reject the handler and put error in the sockethook workflow
+   * @returns {*|void}
+   */
+
+  /**
    * Add multiple customFields
    * @param fields {Object.<string, number>} - example: { customField: new GraphandFieldText() }
    */
@@ -330,10 +434,6 @@ class GraphandModel extends AbstractGraphandModel {
     this._customFields = { ...this._customFields, ...fields };
     this._cachedFields = null;
     return this;
-  }
-
-  static get fields() {
-    return this.getFields();
   }
 
   static async _init(force = false) {
@@ -437,14 +537,6 @@ class GraphandModel extends AbstractGraphandModel {
   static async handleUpdateCall(payload) {
     return await this._client._axios.patch(this.baseUrl, payload);
   }
-
-  /**
-   * @callback GraphandModelHookHandler
-   * @params payload {Object} - The payload sent by the server
-   * @param resolve {string} - Callback to resolve the handler and validate the sockethook workflow
-   * @param reject {string} - Callback to reject the handler and put error in the sockethook workflow
-   * @returns {*|void}
-   */
 
   /**
    * [admin only] Register a new sockethook on the model. The host that register the sockethook needs to keep connection with graphand. Use {@link GraphandModel#on} for example in a node.js script
@@ -571,11 +663,13 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   static getList<T extends typeof GraphandModel>(this: T, query?: undefined, opts?: ModelListOptions | boolean): GraphandModelList<InstanceType<T>>;
+
   static getList<T extends typeof GraphandModel>(
     this: T,
     query: Query,
     opts?: ModelListOptions | boolean,
   ): GraphandModelList<InstanceType<T>> | GraphandModelListPromise<InstanceType<T>>;
+
   /**
    * Returns a GraphandModelList (or Promise) of the model
    * @param query {Query} - the request query (see api doc)
@@ -641,6 +735,8 @@ class GraphandModel extends AbstractGraphandModel {
     this._listSubject.next(this.getList());
   }
 
+  // constructor
+
   /**
    * Update one or multiple instances by query
    * @param update {Update} - query and payload to apply
@@ -654,6 +750,98 @@ class GraphandModel extends AbstractGraphandModel {
     options?: { hooks?: boolean; clearCache?: boolean; upsert?: boolean; preStore?: boolean; revertOnError?: boolean },
   ) {
     return updateModel(this, update, options);
+  }
+
+  // getters
+
+  /**
+   * Delete one or multiple instances by query
+   * @param del {GraphandModel|Query} - query of target instances to delete (ex: { query: { ... } })
+   * @param [options]
+   * @returns {boolean} - is deleted
+   * @example
+   * GraphandModel.delete({ query: { title: { $ne: "toto" } } })
+   */
+  static async delete(del: GraphandModel | Query, options?: { hooks?: boolean; clearCache?: boolean; updateStore?: boolean }): Promise<boolean> {
+    return deleteModel(this, del, options);
+  }
+
+  static async serializeModel(clearCache = false) {
+    const dataFields = await this.dataFieldsList;
+    return JSON.stringify({
+      fieldsIds: this._fieldsIds,
+      fields: dataFields?.toJSON(),
+    });
+  }
+
+  static rebuildModel(serial) {
+    if (!this._registeredAt || !this._client) {
+      throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
+    }
+
+    const DataField = this._client.getModel("DataField");
+
+    const { fields, fieldsIds } = JSON.parse(serial);
+    this._fieldsIds = fieldsIds;
+
+    const dataFields = fields.map((f) => DataField.hydrate(f));
+    this.setDataFields(dataFields);
+  }
+
+  // helpers
+
+  static async serializeFromId(_id) {
+    await this._init();
+
+    const [obj, modelSerial] = await Promise.all([this.get(_id), this.serializeModel()]);
+
+    return {
+      res: obj.serialize(),
+      modelSerial,
+    };
+  }
+
+  static rebuildFromSerial(serial) {
+    const { res, modelSerial } = serial;
+
+    this.rebuildModel(modelSerial);
+    const data = JSON.parse(res);
+    return this.hydrate(data);
+  }
+
+  /**
+   * Execute all hooks for an event. Returns an array of the reponses of each hook callback.
+   * @param event {"preCreate"|"postCreate"|"preUpdate"|"postUpdate"|"preDelete"|"postDelete"} - The event to execute. Graphand plugins can also implements new events
+   * @param args {any} - Args passed to the callbacks functions
+   * @returns {Promise<any[]>}
+   */
+  static async execHook(event: string, args: any): Promise<any[]> {
+    const hook = this.getHook(event);
+    if (!hook?.length) {
+      return;
+    }
+
+    return Promise.all(hook.map((fn) => fn.apply(this, args)));
+  }
+
+  static getHook(event) {
+    const hook = this._hooks[event] ? [...this._hooks[event]] : [];
+
+    if (super.__proto__ && "getHook" in super.__proto__) {
+      return hook.concat(super.__proto__.getHook(event));
+    }
+
+    return hook;
+  }
+
+  /**
+   * Add hook on model
+   * @param event {"preCreate"|"postCreate"|"preUpdate"|"postUpdate"|"preDelete"|"postDelete"} - The event to listen. Graphand plugins can also implements new events
+   * @param callback
+   */
+  static hook(event: string, callback) {
+    this._hooks[event] = this._hooks[event] || new Set();
+    this._hooks[event].add(callback);
   }
 
   /**
@@ -670,18 +858,6 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   /**
-   * Delete one or multiple instances by query
-   * @param del {GraphandModel|Query} - query of target instances to delete (ex: { query: { ... } })
-   * @param [options]
-   * @returns {boolean} - is deleted
-   * @example
-   * GraphandModel.delete({ query: { title: { $ne: "toto" } } })
-   */
-  static async delete(del: GraphandModel | Query, options?: { hooks?: boolean; clearCache?: boolean; updateStore?: boolean }): Promise<boolean> {
-    return deleteModel(this, del, options);
-  }
-
-  /**
    * Delete current instance
    * @param [options]
    * @example
@@ -691,104 +867,6 @@ class GraphandModel extends AbstractGraphandModel {
     const constructor = this.constructor as any;
     return constructor.delete(this, options);
   }
-
-  static get HistoryModel(): typeof GraphandModel {
-    const modelName = `${this.scope}_history`;
-    const parent = this;
-    if (!this._client._models[modelName]) {
-      const GraphandHistoryModel = require("./GraphandHistoryModel").default;
-      const HistoryModel = class extends GraphandHistoryModel {
-        static baseUrl = `${parent.baseUrl}/history`;
-        static queryUrl = `${parent.baseUrl}/history`;
-
-        static get scope() {
-          return modelName;
-        }
-      };
-
-      this._client.registerModel(HistoryModel, { name: modelName });
-    }
-
-    return this._client.models[modelName];
-  }
-
-  // constructor
-
-  /**
-   * Create a new instance of GraphandModel. If getting an instance as data, the instance will be cloned
-   * @param data {*}
-   * @return {GraphandModel}
-   */
-  constructor(data: any = {}) {
-    super();
-
-    const { constructor } = Object.getPrototypeOf(this);
-
-    if (!constructor._registeredAt || !constructor._client) {
-      throw new Error(`Model ${constructor.scope} is not register. Please use Client.registerModel() before`);
-    }
-
-    if (!constructor._initialized) {
-      console.warn(`Model ${constructor.scope} is not initialized yet. You should wait Model._init() before call constructor`);
-    }
-
-    if (data instanceof GraphandModel) {
-      return data.clone();
-    }
-
-    this._id = data._id || `_${Date.now()}`;
-    this._data = Object.assign({}, data);
-
-    Object.defineProperty(this, "_data", { enumerable: false });
-    Object.defineProperty(this, "_locale", { enumerable: false });
-    Object.defineProperty(this, "_version", { enumerable: false });
-
-    if (constructor.queryFields && constructor._client._options.subscribeFields) {
-      constructor._init().then(() => constructor.dataFieldsList.subscribe(() => setTimeout(() => constructor.setPrototypeFields(this))));
-    } else {
-      constructor.setPrototypeFields(this);
-    }
-  }
-
-  // getters
-
-  /**
-   * Returns raw data of instance
-   * @returns {*}
-   */
-  get raw() {
-    return this._data;
-  }
-
-  get _translations() {
-    const { constructor } = Object.getPrototypeOf(this);
-
-    const translations = this._data.translations ? Object.keys(this._data.translations) : [];
-    return translations.concat(constructor._client._project?.defaultLocale);
-  }
-
-  get HistoryModel(): typeof GraphandModel {
-    const { constructor } = Object.getPrototypeOf(this);
-    const modelName = `${constructor.scope}_${this._id}_history`;
-    const parent = this;
-    if (!constructor._client._models[modelName]) {
-      const GraphandHistoryModel = require("./GraphandHistoryModel").default;
-      const HistoryModel = class extends GraphandHistoryModel {
-        static baseUrl = `${constructor.baseUrl}/${parent._id}/history`;
-        static queryUrl = `${constructor.baseUrl}/${parent._id}/history`;
-
-        static get scope() {
-          return modelName;
-        }
-      };
-
-      constructor._client.registerModel(HistoryModel, { name: modelName });
-    }
-
-    return constructor._client.models[modelName];
-  }
-
-  // helpers
 
   populate(paths?) {
     const { constructor } = Object.getPrototypeOf(this);
@@ -919,6 +997,8 @@ class GraphandModel extends AbstractGraphandModel {
     return this;
   }
 
+  // serialization
+
   createObservable() {
     const { constructor } = Object.getPrototypeOf(this);
     this._observable = new Observable((subscriber) => {
@@ -942,7 +1022,7 @@ class GraphandModel extends AbstractGraphandModel {
    * If the model is synced (realtime), the callback will be called when the instance is updated via socket
    * @param callback - The function to call when the instance is updated
    */
-  subscribe(callback: Subscriber<any>): Subscription {
+  subscribe(callback): Subscription {
     if (!this._observable) {
       this.createObservable();
     }
@@ -981,6 +1061,8 @@ class GraphandModel extends AbstractGraphandModel {
     return this._id;
   }
 
+  // format
+
   refresh() {
     const { constructor } = Object.getPrototypeOf(this);
     const newItem = constructor.get(this._id, false);
@@ -995,8 +1077,6 @@ class GraphandModel extends AbstractGraphandModel {
     return model.getList({ ...opts, query }, ...args);
   }
 
-  // serialization
-
   /**
    * Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
    * @returns {Object}
@@ -1006,49 +1086,6 @@ class GraphandModel extends AbstractGraphandModel {
 
     return { __type: "GraphandModel", __scope: constructor.scope, __payload: this._data };
   }
-
-  static async serializeModel(clearCache = false) {
-    const dataFields = await this.dataFieldsList;
-    return JSON.stringify({
-      fieldsIds: this._fieldsIds,
-      fields: dataFields?.toJSON(),
-    });
-  }
-
-  static rebuildModel(serial) {
-    if (!this._registeredAt || !this._client) {
-      throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
-    }
-
-    const DataField = this._client.getModel("DataField");
-
-    const { fields, fieldsIds } = JSON.parse(serial);
-    this._fieldsIds = fieldsIds;
-
-    const dataFields = fields.map((f) => DataField.hydrate(f));
-    this.setDataFields(dataFields);
-  }
-
-  static async serializeFromId(_id) {
-    await this._init();
-
-    const [obj, modelSerial] = await Promise.all([this.get(_id), this.serializeModel()]);
-
-    return {
-      res: obj.serialize(),
-      modelSerial,
-    };
-  }
-
-  static rebuildFromSerial(serial) {
-    const { res, modelSerial } = serial;
-
-    this.rebuildModel(modelSerial);
-    const data = JSON.parse(res);
-    return this.hydrate(data);
-  }
-
-  // format
 
   toObject() {
     const { constructor } = Object.getPrototypeOf(this);
@@ -1070,41 +1107,6 @@ class GraphandModel extends AbstractGraphandModel {
 
   toString(): string {
     return this._id;
-  }
-
-  /**
-   * Execute all hooks for an event. Returns an array of the reponses of each hook callback.
-   * @param event {"preCreate"|"postCreate"|"preUpdate"|"postUpdate"|"preDelete"|"postDelete"} - The event to execute. Graphand plugins can also implements new events
-   * @param args {any} - Args passed to the callbacks functions
-   * @returns {Promise<any[]>}
-   */
-  static async execHook(event: string, args: any): Promise<any[]> {
-    const hook = this.getHook(event);
-    if (!hook?.length) {
-      return;
-    }
-
-    return Promise.all(hook.map((fn) => fn.apply(this, args)));
-  }
-
-  static getHook(event) {
-    const hook = this._hooks[event] ? [...this._hooks[event]] : [];
-
-    if (super.__proto__ && "getHook" in super.__proto__) {
-      return hook.concat(super.__proto__.getHook(event));
-    }
-
-    return hook;
-  }
-
-  /**
-   * Add hook on model
-   * @param event {"preCreate"|"postCreate"|"preUpdate"|"postUpdate"|"preDelete"|"postDelete"} - The event to listen. Graphand plugins can also implements new events
-   * @param callback
-   */
-  static hook(event: string, callback) {
-    this._hooks[event] = this._hooks[event] || new Set();
-    this._hooks[event].add(callback);
   }
 }
 
