@@ -4,10 +4,12 @@ enum GraphandErrorCodes {
   INVALID_TOKEN = "invalid_token",
   EXPIRED_TOKEN = "expired_token",
   NOT_FOUND = "not_found",
+  INVALID_PLUGIN = "invalid_plugin",
 }
 
 class GraphandError extends Error {
-  static Codes: any = GraphandErrorCodes;
+  static Codes = GraphandErrorCodes;
+
   name: string;
   status: number;
   code: string;

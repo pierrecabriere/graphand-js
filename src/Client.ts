@@ -1,11 +1,12 @@
+import { Axios } from "axios";
 import { BehaviorSubject } from "rxjs";
 import HooksEvents from "./enums/hooks-events";
 import ModelScopes from "./enums/model-scopes";
 import PluginLifecyclePhases from "./enums/plugin-lifecycle-phases";
 import * as lib from "./lib";
-import { GraphandModelList, GraphandValidationError } from "./lib";
+import { GraphandError, GraphandModelList, GraphandValidationError } from "./lib";
 import GraphandModel from "./lib/GraphandModel";
-import GraphandPlugin from "./lib/GraphandPlugin";
+import GraphandPlugin, { GraphandPluginOptions } from "./lib/GraphandPlugin";
 import * as models from "./models";
 import {
   Account,
@@ -30,6 +31,8 @@ import Sockethook from "./models/Sockethook";
 import { setupAxios, setupSocket, verifyScopeFormat } from "./utils";
 import hydrateModel from "./utils/hydrateModel";
 
+type GraphandPluginWithConf = [plugin: typeof GraphandPlugin, options: any];
+
 type ClientOptions = {
   host?: string;
   cdn?: string;
@@ -48,7 +51,7 @@ type ClientOptions = {
   initModels?: boolean;
   models?: any[];
   cache?: boolean;
-  plugins?: any[];
+  plugins?: (typeof GraphandPlugin | GraphandPluginWithConf)[];
   socketOptions?: any;
   env?: string;
 };
@@ -120,18 +123,21 @@ class Client {
   static models = models;
   static lib = lib;
   _uid;
-  _options;
-  _axios;
-  _project;
-  _socketSubject;
-  _mediasQueueSubject;
+  _options: ClientOptions;
+  _axios: Axios;
+  _project: Project;
+  _socketSubject = new BehaviorSubject(null);
+  _mediasQueueSubject = new BehaviorSubject([]);
   _accessTokenSubject;
   _refreshTokenSubject;
-  _initialized;
-  _plugins;
+  _initialized = false;
+  _plugins = new Set<GraphandPlugin<GraphandPluginOptions>>();
+  _models: any = {};
+
   private _initPromise;
   private _registerHooks;
   private _refreshTokenPromise;
+  private _locale;
 
   /**
    * Graphand Client
@@ -148,14 +154,9 @@ class Client {
     this._registerHooks = new Set();
 
     this._uid = Date.now();
-    this._options = { ...defaultOptions, ...options };
-    this._socketSubject = new BehaviorSubject(null);
-    this._mediasQueueSubject = new BehaviorSubject([]);
+    this._options = Object.assign({}, defaultOptions, options);
     this._accessTokenSubject = new BehaviorSubject(options.accessToken);
     this._refreshTokenSubject = new BehaviorSubject(options.refreshToken);
-    this._initialized = false;
-    this._plugins = new Set();
-    this._models = {};
     this._axios = setupAxios(this);
 
     if (this._options.plugins?.length) {
@@ -203,8 +204,6 @@ class Client {
    * @property env {string=master} - Graphand environment to query on
    */
 
-  private _locale;
-
   get locale() {
     return this._locale;
   }
@@ -212,8 +211,6 @@ class Client {
   set locale(locale: string) {
     this.setLocale(locale);
   }
-
-  _models;
 
   get models(): any {
     return new Proxy(this, {
@@ -311,7 +308,7 @@ class Client {
   async _init(force = false) {
     if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
-        const plugins = [...this._plugins];
+        const plugins = Array.from(this._plugins);
         await Promise.all(plugins.map((p) => p.execute(PluginLifecyclePhases.INIT)));
 
         try {
@@ -692,10 +689,13 @@ class Client {
     return clone;
   }
 
-  plugin(_plugin: GraphandPlugin, options: any = {}) {
-    const graphandPlugin = new GraphandPlugin(_plugin, options, this);
+  plugin(Plugin: typeof GraphandPlugin, options: any = {}) {
+    if (!(Plugin.prototype instanceof GraphandPlugin)) {
+      throw new GraphandError("Plugin must extends GraphandPlugin class", GraphandError.Codes.INVALID_PLUGIN);
+    }
 
-    this._plugins.add(graphandPlugin);
+    const plugin = new Plugin(this, options);
+    this._plugins.add(plugin);
   }
 
   /* Accessors */
@@ -758,6 +758,14 @@ class Client {
 
   hydrate(data: any, upsert: boolean) {
     return hydrateModel(this, data, upsert);
+  }
+
+  /**
+   * Destroy the current client
+   */
+  async detroy() {
+    const plugins = Array.from(this._plugins);
+    await Promise.all(plugins.map((p) => p.execute(PluginLifecyclePhases.UNINSTALL)));
   }
 }
 

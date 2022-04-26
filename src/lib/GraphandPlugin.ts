@@ -1,49 +1,48 @@
 import Client from "../Client";
 import PluginLifecyclePhases from "../enums/plugin-lifecycle-phases";
 
-const allowedAssign = ["__construct", "onInit"];
+export type GraphandPluginOptions = any;
 
-class GraphandPlugin {
-  options?: any;
-  client?: Client;
+class GraphandPlugin<T extends GraphandPluginOptions> {
+  static LifecyclePhases = PluginLifecyclePhases;
+  static defaultOptions: GraphandPluginOptions = {};
 
-  constructor(plugin: GraphandPlugin, opts: any, client?: Client) {
-    if (typeof plugin === "function") {
-      this.__construct = plugin;
-      this.options = Object.assign({}, opts);
-    } else if (typeof plugin === "object") {
-      const { options, ...pluginImplements } = plugin;
-      this.options = Object.assign({}, options, opts);
+  client: Client;
+  options: T;
 
-      Object.keys(pluginImplements).forEach((key) => {
-        if (!allowedAssign.includes(key)) {
-          throw new Error(`GraphandPluginError: attribute ${key} is not allowed in plugin`);
-        }
-      });
-
-      Object.assign(this, pluginImplements);
-    }
+  constructor(client: Client, options: Partial<T>) {
+    const { constructor } = Object.getPrototypeOf(this);
 
     this.client = client;
+    this.options = Object.assign({}, constructor.defaultOptions, options);
 
     this.execute(PluginLifecyclePhases.INSTALL);
   }
 
-  execute?(phase: PluginLifecyclePhases, args: any = {}) {
-    args = Object.assign(this.options, args);
+  onInstall(): any {
+    return null;
+  }
+
+  onInit(): any {
+    return null;
+  }
+
+  onUninstall(): any {
+    return null;
+  }
+
+  execute?(phase: PluginLifecyclePhases) {
     switch (phase) {
       case PluginLifecyclePhases.INSTALL:
-        return this.__construct(this.client, args);
+        return this.onInstall();
       case PluginLifecyclePhases.INIT:
-        return this.onInit(this.client, args);
+        return this.onInit();
+      case PluginLifecyclePhases.UNINSTALL:
+        return this.onUninstall();
       default:
         return;
     }
   }
-
-  __construct?(client: Client, args: any) {}
-
-  onInit?(client: Client, args: any) {}
 }
 
 export default GraphandPlugin;

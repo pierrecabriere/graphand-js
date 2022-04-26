@@ -1,6 +1,5 @@
 import "./utils/decorators";
 import Client from "./Client";
-import HooksEvents from "./enums/hooks-events";
 import AggregationExecutor from "./lib/AggregationExecutor";
 import GraphandFieldBoolean from "./lib/fields/GraphandFieldBoolean";
 import GraphandFieldDate from "./lib/fields/GraphandFieldDate";
@@ -81,5 +80,4 @@ export {
   GraphandHistoryModel,
   GraphandFieldScope,
   AggregationExecutor,
-  HooksEvents,
 };

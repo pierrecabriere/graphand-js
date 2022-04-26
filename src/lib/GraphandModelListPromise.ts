@@ -7,7 +7,7 @@ class GraphandModelListPromise<T extends GraphandModel> extends GraphandModelPro
   _observable;
   _resSub;
 
-  constructor(executor, model, query) {
+  constructor(executor, model: typeof GraphandModel, query?) {
     super(executor, model, query);
 
     if (this.ids) {
@@ -83,7 +83,7 @@ class GraphandModelListPromise<T extends GraphandModel> extends GraphandModelPro
       this.createObservable();
     }
 
-    const sub = this._observable.subscribe.apply(this._observable, arguments);
+    const sub = this._observable.subscribe(callback);
     const unsubscribe = sub.unsubscribe;
     sub.unsubscribe = () => {
       unsubscribe.apply(sub);

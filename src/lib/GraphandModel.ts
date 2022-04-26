@@ -850,7 +850,7 @@ class GraphandModel extends AbstractGraphandModel {
    * @param [options]
    * @example
    * // set title toto on the current instance
-   * instance.update({ set: { title: "toto" } })
+   * this.update({ set: { ...payload } })
    */
   async update(update: Update, options?: { hooks?: boolean; clearCache?: boolean; upsert?: boolean; preStore?: boolean; revertOnError?: boolean }) {
     await updateModelInstance(this, update, options);
@@ -861,7 +861,7 @@ class GraphandModel extends AbstractGraphandModel {
    * Delete current instance
    * @param [options]
    * @example
-   * instance.delete().then(() => console.log("deleted"))
+   * this.delete().then(() => console.log("deleted"))
    */
   delete(options?: { hooks?: boolean; clearCache?: boolean; updateStore?: boolean }) {
     const constructor = this.constructor as any;

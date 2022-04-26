@@ -1,13 +1,15 @@
 {
   "name": "graphand-js",
-  "version": "0.26.2-beta",
+  "version": "0.26.3-beta",
   "description": "",
   "homepage": "https://github.com/pierrecabriere/graphand-js",
+  "repository": "pierrecabriere/graphand-js",
   "main": "dist/index.min.js",
   "browser": "dist/browser.min.js",
   "types": "dist/types/index.d.ts",
   "author": "Pierre Cabrière",
   "license": "MIT",
+  "source": "src/index.ts",
   "scripts": {
     "build": "webpack",
     "build:watch": "WATCH=1 webpack",

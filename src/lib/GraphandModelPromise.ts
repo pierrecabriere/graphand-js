@@ -1,4 +1,6 @@
 import { Observable, Subscription } from "rxjs";
+import GraphandModel from "./GraphandModel";
+import GraphandModelList from "./GraphandModelList";
 
 const _propertiesMiddleware = (fromModel, toModel, middleware) => {
   const fromKeys = Object.getOwnPropertyNames(fromModel.prototype);
@@ -15,20 +17,20 @@ const _propertiesMiddleware = (fromModel, toModel, middleware) => {
   return Object.assign(toModel.prototype, patch);
 };
 
-class GraphandModelPromise<T> implements Promise<T> {
+class GraphandModelPromise<T extends GraphandModel | GraphandModelList<GraphandModel>> implements Promise<T> {
   executor;
   model;
   promise?;
   query;
-  then;
-  catch;
-  finally;
+  then: Promise<T>["then"];
+  catch: Promise<T>["catch"];
+  finally: Promise<T>["finally"];
   [Symbol.toStringTag];
 
   _observable;
   _resSub;
 
-  constructor(executor, model, query?) {
+  constructor(executor, model: typeof GraphandModel, query?) {
     const self = this;
 
     self.executor = executor;
@@ -87,7 +89,7 @@ class GraphandModelPromise<T> implements Promise<T> {
       this.createObservable();
     }
 
-    const sub = this._observable.subscribe.apply(this._observable, arguments);
+    const sub = this._observable.subscribe(callback);
     const unsubscribe = sub.unsubscribe;
     sub.unsubscribe = () => {
       unsubscribe.apply(sub);
