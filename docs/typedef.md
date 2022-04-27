@@ -1,27 +1,27 @@
 ## Typedefs
 
 <dl>
-<dt><a href="#ClientOptions">ClientOptions</a></dt>
+<dt><a href="typedef.md#ClientOptions">ClientOptions</a></dt>
 <dd><p>Graphand client options</p>
 </dd>
-<dt><a href="#GraphandModelHookHandler">GraphandModelHookHandler</a> ⇒ <code>*</code> | <code>void</code></dt>
+<dt><a href="typedef.md#GraphandModelHookHandler">GraphandModelHookHandler</a> ⇒ <code>*</code> | <code>void</code></dt>
 <dd></dd>
-<dt><a href="#Query">Query</a></dt>
+<dt><a href="typedef.md#Query">Query</a></dt>
 <dd><p>Model fetching options</p>
 </dd>
-<dt><a href="#Update">Update</a></dt>
+<dt><a href="typedef.md#Update">Update</a></dt>
 <dd><p>Model updating options for <a href="GraphandModel#update">GraphandModel#update</a></p>
 </dd>
-<dt><a href="#FetchOptions">FetchOptions</a></dt>
+<dt><a href="typedef.md#FetchOptions">FetchOptions</a></dt>
 <dd><p>Model fetching options</p>
 </dd>
-<dt><a href="#ModelScopes">ModelScopes</a></dt>
+<dt><a href="typedef.md#ModelScopes">ModelScopes</a></dt>
 <dd><p>Model fetching options</p>
 </dd>
-<dt><a href="#ModelListOptions">ModelListOptions</a></dt>
+<dt><a href="typedef.md#ModelListOptions">ModelListOptions</a></dt>
 <dd><p>Model getList options</p>
 </dd>
-<dt><a href="#MediaUrlOptions">MediaUrlOptions</a></dt>
+<dt><a href="typedef.md#MediaUrlOptions">MediaUrlOptions</a></dt>
 <dd><p><a href="Media#getUrl">Media#getUrl</a> options</p>
 </dd>
 </dl>

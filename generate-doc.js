@@ -18,6 +18,10 @@ function decodeLinks(md) {
     regexString = `\\(\\#(${_className}(\\+[a-zA-Z]+?)?)\\)`;
     regex = new RegExp(regexString, "g");
     md = md.replace(regex, `(${_className}.md#$1)`);
+
+    regexString = `\"\\#(${_className}(\\+[a-zA-Z]+?)?)\"`;
+    regex = new RegExp(regexString, "g");
+    md = md.replace(regex, `"${_className}.md#$1"`);
   }
 
   // decode typedef links
@@ -25,7 +29,21 @@ function decodeLinks(md) {
     regexString = `\\(\\#${_typedefName}\\)`;
     regex = new RegExp(regexString, "g");
     md = md.replace(regex, `(typedef.md#${_typedefName})`);
+
+    regexString = `\"\\#${_typedefName}\"`;
+    regex = new RegExp(regexString, "g");
+    md = md.replace(regex, `"typedef.md#${_typedefName}"`);
   }
+
+  return md;
+}
+
+function decodeClass(md) {
+  let regex, regexString;
+
+  regexString = `GraphandModel.md#GraphandModel\\+`;
+  regex = new RegExp(regexString, "g");
+  md = md.replace(regex, `#GraphandModel+`);
 
   return md;
 }
@@ -39,10 +57,10 @@ function renderMain() {
 
 function renderClasses() {
   for (const className of classNames) {
-    const data = templateData.filter((i) => i.memberof === className || i.name === className);
-    const template = `{{>all-docs~}}`;
-    let output = jsdoc2md.renderSync({ data, template, separators: true });
+    const template = `{{#class name="${className}"}}{{>docs}}{{/class}}`;
+    let output = jsdoc2md.renderSync({ data: templateData, template, separators: true });
     output = decodeLinks(output);
+    output = decodeClass(output);
     fs.writeFileSync(path.resolve(outputDir, `${className}.md`), output);
   }
 }
