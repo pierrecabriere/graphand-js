@@ -182,26 +182,26 @@ class Client {
   /**
    * Graphand client options
    * @typedef ClientOptions
-   * @property host {string="api.graphand.io"}
-   * @property cdn {string="cdn.graphand.io"}
-   * @property ssl {boolean=true}
+   * @property [host="api.graphand.io"] {string}
+   * @property [cdn="cdn.graphand.io"] {string}
+   * @property [ssl=true] {boolean}
    * @property project {string} - The project id to query on
    * @property accessToken {string} - The initial access token
    * @property refreshToken {string} - The initial refresh token,
    * @property locale {string}
    * @property translations {string[]}
    * @property realtime {boolean} - Connect client to the socket
-   * @property mergeQueries {boolean=true} - Automatically merge queries when querying by _id or ids
-   * @property autoSync {boolean=false} - Automatically sync all registered models with the socket
-   * @property subscribeFields {boolean=false} - Subscribe to DataFields
-   * @property init {string=false} - Initialize client at startup
-   * @property initProject {boolean=false} - Initialize project on construct (not needed if you don't need to use the Project model instance)
-   * @property initModels {boolean=false} - Automatically init all DataModels at startup
+   * @property [mergeQueries=true] {boolean} - Automatically merge queries when querying by _id or ids
+   * @property [autoSync=false] {boolean} - Automatically sync all registered models with the socket
+   * @property [subscribeFields=false] {boolean} - Subscribe to DataFields
+   * @property [init=false] {boolean} - Initialize client at startup
+   * @property [initProject=false] {boolean} - Initialize project on construct (not needed if you don't need to use the Project model instance)
+   * @property [initModels=false] {boolean} - Automatically init all DataModels at startup
    * @property models {*}: []
-   * @property cache {boolean=true} - Cache queries
+   * @property [cache=true] {boolean} - Cache queries
    * @property plugins {*}: []
    * @property socketOptions {*}
-   * @property env {string=master} - Graphand environment to query on
+   * @property [env="master"] {string} - Graphand environment to query on
    */
 
   get locale() {

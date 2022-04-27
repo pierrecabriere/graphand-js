@@ -62,7 +62,7 @@ Update current instance
 **Example**  
 ```js
 // set title toto on the current instance
-instance.update({ set: { title: "toto" } })
+this.update({ set: { ...payload } })
 ```
 
 * * *
@@ -80,7 +80,7 @@ Delete current instance
 
 **Example**  
 ```js
-instance.delete().then(() => console.log("deleted"))
+this.delete().then(() => console.log("deleted"))
 ```
 
 * * *

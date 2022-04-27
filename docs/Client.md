@@ -11,6 +11,7 @@ Base Graphand Client class
         * [.getModels(scopes, options)](Client.md#Client+getModels) ⇒ <code>Array.&lt;GraphandModel.constructor&gt;</code>
         * [.getModel(scope, options)](Client.md#Client+getModel) ⇒ <code>GraphandModel.constructor</code>
         * [.clone(options, login)](Client.md#Client+clone) ⇒ [<code>Client</code>](Client.md#Client)
+        * [.detroy()](Client.md#Client+detroy)
     * _static_
         * [.createClient(options)](#Client.createClient) ⇒ [<code>Client</code>](Client.md#Client)
 
@@ -25,8 +26,8 @@ Graphand Client
 
 | Param | Type | Description |
 | --- | --- | --- |
-| project | <code>ClientOptions</code> \| <code>string</code> | Your project _id or client options |
-| [options] | <code>ClientOptions</code> | Client options |
+| project | [<code>ClientOptions</code>](#ClientOptions) \| <code>string</code> | Your project _id or client options |
+| [options] | [<code>ClientOptions</code>](#ClientOptions) | Client options |
 
 
 * * *
@@ -70,9 +71,18 @@ Clone the current client
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| options | <code>ClientOptions</code> |  |  |
+| options | [<code>ClientOptions</code>](#ClientOptions) |  |  |
 | login | <code>boolean</code> | <code>true</code> | Define if the cloned client inherits of its parent access & refresh token |
 
+
+* * *
+
+<a name="Client+detroy"></a>
+
+### client.detroy()
+Destroy the current client
+
+**Kind**: instance method of [<code>Client</code>](Client.md#Client)  
 
 * * *
 
@@ -85,7 +95,7 @@ Create new client
 
 | Param | Type |
 | --- | --- |
-| options | <code>ClientOptions</code> | 
+| options | [<code>ClientOptions</code>](#ClientOptions) | 
 
 
 * * *
