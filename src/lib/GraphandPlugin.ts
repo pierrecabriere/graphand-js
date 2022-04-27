@@ -3,6 +3,10 @@ import PluginLifecyclePhases from "../enums/plugin-lifecycle-phases";
 
 export type GraphandPluginOptions = any;
 
+/**
+ * @class GraphandPlugin
+ * @classdesc Base Plugin class. You can extend this class to create your own plugins
+ */
 class GraphandPlugin<T extends GraphandPluginOptions> {
   static LifecyclePhases = PluginLifecyclePhases;
   static defaultOptions: GraphandPluginOptions = {};

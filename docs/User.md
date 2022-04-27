@@ -1,28 +1,28 @@
 <a name="User"></a>
 
-## User ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-User model. Use [client.getModel("User")](Client.md#Client+getModel) to use this model
+## User ⇐ <code>GraphandModel</code>
+User model. Use [client.getModel("User")](Client#getModel) to use this model
 
 **Kind**: global class  
-**Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
+**Extends**: <code>GraphandModel</code>  
 
-* [User](User.md#User) ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-    * [.raw](GraphandModel.md#GraphandModel+raw) ⇒ <code>\*</code>
-    * [.update(update, [options])](GraphandModel.md#GraphandModel+update)
-    * [.delete([options])](GraphandModel.md#GraphandModel+delete)
-    * [.clone(locale)](GraphandModel.md#GraphandModel+clone)
-    * [.get(slug, [parse], _locale, fallback)](GraphandModel.md#GraphandModel+get)
-    * [.set(slug, value, [upsert], [parse])](GraphandModel.md#GraphandModel+set)
-    * [.assign(values, [upsert], updatedAtNow)](GraphandModel.md#GraphandModel+assign)
-    * [.subscribe(callback)](GraphandModel.md#GraphandModel+subscribe)
-    * [.isTemporary()](GraphandModel.md#GraphandModel+isTemporary)
-    * [.serialize()](GraphandModel.md#GraphandModel+serialize) ⇒ <code>Object</code>
-    * [.toJSON()](GraphandModel.md#GraphandModel+toJSON) ⇒ <code>Object</code>
+* [User](User.md#User) ⇐ <code>GraphandModel</code>
+    * [.raw](#) ⇒ <code>\*</code>
+    * [.update(update, [options])](#)
+    * [.delete([options])](#)
+    * [.clone(locale)](#)
+    * [.get(slug, [parse], _locale, fallback)](#)
+    * [.set(slug, value, [upsert], [parse])](#)
+    * [.assign(values, [upsert], updatedAtNow)](#)
+    * [.subscribe(callback)](#)
+    * [.isTemporary()](#)
+    * [.serialize()](#) ⇒ <code>Object</code>
+    * [.toJSON()](#) ⇒ <code>Object</code>
 
 
 * * *
 
-<a name="GraphandModel+raw"></a>
+<a name=""></a>
 
 ### user.raw ⇒ <code>\*</code>
 Returns raw data of instance
@@ -31,7 +31,7 @@ Returns raw data of instance
 
 * * *
 
-<a name="GraphandModel+update"></a>
+<a name=""></a>
 
 ### user.update(update, [options])
 Update current instance
@@ -40,7 +40,7 @@ Update current instance
 
 | Param | Type | Description |
 | --- | --- | --- |
-| update | [<code>Update</code>](#Update) | payload to apply. Query is already set with current instance id |
+| update | <code>Update</code> | payload to apply. Query is already set with current instance id |
 | [options] |  |  |
 
 **Example**  
@@ -51,7 +51,7 @@ this.update({ set: { ...payload } })
 
 * * *
 
-<a name="GraphandModel+delete"></a>
+<a name=""></a>
 
 ### user.delete([options])
 Delete current instance
@@ -69,7 +69,7 @@ this.delete().then(() => console.log("deleted"))
 
 * * *
 
-<a name="GraphandModel+clone"></a>
+<a name=""></a>
 
 ### user.clone(locale)
 Clone the instance
@@ -83,7 +83,7 @@ Clone the instance
 
 * * *
 
-<a name="GraphandModel+get"></a>
+<a name=""></a>
 
 ### user.get(slug, [parse], _locale, fallback)
 Model instance getter. Returns the value for the specified key
@@ -100,7 +100,7 @@ Model instance getter. Returns the value for the specified key
 
 * * *
 
-<a name="GraphandModel+set"></a>
+<a name=""></a>
 
 ### user.set(slug, value, [upsert], [parse])
 Model instance setter. Set value for the specified key
@@ -117,7 +117,7 @@ Model instance setter. Set value for the specified key
 
 * * *
 
-<a name="GraphandModel+assign"></a>
+<a name=""></a>
 
 ### user.assign(values, [upsert], updatedAtNow)
 Assign multiple values to instance.
@@ -133,7 +133,7 @@ Assign multiple values to instance.
 
 * * *
 
-<a name="GraphandModel+subscribe"></a>
+<a name=""></a>
 
 ### user.subscribe(callback)
 Subscribe to the current instance. The callback will be called each time the instance is updated in store.
@@ -148,7 +148,7 @@ If the model is synced (realtime), the callback will be called when the instance
 
 * * *
 
-<a name="GraphandModel+isTemporary"></a>
+<a name=""></a>
 
 ### user.isTemporary()
 Returns true if the current instance is only in memory and not persisted on Graphand.
@@ -157,7 +157,7 @@ Returns true if the current instance is only in memory and not persisted on Grap
 
 * * *
 
-<a name="GraphandModel+serialize"></a>
+<a name=""></a>
 
 ### user.serialize() ⇒ <code>Object</code>
 Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
@@ -166,7 +166,7 @@ Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
 
 * * *
 
-<a name="GraphandModel+toJSON"></a>
+<a name=""></a>
 
 ### user.toJSON() ⇒ <code>Object</code>
 Returns JSON-serialized object of the current instance
