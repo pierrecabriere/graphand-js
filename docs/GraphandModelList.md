@@ -23,7 +23,7 @@ If the model is synced (realtime), the callback will be called when the list is 
 
 | Param | Description |
 | --- | --- |
-| callback | The function to call when the instance is updated |
+| callback | The function to call when the list is updated |
 
 
 * * *

@@ -134,7 +134,7 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
   /**
    * Subscribe to the list. The callback will be called each time (an instance inside) the list is updated in store.
    * If the model is synced (realtime), the callback will be called when the list is updated via socket
-   * @param callback - The function to call when the instance is updated
+   * @param callback - The function to call when the list is updated
    */
   subscribe(callback): Subscription {
     if (!this._observable) {
