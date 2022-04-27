@@ -690,7 +690,7 @@ class Client {
   }
 
   plugin(Plugin: typeof GraphandPlugin, options: any = {}) {
-    if (!(Plugin.prototype instanceof GraphandPlugin)) {
+    if (!Plugin.prototype?.execute) {
       throw new GraphandError("Plugin must extends GraphandPlugin class", GraphandError.Codes.INVALID_PLUGIN);
     }
 

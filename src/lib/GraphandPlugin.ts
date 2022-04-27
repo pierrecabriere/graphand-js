@@ -10,7 +10,7 @@ class GraphandPlugin<T extends GraphandPluginOptions> {
   client: Client;
   options: T;
 
-  constructor(client: Client, options: Partial<T>) {
+  constructor(client: Client, options: Partial<T> = {}) {
     const { constructor } = Object.getPrototypeOf(this);
 
     this.client = client;
@@ -19,16 +19,16 @@ class GraphandPlugin<T extends GraphandPluginOptions> {
     this.execute(PluginLifecyclePhases.INSTALL);
   }
 
-  onInstall(): any {
-    return null;
+  onInstall(): void {
+    return;
   }
 
-  onInit(): any {
-    return null;
+  onInit(): void {
+    return;
   }
 
-  onUninstall(): any {
-    return null;
+  onUninstall(): void {
+    return;
   }
 
   execute?(phase: PluginLifecyclePhases) {

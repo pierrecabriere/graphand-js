@@ -1,6 +1,6 @@
 {
   "name": "graphand-js",
-  "version": "0.26.3-beta",
+  "version": "0.27.0-beta",
   "description": "",
   "homepage": "https://github.com/pierrecabriere/graphand-js",
   "repository": "pierrecabriere/graphand-js",
@@ -41,6 +41,7 @@
     "jest-circus": "^27.5.1",
     "jsdoc-to-markdown": "^7.1.1",
     "prettier": "^2.6.2",
+    "terser-webpack-plugin": "^5.3.1",
     "ts-jest": "^27.1.4",
     "ts-loader": "^9.2.8",
     "ts-node": "^10.7.0",
