@@ -663,7 +663,6 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   static getList<T extends typeof GraphandModel>(this: T, query?: undefined, opts?: ModelListOptions | boolean): GraphandModelList<InstanceType<T>>;
-
   static getList<T extends typeof GraphandModel>(
     this: T,
     query: Query,

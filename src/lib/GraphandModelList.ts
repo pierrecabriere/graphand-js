@@ -12,9 +12,13 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
   private _storeSub;
   private _subscriptions;
 
-  constructor({ model, count, query }: { model?; count?; query? }, ...elements) {
+  constructor({ model, count, query, rows }: { model?; count?; query?; rows? }, ...elements) {
     if (!elements?.length) {
       elements = [];
+    }
+
+    if (rows?.length) {
+      elements = elements.concat(rows);
     }
 
     if (!model) {

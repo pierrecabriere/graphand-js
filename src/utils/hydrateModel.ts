@@ -19,8 +19,8 @@ function hydrateModel<T extends typeof GraphandModel | Client>(input: T, data: a
 
   let res;
   if (Array.isArray(data)) {
-    const list = data.map((i) => new Model(i));
-    res = new GraphandModelList({ model: Model }, ...list);
+    const rows = data.map((i) => new Model(i));
+    res = new GraphandModelList({ model: Model, rows });
   } else {
     res = new Model(data);
   }

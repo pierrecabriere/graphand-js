@@ -6,8 +6,9 @@ import GraphandQuery from "../lib/GraphandQuery";
 import { FetchOptions } from "./fetchModel";
 
 type ModelListOptions = {
-  fetch: FetchOptions | boolean;
-  cache: boolean;
+  fetch?: FetchOptions | boolean;
+  cache?: boolean;
+  log?: boolean;
 };
 
 function getModelList<T extends typeof GraphandModel>(
@@ -18,7 +19,7 @@ function getModelList<T extends typeof GraphandModel>(
   const defaultOptions = { fetch: true, cache: true };
   const opts: ModelListOptions = Object.assign({}, defaultOptions, typeof _opts === "object" ? _opts : { fetch: _opts });
 
-  const { fetch, cache } = opts;
+  const { fetch, cache, log } = opts;
 
   const query = new GraphandQuery(Model, _q);
 
