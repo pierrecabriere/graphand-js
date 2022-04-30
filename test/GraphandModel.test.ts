@@ -3,6 +3,7 @@ import Client from "../src/Client";
 import ModelScopes from "../src/enums/model-scopes";
 import deleteInstance from "./utils/deleteInstance";
 import testGraphandModel from "./utils/testGraphandModel";
+import testHooks from "./utils/testHooks";
 import testQueryConcatenation from "./utils/testQueryConcatenation";
 
 describe("GraphandModel", () => {
@@ -42,6 +43,8 @@ describe("GraphandModel", () => {
   testGraphandModel(instance);
 
   testQueryConcatenation(instance);
+
+  testHooks(instance);
 
   test("should delete instance.current", () => deleteInstance(instance.current));
 
