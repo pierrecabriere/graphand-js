@@ -631,10 +631,10 @@ class GraphandModel extends AbstractGraphandModel {
     return false;
   }
 
-  static upsertStore(payload: GraphandModel[], force = false) {
+  static upsertStore(payload: GraphandModel[] | GraphandModelList<GraphandModel>, force = false) {
     let refresh = false;
     const _upsert = (list, item) => {
-      const found = list.find((i) => i._id === item._id);
+      const found: GraphandModel = list.find((i) => i._id === item._id);
 
       if (!found) {
         refresh = true;
@@ -827,7 +827,7 @@ class GraphandModel extends AbstractGraphandModel {
     const hook = this._hooks[event] ? [...this._hooks[event]] : [];
 
     if (super.__proto__ && "getHook" in super.__proto__) {
-      return hook.concat(super.__proto__.getHook(event));
+      return super.__proto__.getHook(event).concat(hook);
     }
 
     return hook;

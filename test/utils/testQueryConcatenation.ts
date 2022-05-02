@@ -40,7 +40,7 @@ const testQueryConcatenation = (instance: { current: GraphandModel }) => {
       ),
     ]);
 
-    const ids = [resLast?._id, ...resGroups.reduce((final, group) => final.concat(group.map((i) => i._id)), [])];
+    const ids = [resLast?._id, ...resGroups.reduce((final, group) => final.concat(group.toArray().map((i) => i._id)), [])];
     expect(ids.length).toEqual(10);
     expect(ids.every((_id) => instances.find((i) => i._id === _id))).toBeTruthy();
 

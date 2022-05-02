@@ -667,13 +667,14 @@ class Client {
   /**
    * Clone the current client
    * @param options {ClientOptions}
-   * @param login {boolean} - Define if the cloned client inherits of its parent access & refresh token
+   * @param cloneTokens {boolean} - Define if the cloned client inherits of its parent access & refresh token
    * @returns {Client}
    */
-  clone(options: ClientOptions = {}, login = true): Client {
+  clone(options: ClientOptions = {}, cloneTokens = undefined): Client {
     const clone = new Client({ ...this._options, ...options });
 
-    if (login) {
+    cloneTokens = cloneTokens ?? !options.accessToken;
+    if (cloneTokens) {
       const accessToken = this.getAccessToken();
       const refreshToken = this.getRefreshToken();
 

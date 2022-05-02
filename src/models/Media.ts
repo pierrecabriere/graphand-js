@@ -78,23 +78,26 @@ class Media extends GraphandModel {
 }
 
 Media.hook("preCreate", (args) => {
-  if (args.payload?.file?.getAsFile) {
-    args.payload.file = args.payload.file.getAsFile();
-  }
-
   args.config.params.socket = Math.random().toString(36).substr(2, 9);
 
-  const formData = new FormData();
-  Object.keys(args.payload).forEach((key) => {
-    if (args.payload[key] !== undefined) {
-      formData.append(key, args.payload[key]);
+  if (args.payload && !args.payload.append) {
+    if (args.payload?.file?.getAsFile) {
+      args.payload.file = args.payload.file.getAsFile();
     }
-  });
 
-  args.config.headers = args.config.headers || {};
-  args.config.headers["Content-Type"] = "multipart/form-data";
+    const formData = new FormData();
+    Object.keys(args.payload).forEach((key) => {
+      if (args.payload[key] !== undefined) {
+        formData.append(key, args.payload[key]);
+      }
+    });
 
-  args.payload = formData;
+    args.config.headers = args.config.headers || {};
+    args.config.headers["Content-Type"] = "multipart/form-data";
+
+    args._rawPayload = args.payload;
+    args.payload = formData;
+  }
 });
 
 export default Media;

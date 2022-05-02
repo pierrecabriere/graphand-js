@@ -53,18 +53,12 @@ function getModelList<T extends typeof GraphandModel>(
           fetchOpts.cache = fetchOpts.cache ?? cache;
           const { rows, count } = await query.execute(fetchOpts);
           const storeList = Model._listSubject.getValue();
-          if (query.ids) {
-            const _list = query.ids?.map((_id) => storeList.find((item) => item._id === _id)).filter((r) => r) || [];
-            graphandModelList = new GraphandModelList(
-              {
-                model: Model,
-                count: query.ids.length,
-                query,
-              },
-              ..._list,
-            );
+
+          if (query.isMergeable()) {
+            const _list = query.ids?.map((_id) => storeList.find((item) => item._id === _id)).filter(Boolean) || [];
+            graphandModelList = new GraphandModelList({ model: Model, count: _list.length, query }, ..._list);
           } else {
-            const _list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter((r) => r) || [];
+            const _list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter(Boolean) || [];
             graphandModelList = new GraphandModelList({ model: Model, count, query }, ..._list);
           }
 

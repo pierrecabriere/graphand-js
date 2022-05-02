@@ -80,7 +80,7 @@ const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey, opt
 
       singleId = _id;
       params = _params;
-    } else if (query?.ids?.length === 1 && (!query.query || !Object.keys(query.query).length)) {
+    } else if (query.isMergeable() && query?.ids?.length === 1) {
       const {
         ids: [_id],
         ..._params
@@ -151,10 +151,10 @@ const fetchModel = async (Model: typeof GraphandModel, query: any, opts?: FetchO
   const { cache, hooks } = opts;
 
   if (typeof query === "string") {
-    query = { ids: [query] };
+    query = new GraphandQuery(Model, { ids: [query] });
   }
 
-  if (cache && typeof query === "object" && "ids" in query) {
+  if (cache && query.isMergeable()) {
     await mergeIds();
   }
 
