@@ -5,6 +5,7 @@ import deleteInstance from "./utils/deleteInstance";
 import testGraphandModel from "./utils/testGraphandModel";
 import testHooks from "./utils/testHooks";
 import testQueryConcatenation from "./utils/testQueryConcatenation";
+import testQueryReference from "./utils/testQueryReference";
 
 describe("GraphandModel", () => {
   const { userAccessToken, projectId } = process.env;
@@ -43,6 +44,8 @@ describe("GraphandModel", () => {
   testGraphandModel(instance);
 
   testQueryConcatenation(instance);
+
+  testQueryReference(instance);
 
   testHooks(instance);
 

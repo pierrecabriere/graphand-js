@@ -21,12 +21,16 @@ function hydrateModel<T extends typeof GraphandModel | Client>(input: T, data: a
   if (Array.isArray(data)) {
     const rows = data.map((i) => new Model(i));
     res = new GraphandModelList({ model: Model, rows });
+
+    if (upsert) {
+      Model.upsertStore(res);
+    }
   } else {
     res = new Model(data);
-  }
 
-  if (upsert) {
-    Model.upsertStore(Array.isArray(res) ? res : [res]);
+    if (upsert) {
+      Model.upsertStore([res]);
+    }
   }
 
   return res;

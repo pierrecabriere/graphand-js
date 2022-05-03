@@ -160,7 +160,6 @@ class GraphandModel extends AbstractGraphandModel {
 
   _data: any = {};
   _locale = null;
-  _version = 1;
   _observable;
   _storeSub;
   _subscriptions = new Set();
@@ -198,7 +197,6 @@ class GraphandModel extends AbstractGraphandModel {
 
     Object.defineProperty(this, "_data", { enumerable: false });
     Object.defineProperty(this, "_locale", { enumerable: false });
-    Object.defineProperty(this, "_version", { enumerable: false });
 
     if (constructor.queryFields && constructor._client._options.subscribeFields) {
       constructor._init().then(() => constructor.dataFieldsList.subscribe(() => setTimeout(() => constructor.setPrototypeFields(this))));

@@ -17,7 +17,7 @@ const _queries = {};
 const _queryIds = {};
 const _queryIdsTimeout = {};
 
-const _handleRequestResult = async (Model: typeof GraphandModel, rows, query) => {
+const _handleRequestResult = async (Model: typeof GraphandModel, res: GraphandQueryResponse, query) => {
   const populatedPaths = getPopulatedPaths(query.populate);
 
   if (populatedPaths?.length) {
@@ -59,10 +59,10 @@ const _handleRequestResult = async (Model: typeof GraphandModel, rows, query) =>
 
   if (populatedPaths?.length) {
     const fields = Model.getFields();
-    rows.forEach((row) => processPopulate(row, fields, Model._client, populatedPaths));
+    res.rows.forEach((row) => processPopulate(row, fields, Model._client, populatedPaths));
   }
 
-  return Model.hydrate(rows, true);
+  Model.hydrate(res.rows, true);
 };
 
 const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey, opts: FetchOptions = {}): Promise<GraphandQueryResponse> => {
@@ -107,7 +107,7 @@ const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey, opt
       }
     }
 
-    await _handleRequestResult(Model, res.rows, query);
+    await _handleRequestResult(Model, res, query);
   } catch (e) {
     if (hooks) {
       await Model.execHook("postQuery", [query, null, e]);

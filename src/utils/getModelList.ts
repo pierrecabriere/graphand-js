@@ -19,7 +19,7 @@ function getModelList<T extends typeof GraphandModel>(
   const defaultOptions = { fetch: true, cache: true };
   const opts: ModelListOptions = Object.assign({}, defaultOptions, typeof _opts === "object" ? _opts : { fetch: _opts });
 
-  const { fetch, cache, log } = opts;
+  const { fetch, cache } = opts;
 
   const query = new GraphandQuery(Model, _q);
 
@@ -37,7 +37,7 @@ function getModelList<T extends typeof GraphandModel>(
     if (cache && query.isMergeable()) {
       const cacheList = query.ids.map((_id) => Model.get(_id, false));
       if (cacheList.every(Boolean)) {
-        list = new GraphandModelList({ model: Model, count: cacheList.length, query }, ...cacheList);
+        list = new GraphandModelList({ model: Model, count: cacheList.length, query, rows: cacheList });
       }
     }
   }
@@ -56,10 +56,10 @@ function getModelList<T extends typeof GraphandModel>(
 
           if (query.isMergeable()) {
             const _list = query.ids?.map((_id) => storeList.find((item) => item._id === _id)).filter(Boolean) || [];
-            graphandModelList = new GraphandModelList({ model: Model, count: _list.length, query }, ..._list);
+            graphandModelList = new GraphandModelList({ model: Model, count: _list.length, query, rows: _list });
           } else {
             const _list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter(Boolean) || [];
-            graphandModelList = new GraphandModelList({ model: Model, count, query }, ..._list);
+            graphandModelList = new GraphandModelList({ model: Model, count, query, rows: _list });
           }
 
           return resolve(graphandModelList);

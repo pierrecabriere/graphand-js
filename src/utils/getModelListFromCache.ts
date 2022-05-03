@@ -15,7 +15,7 @@ const getModelListFromCache = (model: typeof GraphandModel, query: any) => {
     return;
   }
 
-  return new GraphandModelList({ model, count, query, rows: model.hydrate(rows) });
+  return new GraphandModelList({ model, count, query, rows: cachedRows });
 };
 
 export default getModelListFromCache;
