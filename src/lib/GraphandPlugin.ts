@@ -12,7 +12,7 @@ class GraphandPlugin<T extends GraphandPluginOptions> {
   static defaultOptions: GraphandPluginOptions = {};
 
   client: Client;
-  options: T;
+  options: T & any;
 
   constructor(client: Client, options: Partial<T> = {}) {
     const { constructor } = Object.getPrototypeOf(this);

@@ -31,7 +31,7 @@ import Sockethook from "./models/Sockethook";
 import { setupAxios, setupSocket, verifyScopeFormat } from "./utils";
 import hydrateModel from "./utils/hydrateModel";
 
-type GraphandPluginWithConf = [plugin: typeof GraphandPlugin, options: any];
+type GraphandPluginWithConf = [plugin: typeof GraphandPlugin, options: GraphandPluginOptions];
 
 type ClientOptions = {
   host?: string;

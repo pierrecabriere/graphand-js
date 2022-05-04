@@ -356,7 +356,7 @@ class GraphandModel extends AbstractGraphandModel {
    */
   static get<C extends typeof GraphandModel, T extends FetchOptions | boolean>(
     this: C,
-    query: string | Query,
+    query?: string | Query,
     fetch?: T,
     cache?,
   ): T extends false ? InstanceType<C> : GraphandModelPromise<InstanceType<C>> {
