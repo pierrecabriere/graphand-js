@@ -20,4 +20,15 @@ describe("Client.ts", () => {
       expect(clone !== client).toBeTruthy();
     });
   });
+
+  test("should reinit models", async () => {
+    const { userAccessToken, projectId } = process.env;
+    const client = Client.createClient({ project: projectId, accessToken: userAccessToken });
+    const Account = client.getModel("Account");
+    const currentAccount = await Account.getCurrent();
+    expect(currentAccount).toBeTruthy();
+    expect(Account.get(currentAccount._id, false)).toBeTruthy();
+    client.reinit();
+    expect(Account.get(currentAccount._id, false)).toBeFalsy();
+  });
 });

@@ -4,7 +4,7 @@ export default async () => {
   try {
     const { userAccessToken, projectId } = process.env;
 
-    await axios.delete(`https://api.graphand.io/projects/${projectId}`, {
+    await axios.delete(`http://api.graphand.io.local:1337/projects/${projectId}`, {
       headers: {
         Authorization: `Bearer ${userAccessToken}`,
       },

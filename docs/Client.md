@@ -10,7 +10,10 @@ Base Graphand Client class
     * _instance_
         * [.getModels(scopes, options)](Client.md#Client+getModels) ⇒ <code>Array.&lt;GraphandModel.constructor&gt;</code>
         * [.getModel(scope, options)](Client.md#Client+getModel) ⇒ <code>GraphandModel.constructor</code>
-        * [.clone(options, login)](Client.md#Client+clone) ⇒ [<code>Client</code>](Client.md#Client)
+        * [.reinit()](Client.md#Client+reinit)
+        * [.logout()](Client.md#Client+logout)
+        * [.login(credentials)](Client.md#Client+login)
+        * [.clone(options, cloneTokens)](Client.md#Client+clone) ⇒ [<code>Client</code>](Client.md#Client)
         * [.detroy()](Client.md#Client+detroy)
     * _static_
         * [.createClient(options)](#Client.createClient) ⇒ [<code>Client</code>](Client.md#Client)
@@ -62,17 +65,49 @@ Get ready-to-use model by scope. Use [getModels](Client.md#Client+getModels) to 
 
 * * *
 
+<a name="Client+reinit"></a>
+
+### client.reinit()
+Reinit current client (reinit models)
+
+**Kind**: instance method of [<code>Client</code>](Client.md#Client)  
+
+* * *
+
+<a name="Client+logout"></a>
+
+### client.logout()
+Reset access and refresh tokens and reinit client
+
+**Kind**: instance method of [<code>Client</code>](Client.md#Client)  
+
+* * *
+
+<a name="Client+login"></a>
+
+### client.login(credentials)
+Login account with credentials and set access and refresh tokens in current client
+
+**Kind**: instance method of [<code>Client</code>](Client.md#Client)  
+
+| Param |
+| --- |
+| credentials | 
+
+
+* * *
+
 <a name="Client+clone"></a>
 
-### client.clone(options, login) ⇒ [<code>Client</code>](Client.md#Client)
+### client.clone(options, cloneTokens) ⇒ [<code>Client</code>](Client.md#Client)
 Clone the current client
 
 **Kind**: instance method of [<code>Client</code>](Client.md#Client)  
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| options | [<code>ClientOptions</code>](typedef.md#ClientOptions) |  |  |
-| login | <code>boolean</code> | <code>true</code> | Define if the cloned client inherits of its parent access & refresh token |
+| Param | Type | Description |
+| --- | --- | --- |
+| options | [<code>ClientOptions</code>](typedef.md#ClientOptions) |  |
+| cloneTokens | <code>boolean</code> | Define if the cloned client inherits of its parent access & refresh token |
 
 
 * * *

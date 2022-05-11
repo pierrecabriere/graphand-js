@@ -131,8 +131,6 @@ class GraphandModel extends AbstractGraphandModel {
   static _cache;
   @ownProperty()
   static _initialized;
-  @ownProperty()
-  static _registeredAt;
   @ownProperty(() => new Set())
   static _observers;
   @ownProperty(() => new Subject())
@@ -180,7 +178,7 @@ class GraphandModel extends AbstractGraphandModel {
 
     const { constructor } = Object.getPrototypeOf(this);
 
-    if (!constructor._registeredAt || !constructor._client) {
+    if (!constructor._client) {
       throw new Error(`Model ${constructor.scope} is not register. Please use Client.registerModel() before`);
     }
 
@@ -374,7 +372,7 @@ class GraphandModel extends AbstractGraphandModel {
       return this._cachedFields;
     }
 
-    if (!this._registeredAt || !this._client) {
+    if (!this._client) {
       throw new Error(`Model ${this.scope} is not registered. Please use Client.registerModel() before`);
     }
 
@@ -435,7 +433,7 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   static async _init(force = false) {
-    if (!this._registeredAt || !this._client) {
+    if (!this._client) {
       throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
     }
 
@@ -560,8 +558,8 @@ class GraphandModel extends AbstractGraphandModel {
    * Reinitialize the model (clear cache & empty store)
    */
   static reinit() {
-    this._cache = {};
-    return this.reinitStore();
+    this.clearCache(undefined, true);
+    return this;
   }
 
   static getCacheKey({ populate, sort, pageSize, page, translations, query, ids, count }) {
@@ -772,7 +770,7 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   static rebuildModel(serial) {
-    if (!this._registeredAt || !this._client) {
+    if (!this._client) {
       throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
     }
 

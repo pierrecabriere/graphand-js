@@ -39,12 +39,11 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
   }
 
   _model;
+  _query;
 
   get model() {
     return this._model || this[0]?.constructor;
   }
-
-  _query;
 
   get query() {
     return this._query || { ids: this.ids };
@@ -109,7 +108,7 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
       let prevSerial = this.toArray().map((item) => JSON.stringify(item.serialize?.apply(item)).normalize());
       this._storeSub = this.model._listSubject.subscribe(() => {
         setTimeout(async () => {
-          const list = await this.model.getList(this.query, { cache: true });
+          const list = await this.model.getList(this.query);
           const listArray = list.toArray();
 
           let reload = false;

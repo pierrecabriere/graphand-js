@@ -55,10 +55,10 @@ function getModelList<T extends typeof GraphandModel>(
           const storeList = Model._listSubject.getValue();
 
           if (query.isMergeable()) {
-            const _list = query.ids?.map((_id) => storeList.find((item) => item._id === _id)).filter(Boolean) || [];
+            const _list = query.ids?.map((_id) => storeList.find((item) => item._id === _id)) || [];
             graphandModelList = new GraphandModelList({ model: Model, count: _list.length, query, rows: _list });
           } else {
-            const _list = rows.map((row) => storeList.find((item) => item._id === row._id)).filter(Boolean) || [];
+            const _list = rows.map((row) => storeList.find((item) => item._id === row._id)) || [];
             graphandModelList = new GraphandModelList({ model: Model, count, query, rows: _list });
           }
 

@@ -377,30 +377,31 @@ class Client {
   getModelByIdentifier(identifier: string, options: any = {}): typeof Data {
     const scope = `Data:${identifier}`;
 
-    if (!this._models[scope]) {
-      const found = this._options.models.find((m: any) =>
-        Array.isArray(m) ? m[0] === scope || m[0]?.scope === scope : m === scope || m?.scope === scope,
-      );
-      if (found && Array.isArray(found) && typeof found[1] === "object") {
-        Object.assign(options, found[1]);
-      }
-      let model = found && Array.isArray(found) ? found[0] : found;
-
-      if (model?.apiIdentifier) {
-        options.extend = options.extend ?? true;
-      } else {
-        const DataConstructorFound = this._options.models.find((m: any) => (Array.isArray(m) ? m[0]?.scope === "Data" : m.scope === "Data")) || Data;
-        const DataConstructor = Array.isArray(DataConstructorFound) ? DataConstructorFound[0] : DataConstructorFound;
-
-        model = class extends DataConstructor {};
-        model._registeredAt = null;
-        model.apiIdentifier = identifier;
-      }
-
-      this.registerModel(model, options);
+    if (this._models[scope]) {
+      return this._models[scope];
     }
 
-    return this._models[scope];
+    const found = this._options.models.find((m: any) =>
+      Array.isArray(m) ? m[0] === scope || m[0]?.scope === scope : m === scope || m?.scope === scope,
+    );
+    if (found && Array.isArray(found) && typeof found[1] === "object") {
+      Object.assign(options, found[1]);
+    }
+    let model = found && Array.isArray(found) ? found[0] : found;
+
+    if (model?.apiIdentifier) {
+      options.extend = options.extend ?? true;
+    } else {
+      const DataConstructorFound = this._options.models.find((m: any) => (Array.isArray(m) ? m[0]?.scope === "Data" : m.scope === "Data")) || Data;
+      const DataConstructor = Array.isArray(DataConstructorFound) ? DataConstructorFound[0] : DataConstructorFound;
+
+      model = class extends DataConstructor {};
+      model.apiIdentifier = identifier;
+    }
+
+    this.registerModel(model, options);
+
+    return this.getModelByIdentifier(identifier, options);
   }
 
   registerModel(Model: any, options: any = {}) {
@@ -436,7 +437,7 @@ class Client {
 
     const _name = options.name || Model.scope;
 
-    if (Model._registeredAt) {
+    if (this._models[_name]) {
       if (Model._client === this) {
         if (!options.force) {
           Model._fieldsIds = options.fieldsIds;
@@ -458,7 +459,6 @@ class Client {
     this._models[_name] = Model;
     this._models[_name]._client = this;
     this._models[_name]._fieldsIds = options.fieldsIds;
-    this._models[_name]._registeredAt = new Date();
 
     try {
       if (options.sync) {
@@ -606,11 +606,27 @@ class Client {
     return data && data.data;
   }
 
-  logout() {
-    this.setAccessToken(undefined);
-    this.setRefreshToken(undefined);
+  /**
+   * Reinit current client (reinit models)
+   */
+  reinit() {
+    Object.values(this._models).forEach((model: typeof GraphandModel) => model.reinit());
   }
 
+  /**
+   * Reset access and refresh tokens and reinit client
+   */
+  logout() {
+    this.setRefreshToken(undefined);
+    this.setAccessToken(undefined);
+    this.reinit();
+    return this;
+  }
+
+  /**
+   * Login account with credentials and set access and refresh tokens in current client
+   * @param credentials
+   */
   async login(credentials) {
     const {
       data: {
@@ -621,6 +637,7 @@ class Client {
         Authorization: null,
       },
     });
+
     this.setRefreshToken(refreshToken);
     this.setAccessToken(accessToken);
     return this;
@@ -731,7 +748,7 @@ class Client {
   }
 
   getGraphandModel(scope: ModelScopes, options?: any) {
-    if (!this._models[scope]?._registeredAt) {
+    if (!this._models[scope]) {
       const found = this._options.models.find((m) => (Array.isArray(m) ? m[0] === scope || m[0]?.scope === scope : m === scope || m.scope === scope));
       if (found && Array.isArray(found) && typeof found[1] === "object") {
         Object.assign(options, found[1]);

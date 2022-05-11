@@ -176,7 +176,13 @@ const fetchModel = async (Model: typeof GraphandModel, query: any, opts?: FetchO
   if (!res) {
     _queries[Model.scope] = _queries[Model.scope] || {};
     _queries[Model.scope][cacheKey] = _queries[Model.scope][cacheKey] || _request(Model, query, hooks, cacheKey, opts);
-    res = await _queries[Model.scope][cacheKey];
+
+    try {
+      res = await _queries[Model.scope][cacheKey];
+    } catch (e) {
+      delete _queries[Model.scope][cacheKey];
+      throw e;
+    }
 
     if (hooks) {
       await Model.execHook("postQuery", [query, res]);
