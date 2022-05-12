@@ -14,7 +14,7 @@ Base Graphand Client class
         * [.logout()](Client.md#Client+logout)
         * [.login(credentials)](Client.md#Client+login)
         * [.clone(options, cloneTokens)](Client.md#Client+clone) ⇒ [<code>Client</code>](Client.md#Client)
-        * [.detroy()](Client.md#Client+detroy)
+        * [.destroy()](Client.md#Client+destroy)
     * _static_
         * [.createClient(options)](#Client.createClient) ⇒ [<code>Client</code>](Client.md#Client)
 
@@ -112,9 +112,9 @@ Clone the current client
 
 * * *
 
-<a name="Client+detroy"></a>
+<a name="Client+destroy"></a>
 
-### client.detroy()
+### client.destroy()
 Destroy the current client
 
 **Kind**: instance method of [<code>Client</code>](Client.md#Client)  

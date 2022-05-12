@@ -781,7 +781,7 @@ class Client {
   /**
    * Destroy the current client
    */
-  async detroy() {
+  async destroy() {
     const plugins = Array.from(this._plugins);
     await Promise.all(plugins.map((p) => p.execute(PluginLifecyclePhases.UNINSTALL)));
   }
