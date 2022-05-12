@@ -372,10 +372,6 @@ class GraphandModel extends AbstractGraphandModel {
       return this._cachedFields;
     }
 
-    if (!this._client) {
-      throw new Error(`Model ${this.scope} is not registered. Please use Client.registerModel() before`);
-    }
-
     const fields: any = {
       _id: new GraphandFieldId(),
       ...this._dataFields,
@@ -770,10 +766,6 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   static rebuildModel(serial) {
-    if (!this._client) {
-      throw new Error(`Model ${this.scope} is not register. Please use Client.registerModel() before`);
-    }
-
     const DataField = this._client.getModel("DataField");
 
     const { fields, fieldsIds } = JSON.parse(serial);

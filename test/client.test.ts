@@ -1,3 +1,5 @@
+import exp = require("constants");
+import { GraphandModelAccount } from "../src";
 import Client from "../src/Client";
 
 describe("Client.ts", () => {
@@ -30,5 +32,13 @@ describe("Client.ts", () => {
     expect(Account.get(currentAccount._id, false)).toBeTruthy();
     client.reinit();
     expect(Account.get(currentAccount._id, false)).toBeFalsy();
+  });
+
+  test("should register model", async () => {
+    const Account = class extends GraphandModelAccount {};
+    const { userAccessToken, projectId } = process.env;
+    const client = Client.createClient({ project: projectId, accessToken: userAccessToken, models: [Account] });
+    await client._init();
+    expect(Account._client).toEqual(client);
   });
 });

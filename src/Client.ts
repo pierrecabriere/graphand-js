@@ -437,7 +437,7 @@ class Client {
 
     const _name = options.name || Model.scope;
 
-    if (this._models[_name]) {
+    if (Model._client) {
       if (Model._client === this) {
         if (!options.force) {
           Model._fieldsIds = options.fieldsIds;
@@ -748,26 +748,28 @@ class Client {
   }
 
   getGraphandModel(scope: ModelScopes, options?: any) {
-    if (!this._models[scope]) {
-      const found = this._options.models.find((m) => (Array.isArray(m) ? m[0] === scope || m[0]?.scope === scope : m === scope || m.scope === scope));
-      if (found && Array.isArray(found) && typeof found[1] === "object") {
-        Object.assign(options, found[1]);
-      }
-      let model = found && Array.isArray(found) ? found[0] : found;
-      if (model?.apiIdentifier) {
-        options.extend = options.extend ?? true;
-      } else {
-        model = Object.values(models).find((m) => m.scope === scope);
-        if (!model) {
-          throw new Error(`Model ${scope} not found`);
-        }
-        model = class extends model {};
-      }
-
-      this.registerModel(model, options);
+    if (this._models[scope]) {
+      return this._models[scope];
     }
 
-    return this._models[scope];
+    const found = this._options.models.find((m) => (Array.isArray(m) ? m[0] === scope || m[0]?.scope === scope : m === scope || m.scope === scope));
+    if (found && Array.isArray(found) && typeof found[1] === "object") {
+      Object.assign(options, found[1]);
+    }
+    let model = found && Array.isArray(found) ? found[0] : found;
+    if (model?.apiIdentifier) {
+      options.extend = options.extend ?? true;
+    } else {
+      model = Object.values(models).find((m) => m.scope === scope);
+      if (!model) {
+        throw new Error(`Model ${scope} not found`);
+      }
+      model = class extends model {};
+    }
+
+    this.registerModel(model, options);
+
+    return this.getGraphandModel(scope, options);
   }
 
   setLocale(locale: string) {
@@ -782,6 +784,7 @@ class Client {
    * Destroy the current client
    */
   async destroy() {
+    this.disconnectSocket();
     const plugins = Array.from(this._plugins);
     await Promise.all(plugins.map((p) => p.execute(PluginLifecyclePhases.UNINSTALL)));
   }

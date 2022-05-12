@@ -20,7 +20,7 @@ class Restriction extends GraphandModel {
     role: new GraphandFieldRelation({ ref: "Role", multiple: false }),
     scope: new GraphandFieldScope(),
     actions: new GraphandFieldText({ multiple: true, options: ["create", "update"] }),
-    fields: new GraphandFieldText({ multiple: true }),
+    fields: new GraphandFieldText({ multiple: true, creatable: true }),
     conditions: new GraphandFieldJSON(),
   };
 
