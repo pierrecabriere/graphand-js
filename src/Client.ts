@@ -520,8 +520,6 @@ class Client {
     let hook;
     let socket;
 
-    _await = _await === undefined ? handler.constructor.name === "AsyncFunction" : _await;
-
     if (!identifier) {
       identifier = `${events.toString()}:${model.scope}`;
     }

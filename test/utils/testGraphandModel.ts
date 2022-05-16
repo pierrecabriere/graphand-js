@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import GraphandModel from "../../src/lib/GraphandModel";
 
 const testGraphandModel_get = (instance: { current: GraphandModel }) => {
@@ -118,9 +119,54 @@ const testGraphandModel_getList = (instance: { current: GraphandModel }) => {
   });
 };
 
+const testGraphandModel_crud = (instance: { current: GraphandModel }) => {
+  test("GraphandModel.prototype should update", async () => {
+    const { constructor: Model } = Object.getPrototypeOf(instance.current);
+    const [firstDataField] = await Model.dataFieldsList;
+
+    const input = faker.lorem.sentence();
+    await instance.current.update({ set: { [firstDataField.slug]: input } });
+    expect(instance.current[firstDataField.slug]).toEqual(input);
+
+    const instanceFromModel = Model.get(instance.current._id);
+    expect(instanceFromModel._id).toEqual(instance.current._id);
+    expect(instanceFromModel.then).toBeUndefined();
+    expect(instanceFromModel.get(firstDataField.slug)).toEqual(input);
+  });
+};
+
+const testGraphandModel_caching = (instance: { current: GraphandModel }) => {
+  test("clearCache", () => {
+    const { constructor: Model } = Object.getPrototypeOf(instance.current);
+    Model.reinit();
+    expect(Model.getList().length).toBeFalsy();
+  });
+
+  test("GraphandModel.getList should returns list from cache after updating", async () => {
+    const { constructor: Model } = Object.getPrototypeOf(instance.current);
+    const _id = instance.current._id;
+    await Model.getList({ query: { _id: { $in: [_id] } }, count: true });
+
+    const [firstDataField] = await Model.dataFieldsList;
+
+    expect(Model.getList({ query: { _id: { $in: [_id] } }, count: true }).then).toBeUndefined();
+    await instance.current.update({ set: { [firstDataField.slug]: faker.lorem.sentence() } });
+    const list = Model.getList({ query: { _id: { $in: [_id] } }, count: true });
+    expect(list.then).toBeDefined();
+    await list;
+
+    await instance.current.update({ set: { [firstDataField.slug]: faker.lorem.sentence() } });
+    const list2 = Model.getList({ query: { _id: { $in: [_id] } }, count: true });
+    expect(list2.then).toBeDefined();
+    await list2;
+  });
+};
+
 const testGraphandModel = (instance: { current: GraphandModel }) => {
   testGraphandModel_get(instance);
   testGraphandModel_getList(instance);
+  testGraphandModel_crud(instance);
+  testGraphandModel_caching(instance);
 };
 
 export default testGraphandModel;
