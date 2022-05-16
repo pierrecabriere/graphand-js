@@ -12,6 +12,8 @@ class Data extends GraphandModel {
   static queryFields = true;
   static apiIdentifier;
 
+  [prop: string]: any;
+
   static get scope(): ModelScopes {
     return (this.apiIdentifier ? `Data:${this.apiIdentifier}` : "Data") as ModelScopes;
   }

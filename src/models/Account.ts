@@ -30,6 +30,7 @@ class Account extends GraphandModel {
   email;
   password;
   role;
+  [prop: string]: any;
 
   get fullname() {
     return `${this.firstname} ${this.lastname}`;

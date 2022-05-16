@@ -45,6 +45,7 @@ class Media extends GraphandModel {
   private;
   width;
   height;
+  [prop: string]: any;
 
   /**
    * {@link Media#getUrl} options
