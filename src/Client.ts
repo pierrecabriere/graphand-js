@@ -436,7 +436,6 @@ class Client {
     options.cache = options.cache ?? this._options.cache;
 
     const _name = options.name || Model.scope;
-
     if (Model._client) {
       if (Model._client === this) {
         if (!options.force) {
@@ -474,6 +473,10 @@ class Client {
     } catch (e) {
       console.error(e);
     }
+
+    // if (this._models[_name].scope === "Role") {
+    //   console.log(this._models[_name]._client?._options.project, "ok");
+    // }
 
     return this._models[_name];
   }

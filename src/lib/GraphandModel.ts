@@ -372,7 +372,7 @@ class GraphandModel extends AbstractGraphandModel {
       return this._cachedFields;
     }
 
-    const fields: any = {
+    const fields = {
       _id: new GraphandFieldId(),
       ...this._dataFields,
       ...this.schema,

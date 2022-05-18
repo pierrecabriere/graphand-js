@@ -25,7 +25,8 @@ class GraphandFieldRelation extends GraphandField {
       return;
     }
 
-    if (!this._model || this._model.scope !== this.ref) {
+    let model = this._model;
+    if (!model) {
       if (!from) {
         console.error(`Unable to get model from field with value ${value}`, this);
         return null;
@@ -34,15 +35,15 @@ class GraphandFieldRelation extends GraphandField {
       const { constructor } = Object.getPrototypeOf(from);
       const { _client } = constructor;
 
-      this._model = _client.getModel(this.ref);
+      model = _client.getModel(this.ref);
     }
 
     if (this.multiple) {
       const ids = typeof value === "string" ? [value] : value.filter(Boolean).map((v) => v._id || v) || [];
-      return this._model.getList({ ids });
+      return model.getList({ ids });
     } else {
       const id = typeof value === "string" ? value : value._id;
-      return this._model.get(id);
+      return model.get(id);
     }
   }
 
