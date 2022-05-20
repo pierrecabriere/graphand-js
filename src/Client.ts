@@ -524,7 +524,7 @@ class Client {
     let socket;
 
     if (!identifier) {
-      identifier = `${events.toString()}:${model.scope}`;
+      identifier = `${events.toString().replace(",", "-")}-${model.scope.replace("Data:", "")}`;
     }
 
     if (this._registerHooks.has(identifier)) {
@@ -533,8 +533,8 @@ class Client {
       this._registerHooks.add(identifier);
     }
 
-    const _trigger = async (payload, hook) => {
-      if (hook.await) {
+    const _trigger = async (payload) => {
+      if (_await) {
         let res;
         try {
           res = await new Promise(async (resolve, reject) => {
@@ -545,10 +545,10 @@ class Client {
               reject(e);
             }
           });
-          await this._axios.post(`/sockethooks/${hook._id}/end`, res ?? payload);
+          await this._axios.post(`/sockethooks/${identifier}/end`, res ?? payload);
         } catch (e) {
           console.error(e);
-          this._axios.post(`/sockethooks/${hook._id}/throw`, e);
+          this._axios.post(`/sockethooks/${identifier}/throw`, e);
         }
       } else {
         try {
@@ -565,10 +565,6 @@ class Client {
       }
 
       socket = _socket;
-
-      if (hook) {
-        socket.off(`/hooks/${hook._id}`);
-      }
 
       try {
         const Sockethook = this.getModel("Sockethook");
@@ -587,18 +583,19 @@ class Client {
           throw new GraphandValidationError("Field actions is required", "actions", GraphandValidationError.Codes.REQUIRED);
         }
 
+        socket.off(`/hooks/${identifier}`);
+        socket.on(`/hooks/${identifier}`, _trigger);
+
         hook = await Sockethook.create(payload);
 
-        socket.off(`/hooks/${hook._id}`);
-        socket.on(`/hooks/${hook._id}`, (payload) => _trigger(payload, hook));
-        console.log(`sockethook ${hook.identifier} with _id ${hook._id} registered on socket ${socket.id}`);
+        console.log(`sockethook ${identifier} registered on socket ${socket.id}`);
       } catch (e) {
-        console.error(`error registering sockethook`, e);
+        socket.off(`/hooks/${identifier}`);
+        console.error(`error registering sockethook ${identifier}`);
       }
     };
 
     this._socketSubject.subscribe((_socket) => _register(_socket));
-    // console.log("waiting for socket to connect ...");
     this.connectSocket();
   }
 
