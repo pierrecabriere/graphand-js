@@ -6,6 +6,7 @@ yarn.lock
 .env.test
 coverage
 dist
+dist-docs
 .DS_Store
 .idea
 .vscode

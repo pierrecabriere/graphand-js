@@ -662,11 +662,12 @@ class GraphandModel extends AbstractGraphandModel {
   ): GraphandModelList<InstanceType<T>> | GraphandModelListPromise<InstanceType<T>>;
 
   /**
-   * Returns a GraphandModelList (or Promise) of the model
+   * Returns a GraphandModelList (or Promise) of the model. If no query provided, returns all the cached instances
    * @param query {Query} - the request query (see api doc)
    * @param opts
    * @returns {GraphandModelList|GraphandModelListPromise}
    * @example GraphandModel.getList({ query: { title: { $regex: "toto" } }, pageSize: 5, page: 2 })
+   * @example GraphandModel.getList().find((instance) => instance.title === "toto")
    */
   static getList<T extends typeof GraphandModel>(
     this: T,

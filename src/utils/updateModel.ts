@@ -34,6 +34,7 @@ const updateModel = async (Model: typeof GraphandModel, payload, options) => {
     if (payload.query) {
       payload.query = parseQuery(payload.query);
     }
+
     if (payload.set) {
       payload.set = parsePayload(payload.set);
     }
@@ -116,7 +117,8 @@ const updateModelInstance = async (instance: GraphandModel, payload, options) =>
   }
 
   try {
-    await constructor.update(
+    await updateModel(
+      constructor,
       { ...payload, query: { _id } },
       {
         clearCache: options.clearCache,
@@ -127,6 +129,7 @@ const updateModelInstance = async (instance: GraphandModel, payload, options) =>
 
     if (options.upsert) {
       const found = constructor.get(_id, false);
+
       if (found) {
         instance.assign(found.raw, false);
       }

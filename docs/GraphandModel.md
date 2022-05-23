@@ -373,7 +373,7 @@ Clear the local cache for the model
 <a name="GraphandModel.getList"></a>
 
 ### GraphandModel.getList(query, opts) ⇒ [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList) \| <code>GraphandModelListPromise</code>
-Returns a GraphandModelList (or Promise) of the model
+Returns a GraphandModelList (or Promise) of the model. If no query provided, returns all the cached instances
 
 **Kind**: static method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
@@ -385,6 +385,10 @@ Returns a GraphandModelList (or Promise) of the model
 **Example**  
 ```js
 GraphandModel.getList({ query: { title: { $regex: "toto" } }, pageSize: 5, page: 2 })
+```
+**Example**  
+```js
+GraphandModel.getList().find((instance) => instance.title === "toto")
 ```
 
 * * *
