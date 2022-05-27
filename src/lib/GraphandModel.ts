@@ -956,14 +956,19 @@ class GraphandModel extends AbstractGraphandModel {
    */
   assign(values?, upsert = true, updatedAtNow = true) {
     const { constructor } = Object.getPrototypeOf(this);
-    const clone = this.clone();
+    let clone;
+    if (upsert || updatedAtNow) {
+      clone = this.clone();
+    }
 
     if (updatedAtNow) {
       clone.updatedAt = new Date();
     }
 
     if (upsert) {
-      if (values) {
+      if (values?._id) {
+        clone._data = values;
+      } else if (values) {
         Object.keys(values).forEach((key) => {
           clone.set(key, values[key], false);
         });
@@ -972,7 +977,9 @@ class GraphandModel extends AbstractGraphandModel {
       constructor.upsertStore([clone]);
     }
 
-    if (values) {
+    if (values?._id) {
+      this._data = values;
+    } else if (values) {
       Object.keys(values).forEach((key) => {
         this.set(key, values[key], false);
       });

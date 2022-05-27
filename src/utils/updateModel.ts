@@ -129,10 +129,7 @@ const updateModelInstance = async (instance: GraphandModel, payload, options) =>
 
     if (options.upsert) {
       const found = constructor.get(_id, false);
-
-      if (found) {
-        instance.assign(found.raw, false);
-      }
+      instance.assign(found.raw, false, false);
     } else {
       instance.assign(null, false);
     }
