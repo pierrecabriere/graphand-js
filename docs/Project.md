@@ -7,17 +7,20 @@ Project model. Use [client.getModel("Project")](Client.md#Client+getModel) to us
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 * [Project](Project.md#Project) ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-    * [.raw](#GraphandModel+raw) ⇒ <code>\*</code>
-    * [.update(update, [options])](#GraphandModel+update)
-    * [.delete([options])](#GraphandModel+delete)
-    * [.clone(locale)](#GraphandModel+clone)
-    * [.get(slug, [parse], _locale, fallback)](#GraphandModel+get)
-    * [.set(slug, value, [upsert], [parse])](#GraphandModel+set)
-    * [.assign(values, [upsert], updatedAtNow)](#GraphandModel+assign)
-    * [.subscribe(callback)](#GraphandModel+subscribe)
-    * [.isTemporary()](#GraphandModel+isTemporary)
-    * [.serialize()](#GraphandModel+serialize) ⇒ <code>Object</code>
-    * [.toJSON()](#GraphandModel+toJSON) ⇒ <code>Object</code>
+    * _instance_
+        * [.raw](#GraphandModel+raw) ⇒ <code>\*</code>
+        * [.update(update, [options])](#GraphandModel+update)
+        * [.delete([options])](#GraphandModel+delete)
+        * [.clone(locale)](#GraphandModel+clone)
+        * [.get(slug, [parse], _locale, fallback)](#GraphandModel+get)
+        * [.set(slug, value, [upsert], [parse])](#GraphandModel+set)
+        * [.assign(values, [upsert], updatedAtNow)](#GraphandModel+assign)
+        * [.subscribe(callback)](#GraphandModel+subscribe)
+        * [.isTemporary()](#GraphandModel+isTemporary)
+        * [.serialize()](#GraphandModel+serialize) ⇒ <code>Object</code>
+        * [.toJSON()](#GraphandModel+toJSON) ⇒ <code>Object</code>
+    * _static_
+        * [.getCurrent()](#Project.getCurrent) ⇒ [<code>Project</code>](Project.md#Project) \| [<code>GraphandModelPromise.&lt;Project&gt;</code>](Project.md#Project)
 
 
 * * *
@@ -172,6 +175,15 @@ Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
 Returns JSON-serialized object of the current instance
 
 **Kind**: instance method of [<code>Project</code>](Project.md#Project)  
+
+* * *
+
+<a name="Project.getCurrent"></a>
+
+### Project.getCurrent() ⇒ [<code>Project</code>](Project.md#Project) \| [<code>GraphandModelPromise.&lt;Project&gt;</code>](Project.md#Project)
+Returns current project
+
+**Kind**: static method of [<code>Project</code>](Project.md#Project)  
 
 * * *
 

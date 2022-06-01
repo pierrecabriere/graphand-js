@@ -327,7 +327,7 @@ class Client {
             })(),
             (async () => {
               if (this._options.initProject && this._options.project) {
-                await this.getModel(ModelScopes.Project).get("current");
+                await this.getModel(ModelScopes.Project).getCurrent();
               }
             })(),
           ]);

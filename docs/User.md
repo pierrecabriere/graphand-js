@@ -7,17 +7,20 @@ User model. Use [client.getModel("User")](Client.md#Client+getModel) to use this
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 * [User](User.md#User) ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-    * [.raw](#GraphandModel+raw) ⇒ <code>\*</code>
-    * [.update(update, [options])](#GraphandModel+update)
-    * [.delete([options])](#GraphandModel+delete)
-    * [.clone(locale)](#GraphandModel+clone)
-    * [.get(slug, [parse], _locale, fallback)](#GraphandModel+get)
-    * [.set(slug, value, [upsert], [parse])](#GraphandModel+set)
-    * [.assign(values, [upsert], updatedAtNow)](#GraphandModel+assign)
-    * [.subscribe(callback)](#GraphandModel+subscribe)
-    * [.isTemporary()](#GraphandModel+isTemporary)
-    * [.serialize()](#GraphandModel+serialize) ⇒ <code>Object</code>
-    * [.toJSON()](#GraphandModel+toJSON) ⇒ <code>Object</code>
+    * _instance_
+        * [.raw](#GraphandModel+raw) ⇒ <code>\*</code>
+        * [.update(update, [options])](#GraphandModel+update)
+        * [.delete([options])](#GraphandModel+delete)
+        * [.clone(locale)](#GraphandModel+clone)
+        * [.get(slug, [parse], _locale, fallback)](#GraphandModel+get)
+        * [.set(slug, value, [upsert], [parse])](#GraphandModel+set)
+        * [.assign(values, [upsert], updatedAtNow)](#GraphandModel+assign)
+        * [.subscribe(callback)](#GraphandModel+subscribe)
+        * [.isTemporary()](#GraphandModel+isTemporary)
+        * [.serialize()](#GraphandModel+serialize) ⇒ <code>Object</code>
+        * [.toJSON()](#GraphandModel+toJSON) ⇒ <code>Object</code>
+    * _static_
+        * [.getCurrent()](#User.getCurrent) ⇒ [<code>User</code>](User.md#User) \| [<code>GraphandModelPromise.&lt;User&gt;</code>](User.md#User)
 
 
 * * *
@@ -172,6 +175,15 @@ Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
 Returns JSON-serialized object of the current instance
 
 **Kind**: instance method of [<code>User</code>](User.md#User)  
+
+* * *
+
+<a name="User.getCurrent"></a>
+
+### User.getCurrent() ⇒ [<code>User</code>](User.md#User) \| [<code>GraphandModelPromise.&lt;User&gt;</code>](User.md#User)
+Returns current user
+
+**Kind**: static method of [<code>User</code>](User.md#User)  
 
 * * *
 

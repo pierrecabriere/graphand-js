@@ -1,3 +1,4 @@
+import { AxiosRequestConfig } from "axios";
 import { GraphandModel } from "../lib";
 import parseQuery from "./parseQuery";
 
@@ -26,7 +27,7 @@ const deleteModel = async (Model: typeof GraphandModel, payload: GraphandModel |
   if (payload instanceof GraphandModel) {
     try {
       const { _id } = payload;
-      await Model._client._axios.delete(`${Model.baseUrl}/${_id}`);
+      await Model._client._axios.delete(`${Model.baseUrl}/${_id}`, { global: Model.isGlobal } as AxiosRequestConfig<any>);
 
       if (options.updateStore) {
         const updated = Model.deleteFromStore([payload]);

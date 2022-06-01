@@ -18,7 +18,7 @@ describe("Bootstrap", () => {
   });
 
   test("should get current user", async () => {
-    currentUser = await User.get("current");
+    currentUser = await User.getCurrent();
     expect(currentUser?._id).toBeDefined();
   });
 
@@ -28,16 +28,11 @@ describe("Bootstrap", () => {
     const _project = await Project.create({ name, slug, locales: [Locales.FR], defaultLocale: Locales.FR });
     expect(_project?._id).toBeDefined();
     project = _project;
-  });
-
-  test("should get the project by id", async () => {
-    const _project = await Project.get(project._id);
-    expect(_project._id).toEqual(project._id);
     projectClient = client.clone({ project: project._id });
   });
 
   test("should get the current project", async () => {
-    const _project = await projectClient.getModel("Project").get("current");
+    const _project = await projectClient.getModel("Project").getCurrent();
     expect(_project._id).toEqual(project._id);
   });
 

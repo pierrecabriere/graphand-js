@@ -1,5 +1,6 @@
 import Locales from "../enums/locales";
 import ModelScopes from "../enums/model-scopes";
+import { GraphandModelPromise } from "../lib";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
@@ -16,6 +17,7 @@ class Project extends GraphandModel {
 
   static apiIdentifier = "projects";
   static baseUrl = "/projects";
+  static isGlobal = true;
   static scope = ModelScopes.Project;
   static schema = {
     name: new GraphandFieldText(),
@@ -26,6 +28,15 @@ class Project extends GraphandModel {
     accessTokenLifetime: new GraphandFieldNumber(),
     refreshTokenLifetime: new GraphandFieldNumber(),
   };
+
+  /**
+   * Returns current project
+   * @returns {Project|GraphandModelPromise<Project>}
+   */
+  static getCurrent(): Project | GraphandModelPromise<Project> {
+    const client = this._client;
+    return this.get(client._options.project);
+  }
 
   name;
   slug;

@@ -108,6 +108,7 @@ class GraphandModel extends AbstractGraphandModel {
   // configurable fields
   static translatable = true;
   static queryFields = false;
+  static isGlobal = false;
   static baseUrl = null;
   static queryUrl = null;
   static schema = {};
@@ -526,8 +527,8 @@ class GraphandModel extends AbstractGraphandModel {
     socket.on(path, trigger);
   }
 
-  static async handleUpdateCall(payload) {
-    return await this._client._axios.patch(this.baseUrl, payload);
+  static async handleUpdateCall(payload, config) {
+    return await this._client._axios.patch(this.baseUrl, payload, config);
   }
 
   /**

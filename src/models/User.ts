@@ -1,4 +1,5 @@
 import ModelScopes from "../enums/model-scopes";
+import { GraphandModelPromise } from "../lib";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
@@ -12,6 +13,7 @@ class User extends GraphandModel {
 
   static apiIdentifier = "users";
   static baseUrl = "/users";
+  static isGlobal = true;
   static scope = ModelScopes.User;
   static schema = {
     firstname: new GraphandFieldText(),
@@ -29,6 +31,14 @@ class User extends GraphandModel {
 
   get fullname() {
     return `${this.firstname} ${this.lastname}`;
+  }
+
+  /**
+   * Returns current user
+   * @returns {User|GraphandModelPromise<User>}
+   */
+  static getCurrent(): User | GraphandModelPromise<User> {
+    return this.get("current");
   }
 }
 

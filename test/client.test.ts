@@ -1,4 +1,3 @@
-import exp = require("constants");
 import { GraphandModelAccount } from "../src";
 import Client from "../src/Client";
 

@@ -39,7 +39,9 @@ const updateModel = async (Model: typeof GraphandModel, payload, options) => {
       payload.set = parsePayload(payload.set);
     }
 
-    const { data } = await Model.handleUpdateCall(payload);
+    const config = { global: Model.isGlobal };
+
+    const { data } = await Model.handleUpdateCall(payload, config);
 
     if (!data) {
       return data;

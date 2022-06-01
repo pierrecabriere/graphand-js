@@ -4,13 +4,18 @@ import GraphandError from "../lib/GraphandError";
 
 const setupAxios = (client: Client) => {
   const options = client._options;
-  const axiosClient = axios.create({
-    baseURL: `${options.ssl ? "https" : "http"}://${options.project ? `${options.project}.` : ""}${options.host}`,
-  });
+  const axiosClient = axios.create();
 
   axiosClient.interceptors.request.use((config: any) => {
     config.data = config.data || config._data;
     config.headers = config.headers || {};
+    if (config.global) {
+      config.baseURL = `${options.ssl ? "https" : "http"}://${options.host}`;
+      config.params = config.params || {};
+      config.params.project = client._options.project;
+    } else {
+      config.baseURL = `${options.ssl ? "https" : "http"}://${options.project ? `${options.project}.` : ""}${options.host}`;
+    }
 
     if (config.headers.Authorization === undefined) {
       const token = client.getAccessToken();

@@ -4,7 +4,7 @@ import parsePayload from "./parsePayload";
 const createModel = async (Model: typeof GraphandModel, payload, hooks = true, url: string) => {
   await Model._init();
 
-  const config = { params: {} };
+  const config = { params: {}, global: Model.isGlobal };
 
   if (payload.locale && Model._client._project && payload.locale === Model._client._project.defaultLocale) {
     delete payload.locale;

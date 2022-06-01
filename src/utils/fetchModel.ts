@@ -69,8 +69,9 @@ const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey, opt
   let axiosRes: AxiosResponse, res: GraphandQueryResponse;
 
   try {
-    const axiosOpts: AxiosRequestConfig = opts.axiosOpts || {};
-    axiosOpts.baseURL = opts.global ? `${Model._client._options.ssl ? "https" : "http"}://${Model._client._options.host}` : undefined;
+    const axiosOpts: AxiosRequestConfig<any> = opts.axiosOpts || {};
+    // @ts-ignore
+    axiosOpts.global = opts.global ?? Model.isGlobal;
     let singleId, params;
     if (typeof query?.query?._id === "string" && Object.keys(query.query).length === 1) {
       const {
