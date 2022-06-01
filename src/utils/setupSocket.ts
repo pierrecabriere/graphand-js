@@ -7,7 +7,7 @@ const setupSocket = (client: Client) => {
     ...client._options.socketOptions,
     query: {
       token: client.getAccessToken(),
-      projectId: client._options.project,
+      project: client._options.project,
       env: client._options.env || "master",
     },
   });
