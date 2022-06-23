@@ -11,6 +11,7 @@ const updateModel = async (Model: typeof GraphandModel, payload, options) => {
       hooks: true,
       clearCache: true,
       upsert: true,
+      parse: true,
     },
     options,
   );
@@ -23,23 +24,29 @@ const updateModel = async (Model: typeof GraphandModel, payload, options) => {
     delete payload.locale;
   }
 
+  let config = { ...(options.config || {}), global: Model.isGlobal };
+  const args = { payload, config };
+
   if (options.hooks) {
-    const responses = await Model.execHook("preUpdate", [payload]);
+    const responses = await Model.execHook("preUpdate", [args]);
     if (responses?.includes(false)) {
       return;
     }
   }
 
+  payload = args.payload;
+  config = args.config;
+
   try {
-    if (payload.query) {
-      payload.query = parseQuery(payload.query);
-    }
+    if (options.parse) {
+      if (payload.query) {
+        payload.query = parseQuery(payload.query);
+      }
 
-    if (payload.set) {
-      payload.set = parsePayload(payload.set);
+      if (payload.set) {
+        payload.set = parsePayload(payload.set);
+      }
     }
-
-    const config = { global: Model.isGlobal };
 
     const { data } = await Model.handleUpdateCall(payload, config);
 
@@ -89,6 +96,9 @@ const updateModelInstance = async (instance: GraphandModel, payload, options) =>
   options.upsert = options.upsert ?? !options.preStore;
   options.revertOnError = options.revertOnError ?? options.preStore;
 
+  const _id = payload._id || instance._id;
+  payload.query = { _id };
+
   const constructor = instance.constructor as typeof GraphandModel;
 
   // if (constructor.translatable && !payload.translations && constructor._client._project?.locales?.length) {
@@ -99,14 +109,28 @@ const updateModelInstance = async (instance: GraphandModel, payload, options) =>
     payload.locale = instance._locale;
   }
 
+  let config = {};
+  const args = { payload, instance, config };
+
   if (options.hooks) {
-    const responses = await constructor.execHook("preUpdate", [payload, instance]);
+    const responses = await constructor.execHook("preUpdate", [args]);
     if (responses?.includes(false)) {
       return;
     }
   }
 
-  const _id = payload._id || instance._id;
+  payload = args.payload;
+  instance = args.instance;
+  config = args.config;
+
+  if (payload.query) {
+    payload.query = parseQuery(payload.query);
+  }
+
+  if (payload.set) {
+    payload.set = parsePayload(payload.set);
+  }
+
   const backup = instance.clone();
 
   if (options.preStore) {
@@ -119,15 +143,13 @@ const updateModelInstance = async (instance: GraphandModel, payload, options) =>
   }
 
   try {
-    await updateModel(
-      constructor,
-      { ...payload, query: { _id } },
-      {
-        clearCache: options.clearCache,
-        upsert: options.upsert,
-        hooks: false,
-      },
-    );
+    await updateModel(constructor, payload, {
+      clearCache: options.clearCache,
+      upsert: options.upsert,
+      hooks: false,
+      parse: false,
+      config,
+    });
 
     if (options.upsert) {
       const found = constructor.get(_id, false);

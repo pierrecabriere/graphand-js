@@ -8,6 +8,7 @@ import EsMapping from "./EsMapping";
 import Log from "./Log";
 import Media from "./Media";
 import Module from "./Module";
+import Organization from "./Organization";
 import Project from "./Project";
 import Restriction from "./Restriction";
 import Role from "./Role";
@@ -36,4 +37,5 @@ export {
   User,
   Webhook,
   Environment,
+  Organization,
 };

@@ -50,6 +50,7 @@ const setupAxios = (client: Client) => {
         error.config &&
         !error.config._retry &&
         error.config.url !== "/auth/login" &&
+        error.config.url !== "/auth/confirm" &&
         error.graphandErrors.find((e) => e.code === "expired_token")
       ) {
         return client.refreshToken().then(() => {

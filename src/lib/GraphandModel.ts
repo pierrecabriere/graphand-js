@@ -14,6 +14,7 @@ import getModelInstance from "../utils/getModelInstance";
 import getModelList, { ModelListOptions } from "../utils/getModelList";
 import hydrateModel from "../utils/hydrateModel";
 import isId from "../utils/isId";
+import parsePayload from "../utils/parsePayload";
 import parseQuery from "../utils/parseQuery";
 import processPopulate from "../utils/processPopulate";
 import updateModel, { updateModelInstance } from "../utils/updateModel";
@@ -225,7 +226,23 @@ class GraphandModel extends AbstractGraphandModel {
     const DataField = this._client.getModel("DataField");
 
     if (!this._dataFieldsList) {
-      const query: Query = this._fieldsIds && !this._client._options.subscribeFields ? { ids: this._fieldsIds } : { query: { scope: this.scope } };
+      let query: Query = { query: { scope: this.scope } };
+
+      if (this._fieldsIds) {
+        if (this._client._options.subscribeFields) {
+          const initList = this._fieldsIds.map((id) => DataField.get(id, false));
+          if (initList.every(Boolean)) {
+            const cacheKey = DataField.getCacheKey(query);
+            DataField._cache[cacheKey] = {
+              rows: initList,
+              count: initList.length,
+            };
+          }
+        } else {
+          query = { ids: this._fieldsIds };
+        }
+      }
+
       this._dataFieldsList = DataField.getList(query);
     }
 
@@ -559,7 +576,7 @@ class GraphandModel extends AbstractGraphandModel {
     return this;
   }
 
-  static getCacheKey({ populate, sort, pageSize, page, translations, query, ids, count }) {
+  static getCacheKey({ populate, sort, pageSize, page, translations, query, ids, count }: any) {
     return this.scope + JSON.stringify([populate || "", sort || "", pageSize || "", page || "", translations || "", query || "", ids || "", !!count]);
   }
 
@@ -967,6 +984,7 @@ class GraphandModel extends AbstractGraphandModel {
     }
 
     if (upsert) {
+      values = values && parsePayload(values);
       if (values?._id) {
         clone._data = values;
       } else if (values) {

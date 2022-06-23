@@ -41,7 +41,7 @@ class DataField extends GraphandModel {
 
   toGraphandField() {
     const { type, configuration } = this;
-    let field;
+    let field: GraphandField;
     switch (type) {
       case "Text":
         field = new GraphandFieldText(configuration);

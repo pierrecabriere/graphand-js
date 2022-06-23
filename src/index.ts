@@ -28,6 +28,7 @@ import EsMapping from "./models/EsMapping";
 import Log from "./models/Log";
 import Media from "./models/Media";
 import Module from "./models/Module";
+import Organization from "./models/Organization";
 import Project from "./models/Project";
 import Restriction from "./models/Restriction";
 import Role from "./models/Role";
@@ -71,6 +72,7 @@ export {
   EsMapping as GraphandModelEsMapping,
   Log as GraphandModelLog,
   Environment as GraphandModelEnvironment,
+  Organization as GraphandModelOrganization,
   GraphandError,
   GraphandValidationError,
   GraphandPlugin,

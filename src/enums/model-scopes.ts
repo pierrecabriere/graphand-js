@@ -10,6 +10,7 @@ enum ModelScopes {
   Media = "Media",
   Module = "Module",
   Project = "Project",
+  Organization = "Organization",
   Restriction = "Restriction",
   Role = "Role",
   Rule = "Rule",

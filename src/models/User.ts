@@ -19,6 +19,8 @@ class User extends GraphandModel {
     firstname: new GraphandFieldText(),
     lastname: new GraphandFieldText(),
     picture: new GraphandFieldText(),
+    job: new GraphandFieldText(),
+    status: new GraphandFieldText(),
     email: new GraphandFieldText(),
     password: new GraphandFieldText(),
   };
@@ -26,11 +28,22 @@ class User extends GraphandModel {
   firstname;
   lastname;
   picture;
+  job;
   email;
   password;
+  status;
 
   get fullname() {
     return `${this.firstname} ${this.lastname}`;
+  }
+
+  /**
+   * Register new user
+   * @param payload {Object}
+   * @param hooks {boolean=}
+   */
+  static register(payload, hooks = true) {
+    return this.create(payload, hooks, `auth/register`);
   }
 
   /**
@@ -41,5 +54,25 @@ class User extends GraphandModel {
     return this.get("current");
   }
 }
+
+User.hook("preUpdate", (args) => {
+  if (args.payload && !args.payload.append && args.payload.picture) {
+    if (args.payload?.picture?.getAsFile) {
+      args.payload.picture = args.payload.picture.getAsFile();
+    }
+
+    const formData = new FormData();
+    const { query, set, picture } = args.payload;
+    query && formData.append("query", JSON.stringify(query));
+    set && formData.append("set", JSON.stringify(set));
+    formData.append("picture", picture);
+
+    args.config.headers = args.config.headers || {};
+    args.config.headers["Content-Type"] = "multipart/form-data";
+
+    args._rawPayload = args.payload;
+    args.payload = formData;
+  }
+});
 
 export default User;

@@ -45,6 +45,8 @@ class Project extends GraphandModel {
   defaultRegisterRole;
   accessTokenLifetime;
   refreshTokenLifetime;
+  organization;
+  plan;
 }
 
 export default Project;
