@@ -1016,18 +1016,20 @@ class GraphandModel extends AbstractGraphandModel {
   createObservable() {
     const { constructor } = Object.getPrototypeOf(this);
     this._observable = new Observable((subscriber) => {
-      let prev = this.clone();
-      this._storeSub = constructor._listSubject.subscribe((_list) => {
-        setTimeout(async () => {
-          const item = prev.isTemporary() ? _list.find((i) => i._id === prev._id) : await constructor.get(prev._id);
-          if (!item || !deepEqual(item.raw, prev.raw)) {
-            if (item) {
-              prev = item.clone();
-            }
-            subscriber.next(item);
+      let prevRaw = copy(this.raw);
+
+      const _updater = async (_list) => {
+        const item = this.isTemporary() ? _list.find((i) => i._id === this._id) : await constructor.get(this._id);
+
+        if (!item || !deepEqual(item.raw, prevRaw)) {
+          if (item) {
+            prevRaw = copy(item.raw);
           }
-        });
-      });
+          subscriber.next(item);
+        }
+      };
+
+      this._storeSub = constructor._listSubject.subscribe((_list) => setTimeout(() => _updater(_list)));
     });
   }
 
