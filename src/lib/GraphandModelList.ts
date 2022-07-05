@@ -105,32 +105,24 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
 
   createObservable() {
     this._observable = new Observable((subscriber) => {
-      let prevSerial = this.toArray().map((item) => JSON.stringify(item.serialize?.apply(item)).normalize());
-      this._storeSub = this.model._listSubject.subscribe(() => {
-        setTimeout(async () => {
-          const list = await this.model.getList(this.query);
-          const listArray = list.toArray();
+      let prevLastUpdated = this.map((i) => i.updatedAt).sort((a, b) => b - a)[0];
 
-          let reload = false;
-          if (prevSerial.length !== listArray.length) {
-            reload = true;
-            prevSerial = listArray.map((item) => JSON.stringify(item.serialize?.apply(item)).normalize());
-          } else {
-            const serial = listArray.map((item) => JSON.stringify(item.serialize?.apply(item)).normalize());
-            if (!deepEqual(serial, prevSerial)) {
-              reload = true;
-              prevSerial = serial;
-            }
-          }
+      const _updater = async () => {
+        await new Promise((resolve) => setTimeout(resolve));
+        const list = await this.model.getList(this.query);
+        const lastUpdated = list.map((i) => i.updatedAt).sort((a, b) => b - a)[0];
 
-          if (reload) {
-            this.splice(0, this.length, ...listArray);
-            this.count = list.count;
+        if (this.length !== list.length || this.count !== list.count || lastUpdated > prevLastUpdated) {
+          prevLastUpdated = lastUpdated;
 
-            subscriber.next(this);
-          }
-        });
-      });
+          this.splice(0, this.length, ...list.toArray());
+          this.count = list.count;
+
+          subscriber.next(this);
+        }
+      };
+
+      this._storeSub = this.model._listSubject.subscribe(_updater);
     });
   }
 

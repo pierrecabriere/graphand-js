@@ -1013,21 +1013,16 @@ class GraphandModel extends AbstractGraphandModel {
   createObservable() {
     const { constructor } = Object.getPrototypeOf(this);
     this._observable = new Observable((subscriber) => {
-      // let prev = this.raw;
       let lastUpdated = this.updatedAt;
 
       const _updater = async (_list) => {
         const item = this.isTemporary() ? _list.find((i) => i._id === this._id) : await constructor.get(this._id);
 
-        // if (!item || item.raw !== prev) {
         if (!item || item.updatedAt > lastUpdated) {
           if (item) {
-            // prev = item.raw;
             lastUpdated = item.updatedAt;
           }
           subscriber.next(item);
-        } else {
-          console.log("no need to update !");
         }
       };
 
