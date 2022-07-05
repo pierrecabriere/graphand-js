@@ -970,65 +970,64 @@ class GraphandModel extends AbstractGraphandModel {
    * Assign multiple values to instance.
    * @param values {Object}
    * @param upsert {boolean=} - Define if the setter will trigger a store upsert action
-   * @param updatedAtNow
    */
   assign(values?, upsert = true, updatedAtNow = true) {
     const { constructor } = Object.getPrototypeOf(this);
-    let clone;
-    if (upsert || updatedAtNow) {
-      clone = this.clone();
+    values = values && parsePayload(values);
+
+    if (!upsert) {
+      if (values?._id) {
+        this._data = values;
+      } else if (values) {
+        Object.keys(values).forEach((key) => {
+          this.set(key, values[key], false);
+        });
+      }
+
+      if (updatedAtNow) {
+        this.updatedAt = new Date();
+      }
+
+      return this;
     }
 
+    const clone = this.clone();
     if (updatedAtNow) {
       clone.updatedAt = new Date();
     }
 
-    if (upsert) {
-      values = values && parsePayload(values);
-      if (values?._id) {
-        clone._data = values;
-      } else if (values) {
-        Object.keys(values).forEach((key) => {
-          clone.set(key, values[key], false);
-        });
-      }
-
-      constructor.upsertStore([clone]);
-    }
-
     if (values?._id) {
-      this._data = values;
+      clone._data = values;
     } else if (values) {
       Object.keys(values).forEach((key) => {
-        this.set(key, values[key], false);
+        clone.set(key, values[key], false);
       });
     }
 
-    if (updatedAtNow) {
-      this.updatedAt = clone.updatedAt;
-    }
+    constructor.upsertStore([clone], true);
+    this._data = clone._data;
 
     return this;
   }
 
-  // serialization
-
   createObservable() {
     const { constructor } = Object.getPrototypeOf(this);
     this._observable = new Observable((subscriber) => {
-      let prevString = JSON.stringify(this.raw);
+      // let prev = this.raw;
+      let lastUpdated = this.updatedAt;
 
       const _updater = async (_list) => {
         const item = this.isTemporary() ? _list.find((i) => i._id === this._id) : await constructor.get(this._id);
 
-        if (!item || JSON.stringify(item.raw) !== prevString) {
+        // if (!item || item.raw !== prev) {
+        if (!item || item.updatedAt > lastUpdated) {
           if (item) {
-            prevString = JSON.stringify(item.raw);
+            // prev = item.raw;
+            lastUpdated = item.updatedAt;
           }
-
           subscriber.next(item);
         } else {
-          console.log(JSON.stringify(item.raw), prevString);
+          console.log("no need to update !");
         }
       };
 
