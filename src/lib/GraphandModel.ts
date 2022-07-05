@@ -509,7 +509,9 @@ class GraphandModel extends AbstractGraphandModel {
     }
 
     const path = "/models/" + this.scope;
+    // console.log("subscribe", path);
     const trigger = async ({ action, payload }) => {
+      // console.log(path, action, payload);
       if (!payload) {
         return;
       }
