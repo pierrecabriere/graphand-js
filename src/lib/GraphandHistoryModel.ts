@@ -10,7 +10,7 @@ class GraphandHistoryModel extends GraphandModel {
       diffs: new GraphandFieldJSON(),
       date: new GraphandFieldDate({ time: true }),
       kind: new GraphandFieldText({ options: ["create", "update", "delete"] }),
-      "metas.account": new GraphandFieldRelation({ ref: "Account" }),
+      "metas.account": new GraphandFieldRelation({ ref: "Account", multiple: false }),
     };
   }
 }

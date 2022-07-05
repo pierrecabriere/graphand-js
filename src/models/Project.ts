@@ -24,7 +24,7 @@ class Project extends GraphandModel {
     slug: new GraphandFieldText(),
     locales: new GraphandFieldText({ multiple: true, options: Object.values(Locales) }),
     defaultLocale: new GraphandFieldText({ options: Object.values(Locales) }),
-    defaultRegisterRole: new GraphandFieldRelation({ ref: "Role" }),
+    defaultRegisterRole: new GraphandFieldRelation({ ref: "Role", multiple: false }),
     accessTokenLifetime: new GraphandFieldNumber(),
     refreshTokenLifetime: new GraphandFieldNumber(),
   };

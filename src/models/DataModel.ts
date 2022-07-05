@@ -23,7 +23,7 @@ class DataModel extends GraphandModel {
     nameMultiple: new GraphandFieldText(),
     slug: new GraphandFieldText(),
     multiple: new GraphandFieldBoolean({ defaultValue: true }),
-    defaultField: new GraphandFieldRelation({ ref: "DataField" }),
+    defaultField: new GraphandFieldRelation({ ref: "DataField", multiple: false }),
   };
 
   name;

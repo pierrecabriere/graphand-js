@@ -7,6 +7,7 @@ class GraphandWebhookLogsModel extends GraphandModel {
     return {
       webhook: new GraphandFieldRelation({
         ref: "Webhook",
+        multiple: false,
       }),
       request: new GraphandFieldJSON(),
       response: new GraphandFieldJSON(),

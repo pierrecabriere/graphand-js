@@ -18,7 +18,7 @@ class Environment extends GraphandModel {
   static schema = {
     name: new GraphandFieldText(),
     description: new GraphandFieldText(),
-    cloneFrom: new GraphandFieldRelation({ ref: "Environment" }),
+    cloneFrom: new GraphandFieldRelation({ ref: "Environment", multiple: false }),
     status: new GraphandFieldText({ options: Object.values(ModelEnvScopes) }),
   };
 

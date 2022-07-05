@@ -1,5 +1,6 @@
 import ModelScopes from "../enums/model-scopes";
 import { GraphandModelPromise } from "../lib";
+import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
@@ -23,6 +24,7 @@ class User extends GraphandModel {
     status: new GraphandFieldText(),
     email: new GraphandFieldText(),
     password: new GraphandFieldText(),
+    invite: new GraphandFieldBoolean(),
   };
 
   firstname;
@@ -32,6 +34,7 @@ class User extends GraphandModel {
   email;
   password;
   status;
+  invite;
 
   get fullname() {
     return `${this.firstname} ${this.lastname}`;

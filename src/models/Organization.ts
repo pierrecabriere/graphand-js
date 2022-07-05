@@ -1,4 +1,5 @@
 import ModelScopes from "../enums/model-scopes";
+import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
@@ -17,6 +18,7 @@ class Organization extends GraphandModel {
   static schema = {
     name: new GraphandFieldText(),
     slug: new GraphandFieldText(),
+    users: new GraphandFieldRelation({ ref: "User", multiple: true }),
   };
 
   name;
@@ -32,9 +34,23 @@ class Organization extends GraphandModel {
     return data;
   }
 
+  static async uninvite(id, usersList: string[]) {
+    const {
+      data: { data },
+    } = await this._client._axios.post(`organizations/${id}/uninvite`, {
+      usersList,
+    });
+    return data;
+  }
+
   async invite(emailsList: string[]) {
     const { constructor } = Object.getPrototypeOf(this);
     return await constructor.invite(this._id, emailsList);
+  }
+
+  async uninvite(usersList: string[]) {
+    const { constructor } = Object.getPrototypeOf(this);
+    return await constructor.uninvite(this._id, usersList);
   }
 }
 
