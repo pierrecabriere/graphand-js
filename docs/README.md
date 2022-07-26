@@ -46,6 +46,11 @@
 <dt><a href="Module.md#Module">Module</a> ⇐ <code><a href="GraphandModel.md#GraphandModel">GraphandModel</a></code></dt>
 <dd><p>Module model. Use <a href="Client.md#Client+getModel">client.getModel(&quot;Module&quot;)</a> to use this model</p>
 </dd>
+<dt><a href="Organization.md#Organization">Organization</a> ⇐ <code><a href="GraphandModel.md#GraphandModel">GraphandModel</a></code></dt>
+<dd><p>Organization model. Use <a href="Client.md#Client+getModel">client.getModel(&quot;Organization&quot;)</a> to use this model</p>
+</dd>
+<dt><a href="OrgInvitation.md#OrgInvitation">OrgInvitation</a> ⇐ <code><a href="GraphandModel.md#GraphandModel">GraphandModel</a></code></dt>
+<dd></dd>
 <dt><a href="Project.md#Project">Project</a> ⇐ <code><a href="GraphandModel.md#GraphandModel">GraphandModel</a></code></dt>
 <dd><p>Project model. Use <a href="Client.md#Client+getModel">client.getModel(&quot;Project&quot;)</a> to use this model</p>
 </dd>

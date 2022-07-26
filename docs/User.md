@@ -14,12 +14,13 @@ User model. Use [client.getModel("User")](Client.md#Client+getModel) to use this
         * [.clone(locale)](#GraphandModel+clone)
         * [.get(slug, [parse], _locale, fallback)](#GraphandModel+get)
         * [.set(slug, value, [upsert], [parse])](#GraphandModel+set)
-        * [.assign(values, [upsert], updatedAtNow)](#GraphandModel+assign)
+        * [.assign(values, [upsert])](#GraphandModel+assign)
         * [.subscribe(callback)](#GraphandModel+subscribe)
         * [.isTemporary()](#GraphandModel+isTemporary)
         * [.serialize()](#GraphandModel+serialize) ⇒ <code>Object</code>
         * [.toJSON()](#GraphandModel+toJSON) ⇒ <code>Object</code>
     * _static_
+        * [.register(payload, [hooks])](#User.register)
         * [.getCurrent()](#User.getCurrent) ⇒ [<code>User</code>](User.md#User) \| [<code>GraphandModelPromise.&lt;User&gt;</code>](User.md#User)
 
 
@@ -122,7 +123,7 @@ Model instance setter. Set value for the specified key
 
 <a name="GraphandModel+assign"></a>
 
-### user.assign(values, [upsert], updatedAtNow)
+### user.assign(values, [upsert])
 Assign multiple values to instance.
 
 **Kind**: instance method of [<code>User</code>](User.md#User)  
@@ -131,7 +132,6 @@ Assign multiple values to instance.
 | --- | --- | --- | --- |
 | values | <code>Object</code> |  |  |
 | [upsert] | <code>boolean</code> | <code>true</code> | Define if the setter will trigger a store upsert action |
-| updatedAtNow |  | <code>true</code> |  |
 
 
 * * *
@@ -175,6 +175,21 @@ Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
 Returns JSON-serialized object of the current instance
 
 **Kind**: instance method of [<code>User</code>](User.md#User)  
+
+* * *
+
+<a name="User.register"></a>
+
+### User.register(payload, [hooks])
+Register new user
+
+**Kind**: static method of [<code>User</code>](User.md#User)  
+
+| Param | Type | Default |
+| --- | --- | --- |
+| payload | <code>Object</code> |  | 
+| [hooks] | <code>boolean</code> | <code>true</code> | 
+
 
 * * *
 

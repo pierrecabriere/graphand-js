@@ -54,17 +54,7 @@ const updateModel = async (Model: typeof GraphandModel, payload, options) => {
       return data;
     }
 
-    const items = Model.hydrate(data.data.rows);
-
-    if (options.upsert) {
-      const upserted = Model.upsertStore(items);
-
-      if (upserted) {
-        Model.clearCache();
-
-        items.forEach((item) => item.HistoryModel.clearCache());
-      }
-    }
+    const items = Model.handleUpdatedData(data.data.rows, options.upsert);
 
     if (options.hooks) {
       await Model.execHook("postUpdate", [items, null, payload]);

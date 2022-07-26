@@ -33,6 +33,7 @@ interface Query {
   page?: number;
   pageSize?: number;
   populate?: string | any;
+  count?: boolean;
 }
 
 interface Update {
@@ -47,7 +48,7 @@ interface Update {
 
 class AbstractGraphandModel {
   static __proto__: any;
-  static scope?: ModelScopes;
+  static scope?: ModelScopes | string;
   static Scopes = ModelScopes;
 }
 
@@ -169,6 +170,7 @@ class GraphandModel extends AbstractGraphandModel {
   updatedAt: Date;
   createdBy: Account;
   updatedBy: Account;
+  [prop: string]: any;
 
   /**
    * Create a new instance of GraphandModel. If getting an instance as data, the instance will be cloned
@@ -509,9 +511,7 @@ class GraphandModel extends AbstractGraphandModel {
     }
 
     const path = "/models/" + this.scope;
-    // console.log("subscribe", path);
     const trigger = async ({ action, payload }) => {
-      // console.log(path, action, payload);
       if (!payload) {
         return;
       }
@@ -543,11 +543,27 @@ class GraphandModel extends AbstractGraphandModel {
     };
 
     socket.off(path);
-    socket.on(path, trigger);
+    socket.on(path, (data) => setTimeout(() => trigger(data)));
   }
 
   static async handleUpdateCall(payload, config) {
     return await this._client._axios.patch(this.baseUrl, payload, config);
+  }
+
+  static handleUpdatedData(rows, upsert = false) {
+    const items = this.hydrate(rows);
+
+    if (upsert) {
+      const upserted = this.upsertStore(items);
+
+      if (upserted) {
+        this.clearCache();
+
+        items.forEach((item) => item.HistoryModel.clearCache());
+      }
+    }
+
+    return items;
   }
 
   /**
@@ -1018,6 +1034,7 @@ class GraphandModel extends AbstractGraphandModel {
       let lastUpdated = this.updatedAt;
 
       const _updater = async (_list) => {
+        await new Promise((resolve) => setTimeout(resolve));
         const item = this.isTemporary() ? _list.find((i) => i._id === this._id) : await constructor.get(this._id);
 
         if (!item || item.updatedAt > lastUpdated) {

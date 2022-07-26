@@ -25,7 +25,7 @@ describe("Bootstrap", () => {
   test("should create new project", async () => {
     const name = faker.lorem.words(2);
     const slug = faker.lorem.slug();
-    const _project = await Project.create({ name, slug, locales: [Locales.FR], defaultLocale: Locales.FR });
+    const _project = await Project.create({ name, slug, locales: [Locales.FR], defaultLocale: Locales.FR, organization: "62c4c3ea2111bb7955a5a67f" });
     expect(_project?._id).toBeDefined();
     project = _project;
     projectClient = client.clone({ project: project._id });

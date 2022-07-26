@@ -14,7 +14,7 @@ Project model. Use [client.getModel("Project")](Client.md#Client+getModel) to us
         * [.clone(locale)](#GraphandModel+clone)
         * [.get(slug, [parse], _locale, fallback)](#GraphandModel+get)
         * [.set(slug, value, [upsert], [parse])](#GraphandModel+set)
-        * [.assign(values, [upsert], updatedAtNow)](#GraphandModel+assign)
+        * [.assign(values, [upsert])](#GraphandModel+assign)
         * [.subscribe(callback)](#GraphandModel+subscribe)
         * [.isTemporary()](#GraphandModel+isTemporary)
         * [.serialize()](#GraphandModel+serialize) ⇒ <code>Object</code>
@@ -122,7 +122,7 @@ Model instance setter. Set value for the specified key
 
 <a name="GraphandModel+assign"></a>
 
-### project.assign(values, [upsert], updatedAtNow)
+### project.assign(values, [upsert])
 Assign multiple values to instance.
 
 **Kind**: instance method of [<code>Project</code>](Project.md#Project)  
@@ -131,7 +131,6 @@ Assign multiple values to instance.
 | --- | --- | --- | --- |
 | values | <code>Object</code> |  |  |
 | [upsert] | <code>boolean</code> | <code>true</code> | Define if the setter will trigger a store upsert action |
-| updatedAtNow |  | <code>true</code> |  |
 
 
 * * *

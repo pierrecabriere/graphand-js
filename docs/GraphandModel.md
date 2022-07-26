@@ -14,7 +14,7 @@ Base GraphandModel class. You can create your own custom models by extending thi
         * [.clone(locale)](#GraphandModel+clone)
         * [.get(slug, [parse], _locale, fallback)](#GraphandModel+get)
         * [.set(slug, value, [upsert], [parse])](#GraphandModel+set)
-        * [.assign(values, [upsert], updatedAtNow)](#GraphandModel+assign)
+        * [.assign(values, [upsert])](#GraphandModel+assign)
         * [.subscribe(callback)](#GraphandModel+subscribe)
         * [.isTemporary()](#GraphandModel+isTemporary)
         * [.serialize()](#GraphandModel+serialize) ⇒ <code>Object</code>
@@ -153,7 +153,7 @@ Model instance setter. Set value for the specified key
 
 <a name="GraphandModel+assign"></a>
 
-### graphandModel.assign(values, [upsert], updatedAtNow)
+### graphandModel.assign(values, [upsert])
 Assign multiple values to instance.
 
 **Kind**: instance method of [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
@@ -162,7 +162,6 @@ Assign multiple values to instance.
 | --- | --- | --- | --- |
 | values | <code>Object</code> |  |  |
 | [upsert] | <code>boolean</code> | <code>true</code> | Define if the setter will trigger a store upsert action |
-| updatedAtNow |  | <code>true</code> |  |
 
 
 * * *

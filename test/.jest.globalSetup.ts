@@ -9,7 +9,7 @@ export default async () => {
     // create project
     const { data: projectData } = await axios.post(
       "https://api.graphand.io/projects",
-      { name: "Test runner", slug: "test-runner", locales: [Locales.FR], defaultLocale: Locales.FR },
+      { name: "Test runner", slug: "test-runner", locales: [Locales.FR], defaultLocale: Locales.FR, organization: "62c4c3ea2111bb7955a5a67f" },
       {
         headers: {
           Authorization: `Bearer ${loginData.data.accessToken}`,
@@ -22,7 +22,6 @@ export default async () => {
       projectId: projectData.data._id,
     });
   } catch (e) {
-    console.log(e);
     throw e;
   }
 };

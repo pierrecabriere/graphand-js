@@ -15,6 +15,11 @@ class GraphandModelListPromise<T extends GraphandModel> extends GraphandModelPro
     }
   }
 
+  /**
+   * @readonly
+   * @type {string[]}
+   * @public
+   */
   get _ids() {
     if (this.query?.ids) {
       return Array.isArray(this.query.ids) ? this.query.ids : [this.query.ids];
@@ -23,6 +28,11 @@ class GraphandModelListPromise<T extends GraphandModel> extends GraphandModelPro
     return [];
   }
 
+  /**
+   * @readonly
+   * @type {string[]}
+   * @public
+   */
   get ids() {
     if (this.query?.ids) {
       return Array.isArray(this.query.ids) ? this.query.ids : [this.query.ids];
@@ -78,6 +88,11 @@ class GraphandModelListPromise<T extends GraphandModel> extends GraphandModelPro
     });
   }
 
+  /**
+   * Subscribe to the list. The callback will be called each time (an instance inside) the list is updated in store.
+   * If the model is synced (realtime), the callback will be called when the list is updated via socket
+   * @param callback - The function to call when the list is updated
+   */
   subscribe(callback): Subscription {
     if (!this._observable) {
       this.createObservable();

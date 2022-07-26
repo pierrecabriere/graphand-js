@@ -14,7 +14,7 @@ Media model. Use [client.getModel("Media")](Client.md#Client+getModel) to use th
     * [.clone(locale)](#GraphandModel+clone)
     * [.get(slug, [parse], _locale, fallback)](#GraphandModel+get)
     * [.set(slug, value, [upsert], [parse])](#GraphandModel+set)
-    * [.assign(values, [upsert], updatedAtNow)](#GraphandModel+assign)
+    * [.assign(values, [upsert])](#GraphandModel+assign)
     * [.subscribe(callback)](#GraphandModel+subscribe)
     * [.isTemporary()](#GraphandModel+isTemporary)
     * [.serialize()](#GraphandModel+serialize) ⇒ <code>Object</code>
@@ -134,7 +134,7 @@ Model instance setter. Set value for the specified key
 
 <a name="GraphandModel+assign"></a>
 
-### media.assign(values, [upsert], updatedAtNow)
+### media.assign(values, [upsert])
 Assign multiple values to instance.
 
 **Kind**: instance method of [<code>Media</code>](Media.md#Media)  
@@ -143,7 +143,6 @@ Assign multiple values to instance.
 | --- | --- | --- | --- |
 | values | <code>Object</code> |  |  |
 | [upsert] | <code>boolean</code> | <code>true</code> | Define if the setter will trigger a store upsert action |
-| updatedAtNow |  | <code>true</code> |  |
 
 
 * * *

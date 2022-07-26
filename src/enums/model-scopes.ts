@@ -11,6 +11,7 @@ enum ModelScopes {
   Module = "Module",
   Project = "Project",
   Organization = "Organization",
+  OrgInvitation = "OrgInvitation",
   Restriction = "Restriction",
   Role = "Role",
   Rule = "Rule",

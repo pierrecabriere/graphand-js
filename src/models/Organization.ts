@@ -25,32 +25,10 @@ class Organization extends GraphandModel {
   slug;
   users;
 
-  static async invite(id, emailsList: string[]) {
-    const {
-      data: { data },
-    } = await this._client._axios.post(`organizations/${id}/invite`, {
-      emailsList,
-    });
-    return data;
-  }
-
-  static async uninvite(id, usersList: string[]) {
-    const {
-      data: { data },
-    } = await this._client._axios.post(`organizations/${id}/uninvite`, {
-      usersList,
-    });
-    return data;
-  }
-
-  async invite(emailsList: string[]) {
+  async leave() {
     const { constructor } = Object.getPrototypeOf(this);
-    return await constructor.invite(this._id, emailsList);
-  }
-
-  async uninvite(usersList: string[]) {
-    const { constructor } = Object.getPrototypeOf(this);
-    return await constructor.uninvite(this._id, usersList);
+    const { data } = await constructor._client._axios.post(`/organizations/${this._id}/leave`);
+    constructor.handleUpdatedData([data.data]);
   }
 }
 

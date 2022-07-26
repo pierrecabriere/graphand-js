@@ -5,11 +5,51 @@
 
 * [GraphandModelList](GraphandModelList.md#GraphandModelList)
     * _instance_
+        * [.model](GraphandModelList.md#GraphandModelList+model) : [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
+        * [.query](GraphandModelList.md#GraphandModelList+query) : <code>any</code>
+        * [.ids](GraphandModelList.md#GraphandModelList+ids) : <code>Array.&lt;string&gt;</code>
+        * [.promise](GraphandModelList.md#GraphandModelList+promise) : <code>GraphandModelListPromise</code>
         * [.subscribe(callback)](GraphandModelList.md#GraphandModelList+subscribe)
         * [.serialize()](GraphandModelList.md#GraphandModelList+serialize) ⇒ <code>Object</code>
     * _static_
         * [.hydrate(data)](#GraphandModelList.hydrate) ⇒ [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)
 
+
+* * *
+
+<a name="GraphandModelList+model"></a>
+
+### graphandModelList.model : [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
+**Kind**: instance property of [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)  
+**Access**: public  
+**Read only**: true  
+
+* * *
+
+<a name="GraphandModelList+query"></a>
+
+### graphandModelList.query : <code>any</code>
+**Kind**: instance property of [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)  
+**Access**: public  
+**Read only**: true  
+
+* * *
+
+<a name="GraphandModelList+ids"></a>
+
+### graphandModelList.ids : <code>Array.&lt;string&gt;</code>
+**Kind**: instance property of [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)  
+**Access**: public  
+**Read only**: true  
+
+* * *
+
+<a name="GraphandModelList+promise"></a>
+
+### graphandModelList.promise : <code>GraphandModelListPromise</code>
+**Kind**: instance property of [<code>GraphandModelList</code>](GraphandModelList.md#GraphandModelList)  
+**Access**: public  
+**Read only**: true  
 
 * * *
 

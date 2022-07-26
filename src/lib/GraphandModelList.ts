@@ -1,5 +1,4 @@
-import { deepEqual } from "fast-equals";
-import { Observable, Subscriber, Subscription } from "rxjs";
+import { Observable, Subscription } from "rxjs";
 import GraphandModel from "./GraphandModel";
 import GraphandModelListPromise from "./GraphandModelListPromise";
 
@@ -41,20 +40,40 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
   _model;
   _query;
 
+  /**
+   * @readonly
+   * @type {GraphandModel}
+   * @public
+   */
   get model() {
     return this._model || this[0]?.constructor;
   }
 
+  /**
+   * @readonly
+   * @type {any}
+   * @public
+   */
   get query() {
     return this._query || { ids: this.ids };
   }
 
+  /**
+   * @readonly
+   * @type {string[]}
+   * @public
+   */
   get ids() {
     return this.toArray()
       .map((item) => item?._id || item)
       .filter(Boolean);
   }
 
+  /**
+   * @readonly
+   * @type {GraphandModelListPromise}
+   * @public
+   */
   get promise() {
     return new GraphandModelListPromise(
       (resolve) => {

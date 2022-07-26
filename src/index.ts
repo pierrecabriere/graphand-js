@@ -29,6 +29,7 @@ import Log from "./models/Log";
 import Media from "./models/Media";
 import Module from "./models/Module";
 import Organization from "./models/Organization";
+import OrgInvitation from "./models/OrgInvitation";
 import Project from "./models/Project";
 import Restriction from "./models/Restriction";
 import Role from "./models/Role";
@@ -73,6 +74,7 @@ export {
   Log as GraphandModelLog,
   Environment as GraphandModelEnvironment,
   Organization as GraphandModelOrganization,
+  OrgInvitation as GraphandModelOrgInvitation,
   GraphandError,
   GraphandValidationError,
   GraphandPlugin,
