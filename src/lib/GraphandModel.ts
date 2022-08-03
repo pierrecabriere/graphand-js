@@ -1,7 +1,6 @@
 import copy from "fast-copy";
-import { deepEqual } from "fast-equals";
 import { get as lodashGet, set as lodashSet } from "lodash";
-import { BehaviorSubject, Observable, Subject, Subscriber, Subscription } from "rxjs";
+import { BehaviorSubject, Observable, Subject, Subscription } from "rxjs";
 import Client from "../Client";
 import HooksEvents from "../enums/hooks-events";
 import ModelScopes from "../enums/model-scopes";
@@ -34,6 +33,7 @@ interface Query {
   pageSize?: number;
   populate?: string | any;
   count?: boolean;
+  translations?: string[];
 }
 
 interface Update {
@@ -166,6 +166,7 @@ class GraphandModel extends AbstractGraphandModel {
   _subscriptions = new Set();
 
   _id: string;
+  _iat: number;
   createdAt: Date;
   updatedAt: Date;
   createdBy: Account;
@@ -194,7 +195,8 @@ class GraphandModel extends AbstractGraphandModel {
       return data.clone();
     }
 
-    this._id = data._id || `_${Date.now()}`;
+    this._iat = Date.now();
+    this._id = data._id || `_${this._iat}`;
     this._data = Object.assign({}, data);
 
     Object.defineProperty(this, "_data", { enumerable: false });
@@ -375,11 +377,11 @@ class GraphandModel extends AbstractGraphandModel {
   static get<C extends typeof GraphandModel, T extends FetchOptions | boolean>(
     this: C,
     query?: string | Query,
-    fetch?: T,
+    fetchOrOpts?: T,
     cache?,
   ): T extends false ? InstanceType<C> : GraphandModelPromise<InstanceType<C>> {
     // @ts-ignore
-    return getModelInstance(this, query, fetch, cache);
+    return getModelInstance(this, query, fetchOrOpts, cache);
   }
 
   /**
@@ -484,7 +486,7 @@ class GraphandModel extends AbstractGraphandModel {
             await this.initialize();
           }
 
-          this._initialized = true;
+          this._initialized = new Date();
 
           resolve(true);
         } catch (e) {
@@ -594,8 +596,20 @@ class GraphandModel extends AbstractGraphandModel {
     return this;
   }
 
-  static getCacheKey({ populate, sort, pageSize, page, translations, query, ids, count }: any) {
-    return this.scope + JSON.stringify([populate || "", sort || "", pageSize || "", page || "", translations || "", query || "", ids || "", !!count]);
+  static getCacheKey(input: Query) {
+    const { populate, sort, pageSize, page, translations, query, ids, count } = input;
+    return JSON.stringify({
+      project: this._client._options.project,
+      scope: this.scope,
+      populate,
+      sort,
+      pageSize,
+      page,
+      translations,
+      query,
+      ids,
+      count: !!count,
+    });
   }
 
   /**
@@ -1022,7 +1036,7 @@ class GraphandModel extends AbstractGraphandModel {
       });
     }
 
-    constructor.upsertStore([clone], true);
+    const upserted = constructor.upsertStore([clone], true);
     this._data = clone._data;
 
     return this;

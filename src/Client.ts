@@ -115,6 +115,19 @@ type ScopedModelType<T> = T extends ModelScopes.Account | "Account"
   ? typeof Webhook
   : typeof Data;
 
+type RegisterHookOptions = {
+  identifier?: string;
+  model?: typeof GraphandModel;
+  events?: HooksEvents | HooksEvents[];
+  handler?: any;
+  _await?: boolean;
+  timeout?: number;
+  priority?: number;
+  fields?: string[];
+  hostname?: string;
+  retryStrategy?: (retries: number) => number | boolean;
+};
+
 /**
  * @class Client
  * @classdesc Base Graphand Client class
@@ -474,10 +487,6 @@ class Client {
       console.error(e);
     }
 
-    // if (this._models[_name].scope === "Role") {
-    //   console.log(this._models[_name]._client?._options.project, "ok");
-    // }
-
     return this._models[_name];
   }
 
@@ -500,28 +509,12 @@ class Client {
     );
   }
 
-  async registerHook({
-    identifier,
-    model,
-    events,
-    handler,
-    _await,
-    timeout,
-    priority,
-    fields,
-  }: {
-    identifier?: string;
-    model?: typeof GraphandModel;
-    events?: HooksEvents | HooksEvents[];
-    handler?: any;
-    _await?: boolean;
-    timeout?: number;
-    priority?: number;
-    fields?: string[];
-  }) {
+  async registerHook({ identifier, model, events, handler, _await, timeout, priority, fields, hostname, retryStrategy }: RegisterHookOptions) {
     await this._init();
     let hook;
     let socket;
+
+    retryStrategy = retryStrategy ?? ((retries) => 1000 * retries + 1000);
 
     if (!identifier) {
       identifier = `${events.toString().replace(",", "-")}-${model.scope.replace("Data:", "")}`;
@@ -559,7 +552,7 @@ class Client {
       }
     };
 
-    const _register = async (_socket) => {
+    const _register = async (_socket, retries = 0) => {
       if (!_socket?.id) {
         return;
       }
@@ -568,6 +561,8 @@ class Client {
 
       try {
         const Sockethook = this.getModel("Sockethook");
+        const os = require("os");
+        hostname = hostname ?? os.hostname();
         const payload: any = {
           socket: socket.id,
           scope: model.scope,
@@ -577,6 +572,7 @@ class Client {
           timeout,
           priority,
           fields,
+          hostname,
         };
 
         if (!payload.actions.length) {
@@ -591,7 +587,17 @@ class Client {
         console.log(`sockethook ${identifier} registered on socket ${socket.id}`);
       } catch (e) {
         socket.off(`/hooks/${identifier}`);
-        console.error(`error registering sockethook ${identifier}`);
+
+        console.error(`error registering sockethook ${identifier} ...`);
+        const retryTimeout = retryStrategy(retries);
+
+        if (typeof retryTimeout === "number" && retryTimeout) {
+          console.error(`... retry`);
+          await new Promise((resolve) => setTimeout(resolve, retryTimeout));
+          await _register(_socket, retries + 1);
+        } else {
+          throw e;
+        }
       }
     };
 
@@ -641,43 +647,43 @@ class Client {
     return this;
   }
 
-  loginWithGraphand() {
-    let loginWindow;
-
-    const height = window.outerHeight / 1.3;
-    const width = window.outerWidth / 1.7;
-    const top = (window.outerHeight - height) / 2;
-    const left = (window.outerWidth - width) / 2;
-
-    return new Promise((resolve, reject) => {
-      const callback = ({ data }) => {
-        window.removeEventListener("message", callback, false);
-        timer && clearInterval(timer);
-        loginWindow && loginWindow.close();
-        if (!data) {
-          reject();
-        } else {
-          this.setAccessToken(data);
-          resolve(data);
-        }
-      };
-
-      window.addEventListener("message", callback);
-
-      loginWindow = window.open(
-        `https://graphand.io/auth?project=${this._options.project}`,
-        "_blank",
-        `fullscreen=no,height=${height},width=${width},top=${top},left=${left}`,
-      );
-
-      const timer = setInterval(function () {
-        if (loginWindow.closed) {
-          reject();
-          clearInterval(timer);
-        }
-      }, 100);
-    });
-  }
+  // loginWithGraphand() {
+  //   let loginWindow;
+  //
+  //   const height = window.outerHeight / 1.3;
+  //   const width = window.outerWidth / 1.7;
+  //   const top = (window.outerHeight - height) / 2;
+  //   const left = (window.outerWidth - width) / 2;
+  //
+  //   return new Promise((resolve, reject) => {
+  //     const callback = ({ data }) => {
+  //       window.removeEventListener("message", callback, false);
+  //       timer && clearInterval(timer);
+  //       loginWindow && loginWindow.close();
+  //       if (!data) {
+  //         reject();
+  //       } else {
+  //         this.setAccessToken(data);
+  //         resolve(data);
+  //       }
+  //     };
+  //
+  //     window.addEventListener("message", callback);
+  //
+  //     loginWindow = window.open(
+  //       `https://graphand.io/auth?project=${this._options.project}`,
+  //       "_blank",
+  //       `fullscreen=no,height=${height},width=${width},top=${top},left=${left}`,
+  //     );
+  //
+  //     const timer = setInterval(function () {
+  //       if (loginWindow.closed) {
+  //         reject();
+  //         clearInterval(timer);
+  //       }
+  //     }, 100);
+  //   });
+  // }
 
   /**
    * Clone the current client
@@ -713,8 +719,6 @@ class Client {
     const plugin = new Plugin(this, options);
     this._plugins.add(plugin);
   }
-
-  /* Accessors */
 
   connectSocket(force = false) {
     if (!force && this.socket) {

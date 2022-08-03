@@ -51,6 +51,11 @@ function getModelInstance<T extends typeof GraphandModel>(
     item = modelList.find((item) => item._id === _id);
   }
 
+  if (item && fetchOpts.populate) {
+    // TODO : check if all populate fields are already populated
+    item = null;
+  }
+
   if (!item && fetch) {
     return new GraphandModelPromise<InstanceType<T>>(
       async (resolve, reject) => {

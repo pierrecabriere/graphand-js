@@ -12,6 +12,8 @@ const setupSocket = (client: Client) => {
     },
   });
 
+  socket.on("ping", () => socket.emit("pong"));
+
   socket.on("/uploads", ({ action, payload }) => {
     const queueItem = client._mediasQueueSubject.value.find((item) => (payload.socket ? item.socket === payload.socket : item.name === payload.name));
     payload.status = action;

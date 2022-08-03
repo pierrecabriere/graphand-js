@@ -88,7 +88,6 @@ class Account extends GraphandModel {
 
     const id = await this._currentId;
     if (populate) {
-      // @ts-ignore
       return id && (await this.get({ query: { _id: id } }));
     }
 

@@ -45,6 +45,10 @@ class GraphandQuery {
   }
 
   async execute(opts?: FetchOptions) {
+    if (opts?.populate) {
+      this.populate = opts?.populate;
+    }
+
     const query = this.isMergeable() ? this.clone() : this;
     return fetchModel(this._model, query, opts);
   }

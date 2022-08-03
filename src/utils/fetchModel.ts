@@ -11,6 +11,7 @@ type FetchOptions = {
   authToken?: string;
   global?: boolean;
   axiosOpts?: AxiosRequestConfig;
+  populate?: any;
 };
 
 const _queries = {};
@@ -81,7 +82,8 @@ const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey, opt
 
       singleId = _id;
       params = _params;
-    } else if (query.isMergeable() && query?.ids?.length === 1) {
+      // } else if (query.isMergeable() && query?.ids?.length === 1) {
+    } else if (query?.ids?.length === 1) {
       const {
         ids: [_id],
         ..._params
@@ -121,11 +123,13 @@ const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey, opt
 };
 
 const fetchModel = async (Model: typeof GraphandModel, query: any, opts?: FetchOptions | boolean): Promise<GraphandQueryResponse> => {
-  _queryIds[Model.scope] = _queryIds[Model.scope] || new Set();
-  _queryIdsTimeout[Model.scope] = _queryIdsTimeout[Model.scope] || {};
+  const modelKey = [Model._client?._options?.project, Model.scope].filter(Boolean).join(",");
 
-  const queryIds = _queryIds[Model.scope];
-  const queryIdsTimeout = _queryIdsTimeout[Model.scope];
+  _queryIds[modelKey] = _queryIds[modelKey] || new Set();
+  _queryIdsTimeout[modelKey] = _queryIdsTimeout[modelKey] || {};
+
+  const queryIds = _queryIds[modelKey];
+  const queryIdsTimeout = _queryIdsTimeout[modelKey];
 
   const mergeIds = async () => {
     if (Model._client._options.mergeQueries && query.isMergeable() && queryIds.size + query.ids.length < 100) {
@@ -175,13 +179,15 @@ const fetchModel = async (Model: typeof GraphandModel, query: any, opts?: FetchO
   }
 
   if (!res) {
-    _queries[Model.scope] = _queries[Model.scope] || {};
-    _queries[Model.scope][cacheKey] = _queries[Model.scope][cacheKey] || _request(Model, query, hooks, cacheKey, opts);
+    _queries[modelKey] = _queries[modelKey] || {};
+    if (!_queries[modelKey][cacheKey]) {
+      _queries[modelKey][cacheKey] = _request(Model, query, hooks, cacheKey, opts);
+    }
 
     try {
-      res = await _queries[Model.scope][cacheKey];
+      res = await _queries[modelKey][cacheKey];
     } catch (e) {
-      delete _queries[Model.scope][cacheKey];
+      delete _queries[modelKey][cacheKey];
       throw e;
     }
 
@@ -191,9 +197,9 @@ const fetchModel = async (Model: typeof GraphandModel, query: any, opts?: FetchO
   }
 
   Model._cache[cacheKey] = res;
-  delete _queries[Model.scope][cacheKey];
+  delete _queries[modelKey][cacheKey];
 
-  _queryIdsTimeout[Model.scope] = setTimeout(() => (_queryIds[Model.scope] = new Set()));
+  _queryIdsTimeout[modelKey] = setTimeout(() => (_queryIds[modelKey] = new Set()));
 
   return res;
 };
