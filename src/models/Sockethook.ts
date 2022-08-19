@@ -3,6 +3,7 @@ import ModelScopes from "../enums/model-scopes";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
+import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
@@ -27,7 +28,10 @@ class Sockethook extends GraphandModel {
     blocked: new GraphandFieldBoolean(),
     timeout: new GraphandFieldNumber(),
     priority: new GraphandFieldNumber({ defaultValue: 0 }),
-    hosts: new GraphandFieldJSON(),
+    hosts: new GraphandFieldRelation({
+      ref: "SockethookHost",
+      multiple: true,
+    }),
   };
 
   static Events = HooksEvents;
@@ -56,19 +60,13 @@ class Sockethook extends GraphandModel {
 
   /**
    * Ping current sockethook
-   * @param waitForReconnections {boolean=}
    * @returns {number} - time in ms
    */
-  async ping(waitForReconnections = false) {
+  async ping() {
     const { constructor } = Object.getPrototypeOf(this);
     try {
-      const startTime = new Date().getTime();
-      await constructor._client._axios.post(`${constructor.baseUrl}/ping`, {
-        identifier: this.identifier,
-        waitForReconnections,
-      });
-
-      return new Date().getTime() - startTime;
+      const { data } = await constructor._client._axios.get(`${constructor.baseUrl}/${this._id}/ping`);
+      return data.data;
     } catch (e) {
       return false;
     }

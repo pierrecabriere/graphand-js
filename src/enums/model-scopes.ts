@@ -16,6 +16,7 @@ enum ModelScopes {
   Role = "Role",
   Rule = "Rule",
   Sockethook = "Sockethook",
+  SockethookHost = "SockethookHost",
   Token = "Token",
   User = "User",
   Webhook = "Webhook",

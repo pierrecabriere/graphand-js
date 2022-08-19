@@ -35,6 +35,7 @@ import Restriction from "./models/Restriction";
 import Role from "./models/Role";
 import Rule from "./models/Rule";
 import Sockethook from "./models/Sockethook";
+import SockethookHost from "./models/SockethookHost";
 import Token from "./models/Token";
 import User from "./models/User";
 import Webhook from "./models/Webhook";
@@ -70,6 +71,7 @@ export {
   Webhook as GraphandModelWebhook,
   Aggregation as GraphandModelAggregation,
   Sockethook as GraphandModelSockethook,
+  SockethookHost as GraphandModelSockethookHost,
   EsMapping as GraphandModelEsMapping,
   Log as GraphandModelLog,
   Environment as GraphandModelEnvironment,

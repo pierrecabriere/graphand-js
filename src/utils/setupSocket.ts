@@ -3,12 +3,20 @@ import Client from "../Client";
 
 const setupSocket = (client: Client) => {
   const endpoint = `${client._options.ssl ? "https" : "http"}://${client._options.host}`;
+  let hostname = client._options.socketOptions?.hostname;
+  if (!hostname) {
+    try {
+      hostname = require("os")?.hostname();
+    } catch (e) {}
+  }
+
   const socket = io(endpoint, {
-    ...client._options.socketOptions,
+    ...(client._options.socketOptions?.managerOptions || {}),
     query: {
       token: client.getAccessToken(),
       project: client._options.project,
       env: client._options.env || "master",
+      hostname,
     },
   });
 

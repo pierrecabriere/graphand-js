@@ -5,6 +5,7 @@ class GraphandFieldText extends GraphandField {
   static __fieldType = "Text";
 
   multiple;
+  options;
 
   getter(value, from: GraphandModel) {
     if (!value) {

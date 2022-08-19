@@ -1,7 +1,7 @@
 import copy from "fast-copy";
 import { get as lodashGet, set as lodashSet } from "lodash";
 import { BehaviorSubject, Observable, Subject, Subscription } from "rxjs";
-import Client from "../Client";
+import Client, { RegisterHookOptions } from "../Client";
 import HooksEvents from "../enums/hooks-events";
 import ModelScopes from "../enums/model-scopes";
 import Account from "../models/Account";
@@ -464,6 +464,10 @@ class GraphandModel extends AbstractGraphandModel {
     if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
         try {
+          if (this.initialize) {
+            await this.initialize();
+          }
+
           if (this.queryFields) {
             await this._client._init();
 
@@ -481,10 +485,6 @@ class GraphandModel extends AbstractGraphandModel {
 
           this._cachedFields = null;
           this.setPrototypeFields();
-
-          if (this.initialize) {
-            await this.initialize();
-          }
 
           this._initialized = new Date();
 
@@ -574,12 +574,8 @@ class GraphandModel extends AbstractGraphandModel {
    * @param handler {GraphandModelHookHandler} - The handler that will be executed
    * @param options
    */
-  static on(
-    events: HooksEvents | HooksEvents[],
-    handler,
-    options: { identifier?: string; await?: boolean; timeout?: number; priority?: number; fields?: string[] } = {},
-  ) {
-    this._client.registerHook({ model: this, events, handler, _await: options.await, ...options });
+  static on(events: HooksEvents | HooksEvents[], handler, options: { await?: boolean } & Partial<RegisterHookOptions> = {}) {
+    this._client.registerHook({ events, handler, model: this, _await: options.await, ...options });
   }
 
   static unsync() {

@@ -10,7 +10,7 @@ class GraphandFieldJSON extends GraphandField {
       value = {};
     }
 
-    let res = { ...value };
+    const res = { ...value };
 
     const _fields = this.fields || {};
     Object.keys(_fields).forEach((key) => {
@@ -45,7 +45,7 @@ class GraphandFieldJSON extends GraphandField {
       value = {};
     }
 
-    let res = { ...value };
+    const res = { ...value };
 
     const _fields = this.fields || {};
     Object.keys(_fields).forEach((key) => {

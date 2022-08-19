@@ -15,6 +15,7 @@ import Restriction from "./Restriction";
 import Role from "./Role";
 import Rule from "./Rule";
 import Sockethook from "./Sockethook";
+import SockethookHost from "./SockethookHost";
 import Token from "./Token";
 import User from "./User";
 import Webhook from "./Webhook";
@@ -34,6 +35,7 @@ export {
   Role,
   Rule,
   Sockethook,
+  SockethookHost,
   Token,
   User,
   Webhook,

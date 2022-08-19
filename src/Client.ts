@@ -1,5 +1,6 @@
 import { Axios } from "axios";
 import { BehaviorSubject } from "rxjs";
+import { ManagerOptions } from "socket.io-client";
 import HooksEvents from "./enums/hooks-events";
 import ModelScopes from "./enums/model-scopes";
 import PluginLifecyclePhases from "./enums/plugin-lifecycle-phases";
@@ -52,7 +53,11 @@ type ClientOptions = {
   models?: any[];
   cache?: boolean;
   plugins?: (typeof GraphandPlugin | GraphandPluginWithConf)[];
-  socketOptions?: any;
+  socketOptions?: {
+    hostname?: string;
+    handleSocketTrigger?: ({ action: string, payload: any }) => Promise<boolean | void> | boolean | void;
+    managerOptions?: ManagerOptions;
+  };
   env?: string;
 };
 
@@ -115,7 +120,7 @@ type ScopedModelType<T> = T extends ModelScopes.Account | "Account"
   ? typeof Webhook
   : typeof Data;
 
-type RegisterHookOptions = {
+export type RegisterHookOptions = {
   identifier?: string;
   model?: typeof GraphandModel;
   events?: HooksEvents | HooksEvents[];
@@ -124,7 +129,6 @@ type RegisterHookOptions = {
   timeout?: number;
   priority?: number;
   fields?: string[];
-  hostname?: string;
   retryStrategy?: (retries: number) => number | boolean;
 };
 
@@ -377,7 +381,7 @@ class Client {
    * @returns {GraphandModel.constructor}
    */
   getModel(scope: ModelScopes | string, options: any = {}): typeof Data {
-    verifyScopeFormat(scope);
+    // verifyScopeFormat(scope);
 
     try {
       const { 1: slug } = scope.match(/^Data:([a-zA-Z0-9\-_]+?)$/);
@@ -509,7 +513,7 @@ class Client {
     );
   }
 
-  async registerHook({ identifier, model, events, handler, _await, timeout, priority, fields, hostname, retryStrategy }: RegisterHookOptions) {
+  async registerHook({ identifier, model, events, handler, _await, timeout, priority, fields, retryStrategy }: RegisterHookOptions) {
     await this._init();
     let hook;
     let socket;
@@ -561,8 +565,6 @@ class Client {
 
       try {
         const Sockethook = this.getModel("Sockethook");
-        const os = require("os");
-        hostname = hostname ?? os.hostname();
         const payload: any = {
           socket: socket.id,
           scope: model.scope,
@@ -572,7 +574,6 @@ class Client {
           timeout,
           priority,
           fields,
-          hostname,
         };
 
         if (!payload.actions.length) {

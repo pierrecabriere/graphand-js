@@ -5,6 +5,7 @@ class GraphandField {
   static __fieldType;
 
   query?: any;
+  defaultValue: any;
   __dataField?: DataField;
 
   constructor(data?: any) {

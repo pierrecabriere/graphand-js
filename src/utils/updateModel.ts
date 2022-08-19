@@ -70,7 +70,7 @@ const updateModel = async (Model: typeof GraphandModel, payload, options) => {
   }
 };
 
-const updateModelInstance = async (instance: GraphandModel, payload, options) => {
+const updateModelInstance = async (instance: GraphandModel, payload, options: any) => {
   options = Object.assign(
     {},
     {
