@@ -1,10 +1,9 @@
 import Client from "../Client";
 import ModelScopes from "../enums/model-scopes";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
-import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
-import DataField from "./DataField";
 
 /**
  * @class DataModel
@@ -19,20 +18,31 @@ class DataModel extends GraphandModel {
   static scope = ModelScopes.DataModel;
   static schema = {
     name: new GraphandFieldText(),
-    nameSingle: new GraphandFieldText(),
-    nameMultiple: new GraphandFieldText(),
     slug: new GraphandFieldText(),
     multiple: new GraphandFieldBoolean({ defaultValue: true }),
-    defaultField: new GraphandFieldRelation({ ref: "DataField", multiple: false }),
+    configuration: new GraphandFieldJSON(),
   };
 
   name;
-  nameSingle;
-  nameMultiple;
   slug;
   multiple;
-  defaultField;
+  configuration;
 }
+
+DataModel.hook("postCreate", (inserted) => {
+  const clients = new Set();
+
+  if (Array.isArray(inserted)) {
+    inserted.forEach((p) => clients.add(p.constructor._client));
+  } else {
+    clients.add(inserted.constructor._client);
+  }
+
+  clients.forEach((client: Client) => {
+    const [Module] = client.getModels(["Module"]);
+    Module.reinit();
+  });
+});
 
 DataModel.hook("postDelete", ({ payload }) => {
   const clients = new Set();
@@ -44,8 +54,9 @@ DataModel.hook("postDelete", ({ payload }) => {
   }
 
   clients.forEach((client: Client) => {
-    const DataField = client.getModel("DataField");
+    const [DataField, Module] = client.getModels(["DataField", "Module"]);
     DataField.reinit();
+    Module.reinit();
   });
 });
 

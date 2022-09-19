@@ -322,6 +322,15 @@ class Client {
     }
   }
 
+  /**
+   * Get base URL for ajax calls
+   * @returns string
+   */
+  getBaseURL() {
+    const { _options } = this;
+    return `${_options.ssl ? "https" : "http"}://${_options.project ? `${_options.project}.` : ""}${_options.host}`;
+  }
+
   async _init(force = false) {
     if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {
@@ -344,7 +353,8 @@ class Client {
             })(),
             (async () => {
               if (this._options.initProject && this._options.project) {
-                await this.getModel(ModelScopes.Project).getCurrent();
+                const [Project] = this.getModels(["Project"]);
+                await Project.getCurrent();
               }
             })(),
           ]);

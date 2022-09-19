@@ -4,8 +4,18 @@ import GraphandModel from "../GraphandModel";
 class GraphandFieldText extends GraphandField {
   static __fieldType = "Text";
 
+  defaultValue;
+  required;
+  unique;
+  sparse;
+  minLength;
+  maxLength;
+  regex;
+  regexOptions;
   multiple;
+  duplicates;
   options;
+  creatable;
 
   getter(value, from: GraphandModel) {
     if (!value) {

@@ -34,7 +34,7 @@ class DataField extends GraphandModel {
 
   name;
   slug;
-  type;
+  type: DataFieldTypes;
   exclude;
   configuration;
   scope;

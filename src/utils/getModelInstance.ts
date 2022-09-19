@@ -60,6 +60,7 @@ function getModelInstance<T extends typeof GraphandModel>(
     return new GraphandModelPromise<InstanceType<T>>(
       async (resolve, reject) => {
         await Model._init();
+
         try {
           const _isId = isId(_id);
           const q = _isId ? { ids: [_id] } : { ...query, pageSize: 1 };

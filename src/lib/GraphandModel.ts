@@ -469,7 +469,7 @@ class GraphandModel extends AbstractGraphandModel {
           }
 
           if (this.queryFields) {
-            await this._client._init();
+            // await this._client._init();
 
             if (this._client._options.subscribeFields) {
               await new Promise<void>((resolve) => {
@@ -924,7 +924,7 @@ class GraphandModel extends AbstractGraphandModel {
    */
   clone(locale?) {
     const { constructor } = Object.getPrototypeOf(this);
-    const clone = new constructor(copy(this.raw));
+    const clone = new constructor(this.raw ? copy(parsePayload(this.raw)) : {});
     if (locale) {
       clone.translate(locale);
     }
