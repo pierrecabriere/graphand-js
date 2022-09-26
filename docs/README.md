@@ -66,6 +66,9 @@
 <dt><a href="Sockethook.md#Sockethook">Sockethook</a> ⇐ <code><a href="GraphandModel.md#GraphandModel">GraphandModel</a></code></dt>
 <dd><p>Sockethook model. Use <a href="Client.md#Client+getModel">client.getModel(&quot;Sockethook&quot;)</a> to use this model</p>
 </dd>
+<dt><a href="Sockethook.md#Sockethook">Sockethook</a> ⇐ <code><a href="GraphandModel.md#GraphandModel">GraphandModel</a></code></dt>
+<dd><p>Sockethook model. Use <a href="Client.md#Client+getModel">client.getModel(&quot;Sockethook&quot;)</a> to use this model</p>
+</dd>
 <dt><a href="Token.md#Token">Token</a> ⇐ <code><a href="GraphandModel.md#GraphandModel">GraphandModel</a></code></dt>
 <dd><p>Token model. Use <a href="Client.md#Client+getModel">client.getModel(&quot;Token&quot;)</a> to use this model</p>
 </dd>

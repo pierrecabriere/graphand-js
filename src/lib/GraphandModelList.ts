@@ -110,7 +110,7 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
     return new Array(...this);
   }
 
-  clone(concatWith?: GraphandModel | GraphandModelList<GraphandModel>) {
+  clone(concatWith?: GraphandModel | GraphandModelList<T>) {
     const elements = concatWith ? this.toArray().concat(concatWith) : this.toArray();
     return new GraphandModelList(this, ...elements);
   }

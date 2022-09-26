@@ -7,6 +7,7 @@ class GraphandField {
   query?: any;
   defaultValue: any;
   __dataField?: DataField;
+  [prop: string]: any;
 
   constructor(data?: any) {
     Object.assign(this, data);

@@ -177,7 +177,8 @@ Model getList options
 | --- | --- | --- |
 | [w] | <code>number</code> | Image width |
 | [h] | <code>number</code> | Image height |
-| [fit] | <code>string</code> | Image fit (cover or contain) |
+| [fit] | <code>string</code> | Image fit (cover|contain) |
+| [stream] | <code>string</code> | The mimetype to stream the media (need support for buffering) |
 
 
 * * *

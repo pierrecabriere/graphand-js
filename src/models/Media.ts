@@ -7,7 +7,6 @@ import GraphandModelPromise from "../lib/GraphandModelPromise";
 
 const defaultLinkOptions = {
   private: false,
-  fit: "contain",
 };
 
 /**
@@ -52,7 +51,8 @@ class Media extends GraphandModel {
    * @typedef MediaUrlOptions
    * @property w {number=} - Image width
    * @property h {number=} - Image height
-   * @property fit {string=} - Image fit (cover or contain)
+   * @property fit {string=} - Image fit (cover|contain)
+   * @property stream {string=} - The mimetype to stream the media (need support for buffering)
    */
 
   /**
@@ -69,10 +69,24 @@ class Media extends GraphandModel {
       client = constructor._client;
     }
 
-    const scope = opts.private ? "private" : "public";
-    let url = `https://cdn.graphand.io/${scope}/${client._options.project}/${this._id}?fit=${opts.fit}`;
-    if (opts.w > 0) url += `&w=${opts.w}`;
-    if (opts.h > 0) url += `&h=${opts.h}`;
+    const { private: _private, name, ...data } = opts;
+
+    const scope = _private || this.private ? "private" : "public";
+    let url = `${client.getCdnURL()}/${scope}/${client._options.project}/${this._id}`;
+
+    if (name) {
+      const _name = typeof name === "string" ? name : this.name;
+      url += "/" + encodeURIComponent(_name);
+    }
+
+    if (scope === "private") {
+      data.token = client.getAccessToken();
+    }
+
+    if (Object.keys(data).length) {
+      const searchParams = new URLSearchParams(data);
+      url = url + `?${searchParams.toString()}`;
+    }
 
     return url;
   }

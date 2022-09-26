@@ -8,6 +8,8 @@ Base Graphand Client class
 * [Client](Client.md#Client)
     * [new Client(project, [options])](#new_Client_new)
     * _instance_
+        * [.getBaseURL()](Client.md#Client+getBaseURL) ⇒
+        * [.getCdnURL()](Client.md#Client+getCdnURL) ⇒
         * [.getModels(scopes, options)](Client.md#Client+getModels) ⇒ <code>Array.&lt;GraphandModel.constructor&gt;</code>
         * [.getModel(scope, options)](Client.md#Client+getModel) ⇒ <code>GraphandModel.constructor</code>
         * [.reinit()](Client.md#Client+reinit)
@@ -32,6 +34,26 @@ Graphand Client
 | project | [<code>ClientOptions</code>](typedef.md#ClientOptions) \| <code>string</code> | Your project _id or client options |
 | [options] | [<code>ClientOptions</code>](typedef.md#ClientOptions) | Client options |
 
+
+* * *
+
+<a name="Client+getBaseURL"></a>
+
+### client.getBaseURL() ⇒
+Get base URL for ajax calls
+
+**Kind**: instance method of [<code>Client</code>](Client.md#Client)  
+**Returns**: string  
+
+* * *
+
+<a name="Client+getCdnURL"></a>
+
+### client.getCdnURL() ⇒
+Get cdn URL
+
+**Kind**: instance method of [<code>Client</code>](Client.md#Client)  
+**Returns**: string  
 
 * * *
 

@@ -331,6 +331,15 @@ class Client {
     return `${_options.ssl ? "https" : "http"}://${_options.project ? `${_options.project}.` : ""}${_options.host}`;
   }
 
+  /**
+   * Get cdn URL
+   * @returns string
+   */
+  getCdnURL() {
+    const { _options } = this;
+    return `${_options.ssl ? "https" : "http"}://${_options.cdn}`;
+  }
+
   async _init(force = false) {
     if (force || !this._initPromise) {
       this._initPromise = new Promise(async (resolve, reject) => {

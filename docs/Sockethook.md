@@ -8,7 +8,7 @@ Sockethook model. Use [client.getModel("Sockethook")](Client.md#Client+getModel)
 
 * [Sockethook](Sockethook.md#Sockethook) ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
     * [.raw](#GraphandModel+raw) ⇒ <code>\*</code>
-    * [.ping([waitForReconnections])](Sockethook.md#Sockethook+ping) ⇒ <code>number</code>
+    * [.ping()](Sockethook.md#Sockethook+ping) ⇒ <code>number</code>
     * [.update(update, [options])](#GraphandModel+update)
     * [.delete([options])](#GraphandModel+delete)
     * [.clone(locale)](#GraphandModel+clone)
@@ -29,21 +29,17 @@ Sockethook model. Use [client.getModel("Sockethook")](Client.md#Client+getModel)
 Returns raw data of instance
 
 **Kind**: instance property of [<code>Sockethook</code>](Sockethook.md#Sockethook)  
+**Overrides**: [<code>raw</code>](#GraphandModel+raw)  
 
 * * *
 
 <a name="Sockethook+ping"></a>
 
-### sockethook.ping([waitForReconnections]) ⇒ <code>number</code>
+### sockethook.ping() ⇒ <code>number</code>
 Ping current sockethook
 
 **Kind**: instance method of [<code>Sockethook</code>](Sockethook.md#Sockethook)  
 **Returns**: <code>number</code> - - time in ms  
-
-| Param | Type | Default |
-| --- | --- | --- |
-| [waitForReconnections] | <code>boolean</code> | <code>false</code> | 
-
 
 * * *
 
@@ -53,6 +49,7 @@ Ping current sockethook
 Update current instance
 
 **Kind**: instance method of [<code>Sockethook</code>](Sockethook.md#Sockethook)  
+**Overrides**: [<code>update</code>](#GraphandModel+update)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -73,6 +70,7 @@ this.update({ set: { ...payload } })
 Delete current instance
 
 **Kind**: instance method of [<code>Sockethook</code>](Sockethook.md#Sockethook)  
+**Overrides**: [<code>delete</code>](#GraphandModel+delete)  
 
 | Param |
 | --- |
@@ -91,6 +89,7 @@ this.delete().then(() => console.log("deleted"))
 Clone the instance
 
 **Kind**: instance method of [<code>Sockethook</code>](Sockethook.md#Sockethook)  
+**Overrides**: [<code>clone</code>](#GraphandModel+clone)  
 
 | Param |
 | --- |
@@ -105,6 +104,7 @@ Clone the instance
 Model instance getter. Returns the value for the specified key
 
 **Kind**: instance method of [<code>Sockethook</code>](Sockethook.md#Sockethook)  
+**Overrides**: [<code>get</code>](#GraphandModel+get)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -122,6 +122,7 @@ Model instance getter. Returns the value for the specified key
 Model instance setter. Set value for the specified key
 
 **Kind**: instance method of [<code>Sockethook</code>](Sockethook.md#Sockethook)  
+**Overrides**: [<code>set</code>](#GraphandModel+set)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -139,6 +140,7 @@ Model instance setter. Set value for the specified key
 Assign multiple values to instance.
 
 **Kind**: instance method of [<code>Sockethook</code>](Sockethook.md#Sockethook)  
+**Overrides**: [<code>assign</code>](#GraphandModel+assign)  
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -155,6 +157,7 @@ Subscribe to the current instance. The callback will be called each time the ins
 If the model is synced (realtime), the callback will be called when the instance is updated via socket
 
 **Kind**: instance method of [<code>Sockethook</code>](Sockethook.md#Sockethook)  
+**Overrides**: [<code>subscribe</code>](#GraphandModel+subscribe)  
 
 | Param | Description |
 | --- | --- |
@@ -169,6 +172,7 @@ If the model is synced (realtime), the callback will be called when the instance
 Returns true if the current instance is only in memory and not persisted on Graphand.
 
 **Kind**: instance method of [<code>Sockethook</code>](Sockethook.md#Sockethook)  
+**Overrides**: [<code>isTemporary</code>](#GraphandModel+isTemporary)  
 
 * * *
 
@@ -178,6 +182,7 @@ Returns true if the current instance is only in memory and not persisted on Grap
 Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
 
 **Kind**: instance method of [<code>Sockethook</code>](Sockethook.md#Sockethook)  
+**Overrides**: [<code>serialize</code>](#GraphandModel+serialize)  
 
 * * *
 
@@ -187,6 +192,7 @@ Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
 Returns JSON-serialized object of the current instance
 
 **Kind**: instance method of [<code>Sockethook</code>](Sockethook.md#Sockethook)  
+**Overrides**: [<code>toJSON</code>](#GraphandModel+toJSON)  
 
 * * *
 
