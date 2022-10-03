@@ -368,6 +368,13 @@ class GraphandModel extends AbstractGraphandModel {
     Object.defineProperties(assignTo, properties);
   }
 
+  static get<C extends typeof GraphandModel, T extends false>(this: C, query?: string | Query, fetchOrOpts?: T, cache?): InstanceType<C>;
+  static get<C extends typeof GraphandModel, T extends FetchOptions>(
+    this: C,
+    query?: string | Query,
+    fetchOrOpts?: T,
+    cache?,
+  ): GraphandModelPromise<InstanceType<C>>;
   /**
    * Returns a GraphandModel (or Promise) of the model
    * @param query {string|Query} - the requested _id or the request query (see api doc)
@@ -379,8 +386,7 @@ class GraphandModel extends AbstractGraphandModel {
     query?: string | Query,
     fetchOrOpts?: T,
     cache?,
-  ): T extends false ? InstanceType<C> : GraphandModelPromise<InstanceType<C>> {
-    // @ts-ignore
+  ): InstanceType<C> | GraphandModelPromise<InstanceType<C>> {
     return getModelInstance(this, query, fetchOrOpts, cache);
   }
 

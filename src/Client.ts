@@ -667,6 +667,16 @@ class Client {
     return this;
   }
 
+  async associate(accessToken: string) {
+    await this._axios.post("/auth/associate", { accessToken });
+    return this;
+  }
+
+  async dissociate() {
+    await this._axios.post("/auth/dissociate");
+    return this;
+  }
+
   // loginWithGraphand() {
   //   let loginWindow;
   //
