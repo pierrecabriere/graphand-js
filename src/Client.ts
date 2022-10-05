@@ -677,44 +677,6 @@ class Client {
     return this;
   }
 
-  // loginWithGraphand() {
-  //   let loginWindow;
-  //
-  //   const height = window.outerHeight / 1.3;
-  //   const width = window.outerWidth / 1.7;
-  //   const top = (window.outerHeight - height) / 2;
-  //   const left = (window.outerWidth - width) / 2;
-  //
-  //   return new Promise((resolve, reject) => {
-  //     const callback = ({ data }) => {
-  //       window.removeEventListener("message", callback, false);
-  //       timer && clearInterval(timer);
-  //       loginWindow && loginWindow.close();
-  //       if (!data) {
-  //         reject();
-  //       } else {
-  //         this.setAccessToken(data);
-  //         resolve(data);
-  //       }
-  //     };
-  //
-  //     window.addEventListener("message", callback);
-  //
-  //     loginWindow = window.open(
-  //       `https://graphand.io/auth?project=${this._options.project}`,
-  //       "_blank",
-  //       `fullscreen=no,height=${height},width=${width},top=${top},left=${left}`,
-  //     );
-  //
-  //     const timer = setInterval(function () {
-  //       if (loginWindow.closed) {
-  //         reject();
-  //         clearInterval(timer);
-  //       }
-  //     }, 100);
-  //   });
-  // }
-
   /**
    * Clone the current client
    * @param options {ClientOptions}

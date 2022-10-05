@@ -2,6 +2,7 @@ import ModelScopes from "../enums/model-scopes";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
+import { ownProperty } from "../utils/decorators";
 import Role from "./Role";
 
 /**
@@ -13,6 +14,7 @@ class Account extends GraphandModel {
   static _customFields = {};
 
   static queryFields = true;
+  @ownProperty()
   static _currentId = undefined;
   static apiIdentifier = "accounts";
   static baseUrl = "/accounts";
