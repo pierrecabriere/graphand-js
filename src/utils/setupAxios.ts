@@ -1,8 +1,8 @@
 import axios from "axios";
-import Client from "../Client";
+import GraphandClient from "../GraphandClient";
 import GraphandError from "../lib/GraphandError";
 
-const setupAxios = (client: Client) => {
+const setupAxios = (client: GraphandClient) => {
   const options = client._options;
   const axiosClient = axios.create();
 

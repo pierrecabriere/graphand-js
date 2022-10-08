@@ -1,8 +1,8 @@
 import { get as lodashGet, set as lodashSet } from "lodash";
-import Client from "../Client";
+import GraphandClient from "../GraphandClient";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 
-function processPopulate(item: any, fields: any, client: Client, populatedPaths?: string[]) {
+function processPopulate(item: any, fields: any, client: GraphandClient, populatedPaths?: string[]) {
   populatedPaths = populatedPaths ?? Object.keys(fields).filter((key) => fields[key] instanceof GraphandFieldRelation);
   for (const path of populatedPaths) {
     const field = fields[path];

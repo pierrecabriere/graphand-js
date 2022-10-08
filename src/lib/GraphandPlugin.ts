@@ -1,5 +1,5 @@
-import Client from "../Client";
 import PluginLifecyclePhases from "../enums/plugin-lifecycle-phases";
+import GraphandClient from "../GraphandClient";
 
 export type GraphandPluginOptions = any;
 
@@ -11,10 +11,10 @@ class GraphandPlugin<T extends GraphandPluginOptions> {
   static LifecyclePhases = PluginLifecyclePhases;
   static defaultOptions: GraphandPluginOptions = {};
 
-  client: Client;
+  client: GraphandClient;
   options: T & any;
 
-  constructor(client: Client, options: Partial<T> = {}) {
+  constructor(client: GraphandClient, options: Partial<T> = {}) {
     const { constructor } = Object.getPrototypeOf(this);
 
     this.client = client;

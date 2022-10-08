@@ -1,4 +1,4 @@
-import Client from "../Client";
+import GraphandClient from "../GraphandClient";
 import { parseQuery } from "../utils";
 
 class AggregationExecutor {
@@ -6,10 +6,10 @@ class AggregationExecutor {
   _id: string;
   vars;
   cacheKey;
-  client: Client;
+  client: GraphandClient;
   res: any;
 
-  constructor(options: { _id?: string; vars?: any; client?: Client }) {
+  constructor(options: { _id?: string; vars?: any; client?: GraphandClient }) {
     this._id = options._id;
     this.vars = options.vars ?? {};
     this.client = options.client;

@@ -1,11 +1,11 @@
-import Client from "../Client";
+import GraphandClient from "../GraphandClient";
 import { GraphandModel } from "../lib";
 import GraphandModelList from "../lib/GraphandModelList";
 
-function hydrateModel<T extends typeof GraphandModel | Client>(input: T, data: any, upsert = false) {
+function hydrateModel<T extends typeof GraphandModel | GraphandClient>(input: T, data: any, upsert = false) {
   data = data ?? {};
 
-  const client: Client = input instanceof Client ? input : input._client;
+  const client: GraphandClient = input instanceof GraphandClient ? input : input._client;
   const Model = (data.__scope ? client?.getModel(data.__scope) || input : input) as typeof GraphandModel;
 
   switch (data.__type) {

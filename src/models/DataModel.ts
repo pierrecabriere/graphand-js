@@ -1,5 +1,5 @@
-import Client from "../Client";
 import ModelScopes from "../enums/model-scopes";
+import GraphandClient from "../GraphandClient";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
@@ -8,7 +8,7 @@ import GraphandModel from "../lib/GraphandModel";
 /**
  * @class DataModel
  * @augments GraphandModel
- * @classdesc DataModel model. Use {@link Client#getModel client.getModel("DataModel")} to use this model
+ * @classdesc DataModel model. Use {@link GraphandClient#getModel client.getModel("DataModel")} to use this model
  */
 class DataModel extends GraphandModel {
   static _customFields = {};
@@ -38,7 +38,7 @@ DataModel.hook("postCreate", (inserted) => {
     clients.add(inserted.constructor._client);
   }
 
-  clients.forEach((client: Client) => {
+  clients.forEach((client: GraphandClient) => {
     const [Module] = client.getModels(["Module"]);
     Module.reinit();
   });
@@ -53,7 +53,7 @@ DataModel.hook("postDelete", ({ payload }) => {
     clients.add(payload.constructor._client);
   }
 
-  clients.forEach((client: Client) => {
+  clients.forEach((client: GraphandClient) => {
     const [DataField, Module] = client.getModels(["DataField", "Module"]);
     DataField.reinit();
     Module.reinit();

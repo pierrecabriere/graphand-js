@@ -1,9 +1,9 @@
 import copy from "fast-copy";
 import { get as lodashGet, set as lodashSet } from "lodash";
 import { BehaviorSubject, Observable, Subject, Subscription } from "rxjs";
-import Client, { RegisterHookOptions } from "../Client";
 import HooksEvents from "../enums/hooks-events";
 import ModelScopes from "../enums/model-scopes";
+import GraphandClient, { RegisterHookOptions } from "../GraphandClient";
 import Account from "../models/Account";
 import createModel from "../utils/createModel";
 import { ownProperty } from "../utils/decorators";
@@ -121,9 +121,9 @@ class GraphandModel extends AbstractGraphandModel {
    */
   static Scopes = ModelScopes;
 
-  /** @member {Client} */
+  /** @member {GraphandClient} */
   @ownProperty()
-  static _client: Client;
+  static _client: GraphandClient;
   @ownProperty()
   static _socketSubscription;
   @ownProperty()

@@ -1,7 +1,7 @@
 import io from "socket.io-client";
-import Client from "../Client";
+import GraphandClient from "../GraphandClient";
 
-const setupSocket = (client: Client) => {
+const setupSocket = (client: GraphandClient) => {
   const endpoint = `${client._options.ssl ? "https" : "http"}://${client._options.host}`;
   let hostname = client._options.socketOptions?.hostname;
   if (!hostname) {

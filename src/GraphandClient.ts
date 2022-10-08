@@ -29,7 +29,7 @@ import {
 } from "./models";
 import Data from "./models/Data";
 import Sockethook from "./models/Sockethook";
-import { setupAxios, setupSocket, verifyScopeFormat } from "./utils";
+import { setupAxios, setupSocket } from "./utils";
 import hydrateModel from "./utils/hydrateModel";
 
 type GraphandPluginWithConf = [plugin: typeof GraphandPlugin, options: GraphandPluginOptions];
@@ -133,10 +133,10 @@ export type RegisterHookOptions = {
 };
 
 /**
- * @class Client
+ * @class GraphandClient
  * @classdesc Base Graphand Client class
  */
-class Client {
+class GraphandClient {
   static models = models;
   static lib = lib;
   _uid;
@@ -252,10 +252,10 @@ class Client {
   /**
    * Create new client
    * @param options {ClientOptions}
-   * @returns {Client}
+   * @returns {GraphandClient}
    */
-  static createClient(options: ClientOptions): Client {
-    return new Client(options);
+  static createClient(options: ClientOptions): GraphandClient {
+    return new GraphandClient(options);
   }
 
   getAccessToken() {
@@ -681,10 +681,10 @@ class Client {
    * Clone the current client
    * @param options {ClientOptions}
    * @param cloneTokens {boolean} - Define if the cloned client inherits of its parent access & refresh token
-   * @returns {Client}
+   * @returns {GraphandClient}
    */
-  clone(options: ClientOptions = {}, cloneTokens = undefined): Client {
-    const clone = new Client({ ...this._options, ...options });
+  clone(options: ClientOptions = {}, cloneTokens = undefined): GraphandClient {
+    const clone = new GraphandClient({ ...this._options, ...options });
 
     cloneTokens = cloneTokens ?? !options.accessToken;
     if (cloneTokens) {
@@ -784,4 +784,4 @@ class Client {
   }
 }
 
-export default Client;
+export default GraphandClient;

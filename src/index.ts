@@ -1,5 +1,5 @@
 import "./utils/decorators";
-import Client from "./Client";
+import GraphandClient from "./GraphandClient";
 import AggregationExecutor from "./lib/AggregationExecutor";
 import GraphandFieldBoolean from "./lib/fields/GraphandFieldBoolean";
 import GraphandFieldDate from "./lib/fields/GraphandFieldDate";
@@ -42,11 +42,11 @@ import Webhook from "./models/Webhook";
 import parsePayload from "./utils/parsePayload";
 import parseQuery from "./utils/parseQuery";
 
-export default Client;
+export default GraphandClient;
 export {
   parseQuery,
   parsePayload,
-  Client,
+  GraphandClient,
   GraphandModel,
   GraphandField,
   GraphandFieldId,
