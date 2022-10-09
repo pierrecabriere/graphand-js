@@ -1,7 +1,7 @@
 <a name="Environment"></a>
 
 ## Environment ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-Environment model. Use [client.getModel("Environment")](Client.md#Client+getModel) to use this model
+Environment model. Use [client.getModel("Environment")](GraphandClient.md#GraphandClient+getModel) to use this model
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  

@@ -1,7 +1,7 @@
 <a name="Token"></a>
 
 ## Token ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-Token model. Use [client.getModel("Token")](Client.md#Client+getModel) to use this model
+Token model. Use [client.getModel("Token")](GraphandClient.md#GraphandClient+getModel) to use this model
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  

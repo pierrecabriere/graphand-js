@@ -9,7 +9,7 @@ import GraphandModel from "../lib/GraphandModel";
 /**
  * @class Rule
  * @augments GraphandModel
- * @classdesc Rule model. Use {@link Client#getModel client.getModel("Rule")} to use this model
+ * @classdesc Rule model. Use {@link GraphandClient#getModel client.getModel("Rule")} to use this model
  */
 class Rule extends GraphandModel {
   static _customFields = {};

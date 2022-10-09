@@ -13,7 +13,7 @@ import GraphandModel from "../lib/GraphandModel";
 /**
  * @class DataField
  * @augments GraphandModel
- * @classdesc DataField model. Use {@link Client#getModel client.getModel("DataField")} to use this model
+ * @classdesc DataField model. Use {@link GraphandClient#getModel client.getModel("DataField")} to use this model
  */
 class DataField extends GraphandModel {
   static _customFields = {};

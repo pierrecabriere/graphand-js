@@ -1,7 +1,7 @@
 <a name="Sockethook"></a>
 
 ## Sockethook ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-Sockethook model. Use [client.getModel("Sockethook")](Client.md#Client+getModel) to use this model
+Sockethook model. Use [client.getModel("Sockethook")](GraphandClient.md#GraphandClient+getModel) to use this model
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  

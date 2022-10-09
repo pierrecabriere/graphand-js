@@ -1,7 +1,7 @@
 <a name="EsMapping"></a>
 
 ## EsMapping ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-EsMapping model. Use [client.getModel("EsMapping")](Client.md#Client+getModel) to use this model
+EsMapping model. Use [client.getModel("EsMapping")](GraphandClient.md#GraphandClient+getModel) to use this model
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  

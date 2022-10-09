@@ -8,7 +8,7 @@ import GraphandModel from "../lib/GraphandModel";
 /**
  * @class Sockethook
  * @augments GraphandModel
- * @classdesc Sockethook model. Use {@link Client#getModel client.getModel("Sockethook")} to use this model
+ * @classdesc Sockethook model. Use {@link GraphandClient#getModel client.getModel("Sockethook")} to use this model
  */
 class SockethookHost extends GraphandModel {
   static _customFields = {};

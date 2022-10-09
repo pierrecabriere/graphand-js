@@ -1,7 +1,7 @@
 <a name="Organization"></a>
 
 ## Organization ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-Organization model. Use [client.getModel("Organization")](Client.md#Client+getModel) to use this model
+Organization model. Use [client.getModel("Organization")](GraphandClient.md#GraphandClient+getModel) to use this model
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  

@@ -8,7 +8,7 @@ import GraphandModel from "../lib/GraphandModel";
 /**
  * @class Role
  * @augments GraphandModel
- * @classdesc Role model. Use {@link Client#getModel client.getModel("Role")} to use this model
+ * @classdesc Role model. Use {@link GraphandClient#getModel client.getModel("Role")} to use this model
  */
 class Role extends GraphandModel {
   static _customFields = {};

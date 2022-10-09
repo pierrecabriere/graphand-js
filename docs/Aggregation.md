@@ -1,7 +1,7 @@
 <a name="Aggregation"></a>
 
 ## Aggregation ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-Aggregation model. Use [client.getModel("Aggregation")](Client.md#Client+getModel) to use this model
+Aggregation model. Use [client.getModel("Aggregation")](GraphandClient.md#GraphandClient+getModel) to use this model
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  

@@ -1,7 +1,7 @@
 <a name="Restriction"></a>
 
 ## Restriction ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-Restriction model. Use [client.getModel("Restriction")](Client.md#Client+getModel) to use this model
+Restriction model. Use [client.getModel("Restriction")](GraphandClient.md#GraphandClient+getModel) to use this model
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  

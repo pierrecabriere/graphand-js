@@ -1,7 +1,7 @@
 <a name="Log"></a>
 
 ## Log ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-Log model. Use [client.getModel("Log")](Client.md#Client+getModel) to use this model
+Log model. Use [client.getModel("Log")](GraphandClient.md#GraphandClient+getModel) to use this model
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  

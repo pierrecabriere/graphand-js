@@ -8,7 +8,7 @@ import GraphandModel from "../lib/GraphandModel";
 /**
  * @class Restriction
  * @augments GraphandModel
- * @classdesc Restriction model. Use {@link Client#getModel client.getModel("Restriction")} to use this model
+ * @classdesc Restriction model. Use {@link GraphandClient#getModel client.getModel("Restriction")} to use this model
  */
 class Restriction extends GraphandModel {
   static _customFields = {};

@@ -1,7 +1,7 @@
 <a name="Role"></a>
 
 ## Role ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-Role model. Use [client.getModel("Role")](Client.md#Client+getModel) to use this model
+Role model. Use [client.getModel("Role")](GraphandClient.md#GraphandClient+getModel) to use this model
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  

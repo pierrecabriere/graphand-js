@@ -1,7 +1,7 @@
 <a name="Project"></a>
 
 ## Project ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-Project model. Use [client.getModel("Project")](Client.md#Client+getModel) to use this model
+Project model. Use [client.getModel("Project")](GraphandClient.md#GraphandClient+getModel) to use this model
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  

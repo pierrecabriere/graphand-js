@@ -8,7 +8,7 @@ import GraphandModel from "../lib/GraphandModel";
 /**
  * @class DataModel
  * @augments GraphandModel
- * @classdesc DataModel model. Use {@link GraphandClient#getModel client.getModel("DataModel")} to use this model
+ * @classdesc DataModel model. Use {@link GraphandGraphandClient#getModel client.getModel("DataModel")} to use this model
  */
 class DataModel extends GraphandModel {
   static _customFields = {};

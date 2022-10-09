@@ -1,7 +1,7 @@
 <a name="User"></a>
 
 ## User ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-User model. Use [client.getModel("User")](Client.md#Client+getModel) to use this model
+User model. Use [client.getModel("User")](GraphandClient.md#GraphandClient+getModel) to use this model
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  

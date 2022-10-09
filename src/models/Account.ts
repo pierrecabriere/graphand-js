@@ -8,7 +8,7 @@ import Role from "./Role";
 /**
  * @class Account
  * @augments GraphandModel
- * @classdesc Account model. Use {@link Client#getModel client.getModel("Account")} to use this model
+ * @classdesc Account model. Use {@link GraphandClient#getModel client.getModel("Account")} to use this model
  */
 class Account extends GraphandModel {
   static _customFields = {};
@@ -39,7 +39,7 @@ class Account extends GraphandModel {
   }
 
   /**
-   * Get accessToken with credentials & set token to {@link Client}
+   * Get accessToken with credentials & set token to {@link GraphandClient}
    * @param credentials {Object} - Credentials sent to api
    */
   static async login(credentials) {

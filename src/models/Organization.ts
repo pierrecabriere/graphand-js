@@ -6,7 +6,7 @@ import GraphandModel from "../lib/GraphandModel";
 /**
  * @class Organization
  * @augments GraphandModel
- * @classdesc Organization model. Use {@link Client#getModel client.getModel("Organization")} to use this model
+ * @classdesc Organization model. Use {@link GraphandClient#getModel client.getModel("Organization")} to use this model
  */
 class Organization extends GraphandModel {
   static _customFields = {};

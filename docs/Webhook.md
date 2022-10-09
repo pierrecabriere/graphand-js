@@ -1,7 +1,7 @@
 <a name="Webhook"></a>
 
 ## Webhook ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-Webhook model. Use [client.getModel("Webhook")](Client.md#Client+getModel) to use this model
+Webhook model. Use [client.getModel("Webhook")](GraphandClient.md#GraphandClient+getModel) to use this model
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  

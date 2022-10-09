@@ -378,7 +378,7 @@ class GraphandClient {
   }
 
   /**
-   * Get multiple models at once (multiple {@link Client#getModel})
+   * Get multiple models at once (multiple {@link GraphandClient#getModel})
    * @param scopes {ModelScopes[]|"Data:*"}
    * @param options
    * @returns {GraphandModel.constructor[]}
@@ -394,7 +394,7 @@ class GraphandClient {
   getModel<T extends ModelScopes | string>(scope: T, options?: any): ScopedModelType<T>;
 
   /**
-   * Get ready-to-use model by scope. Use {@link Client#getModels} to get multiple models at once
+   * Get ready-to-use model by scope. Use {@link GraphandClient#getModels} to get multiple models at once
    * @param scope {ModelScopes|"Data:*"}
    * @param options
    * @returns {GraphandModel.constructor}

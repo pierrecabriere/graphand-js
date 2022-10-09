@@ -1,7 +1,7 @@
 <a name="Account"></a>
 
 ## Account ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-Account model. Use [client.getModel("Account")](Client.md#Client+getModel) to use this model
+Account model. Use [client.getModel("Account")](GraphandClient.md#GraphandClient+getModel) to use this model
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
@@ -193,7 +193,7 @@ Returns JSON-serialized object of the current instance
 <a name="Account.login"></a>
 
 ### Account.login(credentials)
-Get accessToken with credentials & set token to [Client](Client.md#Client)
+Get accessToken with credentials & set token to [GraphandClient](GraphandClient.md#GraphandClient)
 
 **Kind**: static method of [<code>Account</code>](Account.md#Account)  
 

@@ -8,7 +8,7 @@ import GraphandModel from "../lib/GraphandModel";
 /**
  * @class Webhook
  * @augments GraphandModel
- * @classdesc Webhook model. Use {@link Client#getModel client.getModel("Webhook")} to use this model
+ * @classdesc Webhook model. Use {@link GraphandClient#getModel client.getModel("Webhook")} to use this model
  */
 class Webhook extends GraphandModel {
   static _customFields = {};

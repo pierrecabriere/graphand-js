@@ -12,7 +12,7 @@ const defaultLinkOptions = {
 /**
  * @class Media
  * @augments GraphandModel
- * @classdesc Media model. Use {@link Client#getModel client.getModel("Media")} to use this model
+ * @classdesc Media model. Use {@link GraphandClient#getModel client.getModel("Media")} to use this model
  */
 class Media extends GraphandModel {
   static _customFields = {};

@@ -7,7 +7,7 @@ import GraphandModel from "../lib/GraphandModel";
 /**
  * @class Token
  * @augments GraphandModel
- * @classdesc Token model. Use {@link Client#getModel client.getModel("Token")} to use this model
+ * @classdesc Token model. Use {@link GraphandClient#getModel client.getModel("Token")} to use this model
  */
 class Token extends GraphandModel {
   static _customFields = {};

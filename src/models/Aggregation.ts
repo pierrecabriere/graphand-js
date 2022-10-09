@@ -11,7 +11,7 @@ import GraphandModelPromise from "../lib/GraphandModelPromise";
 /**
  * @class Aggregation
  * @augments GraphandModel
- * @classdesc Aggregation model. Use {@link Client#getModel client.getModel("Aggregation")} to use this model
+ * @classdesc Aggregation model. Use {@link GraphandClient#getModel client.getModel("Aggregation")} to use this model
  */
 class Aggregation extends GraphandModel {
   static _customFields = {};

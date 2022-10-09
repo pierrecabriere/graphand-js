@@ -1,7 +1,7 @@
 <a name="DataModel"></a>
 
 ## DataModel ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-DataModel model. Use [client.getModel("DataModel")](Client.md#Client+getModel) to use this model
+DataModel model. Use [client.getModel("DataModel")](GraphandGraphandClient#getModel) to use this model
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  

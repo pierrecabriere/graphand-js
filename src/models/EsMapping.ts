@@ -8,7 +8,7 @@ import GraphandModel from "../lib/GraphandModel";
 /**
  * @class EsMapping
  * @augments GraphandModel
- * @classdesc EsMapping model. Use {@link Client#getModel client.getModel("EsMapping")} to use this model
+ * @classdesc EsMapping model. Use {@link GraphandClient#getModel client.getModel("EsMapping")} to use this model
  */
 class EsMapping extends GraphandModel {
   static _customFields = {};

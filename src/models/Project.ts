@@ -10,7 +10,7 @@ import Role from "./Role";
 /**
  * @class Project
  * @augments GraphandModel
- * @classdesc Project model. Use {@link Client#getModel client.getModel("Project")} to use this model
+ * @classdesc Project model. Use {@link GraphandClient#getModel client.getModel("Project")} to use this model
  */
 class Project extends GraphandModel {
   static _customFields = {};
@@ -27,6 +27,8 @@ class Project extends GraphandModel {
     defaultRegisterRole: new GraphandFieldRelation({ ref: "Role", multiple: false }),
     accessTokenLifetime: new GraphandFieldNumber(),
     refreshTokenLifetime: new GraphandFieldNumber(),
+    organization: new GraphandFieldRelation({ ref: "Organization", multiple: false }),
+    owner: new GraphandFieldRelation({ ref: "Account", multiple: false }),
   };
 
   /**
@@ -47,6 +49,7 @@ class Project extends GraphandModel {
   refreshTokenLifetime;
   organization;
   plan;
+  owner;
 }
 
 export default Project;

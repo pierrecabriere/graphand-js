@@ -1,7 +1,7 @@
 <a name="Data"></a>
 
 ## Data ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-Data model. Base class for Data models. Use [client.getModel("Data:{slug](Client.md#Client+getModel)")} to use the data model with slug
+Data model. Base class for Data models. Use [client.getModel("Data:{slug](GraphandClient.md#GraphandClient+getModel)")} to use the data model with slug
 
 **Kind**: global class  
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
