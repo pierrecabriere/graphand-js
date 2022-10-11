@@ -29,7 +29,11 @@ class DataModel extends GraphandModel {
   configuration;
 }
 
-DataModel.hook("postCreate", (inserted) => {
+DataModel.hook("postCreate", (inserted, e) => {
+  if (e) {
+    return;
+  }
+
   const clients = new Set();
 
   if (Array.isArray(inserted)) {
@@ -44,7 +48,11 @@ DataModel.hook("postCreate", (inserted) => {
   });
 });
 
-DataModel.hook("postDelete", ({ payload }) => {
+DataModel.hook("postDelete", ({ payload }, e) => {
+  if (e) {
+    return;
+  }
+
   const clients = new Set();
 
   if (Array.isArray(payload)) {
