@@ -7,18 +7,21 @@ Media model. Use [client.getModel("Media")](GraphandClient.md#GraphandClient+get
 **Extends**: [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)  
 
 * [Media](Media.md#Media) ⇐ [<code>GraphandModel</code>](GraphandModel.md#GraphandModel)
-    * [.raw](#GraphandModel+raw) ⇒ <code>\*</code>
-    * [.getUrl(opts)](Media.md#Media+getUrl)
-    * [.update(update, [options])](#GraphandModel+update)
-    * [.delete([options])](#GraphandModel+delete)
-    * [.clone(locale)](#GraphandModel+clone)
-    * [.get(slug, [parse], _locale, fallback)](#GraphandModel+get)
-    * [.set(slug, value, [upsert], [parse])](#GraphandModel+set)
-    * [.assign(values, [upsert])](#GraphandModel+assign)
-    * [.subscribe(callback)](#GraphandModel+subscribe)
-    * [.isTemporary()](#GraphandModel+isTemporary)
-    * [.serialize()](#GraphandModel+serialize) ⇒ <code>Object</code>
-    * [.toJSON()](#GraphandModel+toJSON) ⇒ <code>Object</code>
+    * _instance_
+        * [.raw](#GraphandModel+raw) ⇒ <code>\*</code>
+        * [.getUrl(opts)](Media.md#Media+getUrl)
+        * [.update(update, [options])](#GraphandModel+update)
+        * [.delete([options])](#GraphandModel+delete)
+        * [.clone(locale)](#GraphandModel+clone)
+        * [.get(slug, [parse], _locale, fallback)](#GraphandModel+get)
+        * [.set(slug, value, [upsert], [parse])](#GraphandModel+set)
+        * [.assign(values, [upsert])](#GraphandModel+assign)
+        * [.subscribe(callback)](#GraphandModel+subscribe)
+        * [.isTemporary()](#GraphandModel+isTemporary)
+        * [.serialize()](#GraphandModel+serialize) ⇒ <code>Object</code>
+        * [.toJSON()](#GraphandModel+toJSON) ⇒ <code>Object</code>
+    * _static_
+        * [.decodeUrl(url)](#Media.decodeUrl)
 
 
 * * *
@@ -186,6 +189,20 @@ Serialize instance. Serialized data could be hydrated with GraphandModel.hydrate
 Returns JSON-serialized object of the current instance
 
 **Kind**: instance method of [<code>Media</code>](Media.md#Media)  
+
+* * *
+
+<a name="Media.decodeUrl"></a>
+
+### Media.decodeUrl(url)
+Decode graphand media url to get media and options from url
+
+**Kind**: static method of [<code>Media</code>](Media.md#Media)  
+
+| Param | Type |
+| --- | --- |
+| url | <code>string</code> | 
+
 
 * * *
 

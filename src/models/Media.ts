@@ -4,9 +4,19 @@ import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 import GraphandModelPromise from "../lib/GraphandModelPromise";
+import isId from "../utils/isId";
 
-const defaultLinkOptions = {
+const defaultUrlOptions = {
   private: false,
+};
+
+type MediaUrlOptions = {
+  w?: number;
+  h?: number;
+  fit?: "cover" | "contain";
+  stream?: string | boolean;
+  name?: string | boolean;
+  private?: boolean;
 };
 
 /**
@@ -52,15 +62,17 @@ class Media extends GraphandModel {
    * @property w {number=} - Image width
    * @property h {number=} - Image height
    * @property fit {string=} - Image fit (cover|contain)
-   * @property stream {string=} - The mimetype to stream the media (need support for buffering)
+   * @property stream {string|boolean=} - The mimetype to stream the media (need support for buffering). If true, media needs to be resolved
+   * @property name {string|boolean=} - The name added to the url. If true, media needs to be resolved
+   * @property private {boolean=} - Specify if the media is private or not. If not specified, media needs to be resolved to be private
    */
 
   /**
    * Get graphand cdn url for current media
    * @param opts {MediaUrlOptions}
    */
-  getUrl(opts: any = {}): string {
-    opts = Object.assign({}, defaultLinkOptions, opts);
+  getUrl(opts: MediaUrlOptions = {}): string {
+    opts = Object.assign({}, defaultUrlOptions, opts);
     let client;
     if (this instanceof GraphandModelPromise) {
       client = this.model?._client;
@@ -69,7 +81,8 @@ class Media extends GraphandModel {
       client = constructor._client;
     }
 
-    const { private: _private, name, ...data } = opts;
+    const { private: _private, name, ..._data } = opts;
+    const data = _data as any;
 
     const scope = _private || this.private ? "private" : "public";
     let url = `${client.getCdnURL()}/${scope}/${client._options.project}/${this._id}`;
@@ -89,6 +102,44 @@ class Media extends GraphandModel {
     }
 
     return url;
+  }
+
+  /**
+   * Decode graphand media url to get media and options from url
+   * @param url {string}
+   */
+  static decodeUrl(url: string): [media: GraphandModelPromise<Media> | Media, opts: MediaUrlOptions] | null {
+    const client = this._client;
+
+    if (!client) {
+      return null;
+    }
+
+    const regex = new RegExp(`^${client.getCdnURL()}\/(private|public)\/(\\w+)\/(\\w+)(\/(.+?))?(\\?(.+?))?$`);
+    const match = url.match(regex);
+    if (!match) {
+      return null;
+    }
+
+    const { 1: scope, 2: projectId, 3: mediaId, 5: mediaName, 6: urlParams } = match;
+
+    if (projectId !== client._options.project || !isId(mediaId)) {
+      return null;
+    }
+
+    const opts: MediaUrlOptions = {};
+    opts.private = scope === "private";
+    opts.name = mediaName;
+
+    if (urlParams?.length) {
+      const urlSearchParams = new URLSearchParams(urlParams);
+      opts.w = parseInt(urlSearchParams.get("w"));
+      opts.h = parseInt(urlSearchParams.get("h"));
+      const fit = urlSearchParams.get("fit");
+      opts.fit = fit === "contain" ? "contain" : "cover";
+    }
+
+    return [this.get(mediaId), opts];
   }
 }
 

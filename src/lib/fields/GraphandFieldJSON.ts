@@ -30,7 +30,7 @@ class GraphandFieldJSON extends GraphandField {
     });
 
     if (Object.keys(res)?.length) {
-      if (Object.keys(res).every((key) => Number.isInteger(Number(key)))) {
+      if (Object.keys(res).every((key) => key == String(parseInt(key)))) {
         return Object.values(res);
       }
     } else if (Array.isArray(value)) {

@@ -27,7 +27,7 @@ function getModelInstance<T extends typeof GraphandModel>(
   }
 
   let _id;
-  if (query instanceof GraphandModel) {
+  if (query instanceof GraphandModel || query instanceof GraphandModelPromise) {
     _id = query._id;
     query = { query: { _id } };
     cache = cache ?? true;
