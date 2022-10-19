@@ -41,6 +41,7 @@ class Media extends GraphandModel {
     private: new GraphandFieldBoolean({ defaultValue: false }),
     width: new GraphandFieldNumber(),
     height: new GraphandFieldNumber(),
+    duration: new GraphandFieldNumber(),
   };
 
   static _universalPrototypeMethods = ["getUrl"];
@@ -54,6 +55,7 @@ class Media extends GraphandModel {
   private;
   width;
   height;
+  duration;
   [prop: string]: any;
 
   /**
