@@ -32,6 +32,7 @@ const setupSocket = (client: GraphandClient) => {
       case "end":
       case "aborted":
       case "progress":
+      case "error":
         client._mediasQueueSubject.next(client._mediasQueueSubject.value.map((item) => (item === queueItem ? Object.assign(item, payload) : item)));
         break;
     }
