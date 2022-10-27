@@ -2,13 +2,19 @@ import "./utils/decorators";
 import GraphandClient from "./GraphandClient";
 import AggregationExecutor from "./lib/AggregationExecutor";
 import GraphandFieldBoolean from "./lib/fields/GraphandFieldBoolean";
+import { GraphandFieldBooleanDefinition } from "./lib/fields/GraphandFieldBoolean";
 import GraphandFieldDate from "./lib/fields/GraphandFieldDate";
+import { GraphandFieldDateDefinition } from "./lib/fields/GraphandFieldDate";
 import GraphandFieldId from "./lib/fields/GraphandFieldId";
 import GraphandFieldJSON from "./lib/fields/GraphandFieldJSON";
+import { GraphandFieldJSONDefinition } from "./lib/fields/GraphandFieldJSON";
 import GraphandFieldNumber from "./lib/fields/GraphandFieldNumber";
+import { GraphandFieldNumberDefinition } from "./lib/fields/GraphandFieldNumber";
 import GraphandFieldRelation from "./lib/fields/GraphandFieldRelation";
+import { GraphandFieldRelationDefinition } from "./lib/fields/GraphandFieldRelation";
 import GraphandFieldScope from "./lib/fields/GraphandFieldScope";
 import GraphandFieldText from "./lib/fields/GraphandFieldText";
+import { GraphandFieldTextDefinition } from "./lib/fields/GraphandFieldText";
 import GraphandError from "./lib/GraphandError";
 import GraphandField from "./lib/GraphandField";
 import GraphandHistoryModel from "./lib/GraphandHistoryModel";
@@ -86,4 +92,10 @@ export {
   GraphandHistoryModel,
   GraphandFieldScope,
   AggregationExecutor,
+  GraphandFieldRelationDefinition,
+  GraphandFieldTextDefinition,
+  GraphandFieldDateDefinition,
+  GraphandFieldBooleanDefinition,
+  GraphandFieldJSONDefinition,
+  GraphandFieldNumberDefinition,
 };

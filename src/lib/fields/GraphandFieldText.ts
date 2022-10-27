@@ -4,18 +4,17 @@ import GraphandModel from "../GraphandModel";
 class GraphandFieldText extends GraphandField {
   static __fieldType = "Text";
 
-  defaultValue;
-  required;
-  unique;
-  sparse;
-  minLength;
-  maxLength;
-  regex;
-  regexOptions;
-  multiple;
-  duplicates;
-  options;
-  creatable;
+  required?: boolean;
+  unique?: boolean;
+  sparse?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  regex?: string;
+  regexOptions?: string;
+  multiple?: boolean;
+  duplicates?: boolean;
+  options?: string[];
+  creatable?: boolean;
 
   getter(value, from: GraphandModel) {
     if (!value) {
@@ -41,5 +40,7 @@ class GraphandFieldText extends GraphandField {
     }
   }
 }
+
+export type GraphandFieldTextDefinition<M extends boolean = false> = M extends true ? string[] : string;
 
 export default GraphandFieldText;

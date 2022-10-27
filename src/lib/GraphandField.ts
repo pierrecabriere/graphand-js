@@ -5,7 +5,7 @@ class GraphandField {
   static __fieldType;
 
   query?: any;
-  defaultValue: any;
+  defaultValue?: any;
   __dataField?: DataField;
   [prop: string]: any;
 

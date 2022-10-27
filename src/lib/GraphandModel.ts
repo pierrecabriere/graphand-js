@@ -52,10 +52,6 @@ class AbstractGraphandModel {
   static Scopes = ModelScopes;
 }
 
-// type This<T extends GraphandModel> = {
-//   new (...args: any[]): T;
-// } & typeof GraphandModel;
-
 /**
  * @class GraphandModel
  * @classdesc Base GraphandModel class. You can create your own custom models by extending this class.

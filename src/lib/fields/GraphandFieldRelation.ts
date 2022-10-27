@@ -1,12 +1,19 @@
 import ModelScopes from "../../enums/model-scopes";
 import GraphandField from "../GraphandField";
 import GraphandModel from "../GraphandModel";
+import GraphandModelList from "../GraphandModelList";
+import GraphandModelListPromise from "../GraphandModelListPromise";
+import GraphandModelPromise from "../GraphandModelPromise";
 
 class GraphandFieldRelation extends GraphandField {
   static __fieldType = "Relation";
 
+  required?: boolean;
+  unique?: boolean;
+  sparse?: boolean;
   ref: ModelScopes | string;
   multiple?: boolean;
+  duplicates?: boolean;
   query;
   _model;
 
@@ -59,5 +66,9 @@ class GraphandFieldRelation extends GraphandField {
     }
   }
 }
+
+export type GraphandFieldRelationDefinition<T extends GraphandModel = GraphandModel, M extends boolean = true> = M extends true
+  ? GraphandModelList<T> | GraphandModelListPromise<T>
+  : T | GraphandModelPromise<T>;
 
 export default GraphandFieldRelation;
