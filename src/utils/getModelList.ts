@@ -16,6 +16,10 @@ function getModelList<T extends typeof GraphandModel>(
   _q: any,
   _opts: FetchOptions | boolean = true,
 ): GraphandModelList<InstanceType<T>> | GraphandModelListPromise<InstanceType<T>> {
+  if (!Model._client) {
+    throw new Error(`Model ${Model.scope} is not registered`);
+  }
+
   const defaultOptions = { fetch: true, cache: true };
   const opts: ModelListOptions = Object.assign({}, defaultOptions, typeof _opts === "object" ? _opts : { fetch: _opts });
 

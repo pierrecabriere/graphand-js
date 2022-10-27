@@ -342,31 +342,36 @@ class GraphandClient {
 
   async _init(force = false) {
     if (force || !this._initPromise) {
+      let _registerModels, _initProject;
+
+      if (this._options.project) {
+        if (this._options.initModels) {
+          _registerModels = new Promise(async (resolve) => {
+            try {
+              const [DataModel] = this.getModels(["DataModel"]);
+              const dataModels = (await DataModel.getList({})) as GraphandModelList<DataModel>;
+              const scopes = ["Account", "Media"].concat(dataModels.map((m) => `Data:${m.slug}`));
+              await this.registerModels(this._options.models.concat(scopes), { extend: true });
+            } catch (e) {}
+
+            resolve(true);
+          });
+        } else {
+          _registerModels = this.registerModels(this._options.models, { extend: true });
+        }
+
+        if (this._options.initProject) {
+          const [Project] = this.getModels(["Project"]);
+          _initProject = Project.getCurrent();
+        }
+      }
+
       this._initPromise = new Promise(async (resolve, reject) => {
         const plugins = Array.from(this._plugins);
         await Promise.all(plugins.map((p) => p.execute(PluginLifecyclePhases.INIT)));
 
         try {
-          await Promise.all([
-            (async () => {
-              if (this._options.project) {
-                if (this._options.initModels) {
-                  const [DataModel] = this.getModels(["DataModel"]);
-                  const dataModels = (await DataModel.getList({})) as GraphandModelList<DataModel>;
-                  const scopes = ["Account", "Media"].concat(dataModels.map((m) => `Data:${m.slug}`));
-                  await this.registerModels(this._options.models.concat(scopes), { extend: true });
-                } else {
-                  await this.registerModels(this._options.models, { extend: true });
-                }
-              }
-            })(),
-            (async () => {
-              if (this._options.initProject && this._options.project) {
-                const [Project] = this.getModels(["Project"]);
-                await Project.getCurrent();
-              }
-            })(),
-          ]);
+          await Promise.all([_registerModels, _initProject]);
           resolve(true);
         } catch (e) {
           reject(e);
@@ -471,14 +476,14 @@ class GraphandClient {
     options.sync = options.sync ?? this._options.autoSync;
     options.cache = options.cache ?? this._options.cache;
 
+    const _saveModel = (m) => {
+      m._client = this;
+      m._fieldsIds = options.fieldsIds;
+    };
+
     const _name = options.name || Model.scope;
     if (Model._client) {
-      if (Model._client === this) {
-        if (!options.force) {
-          Model._fieldsIds = options.fieldsIds;
-          return Model;
-        }
-      } else {
+      if (Model._client !== this) {
         if (!options.force && !options.extend) {
           console.error(
             `You tried to register a Model already registered on another client. Use force option and extend to prevent overriding`,
@@ -492,8 +497,7 @@ class GraphandClient {
     }
 
     this._models[_name] = Model;
-    this._models[_name]._client = this;
-    this._models[_name]._fieldsIds = options.fieldsIds;
+    _saveModel(this._models[_name]);
 
     try {
       if (options.sync) {
@@ -515,6 +519,10 @@ class GraphandClient {
 
   async registerModels(list, options: any = {}) {
     const modelsList = list.map((item) => (Array.isArray(item) ? item[0] : item));
+    modelsList.forEach((m) => {
+      m._client = this;
+    });
+
     const scopes = modelsList.map((model) => (typeof model === "string" ? model : model.scope));
     const DataField = this.getModel("DataField");
     const dataFields: GraphandModelList<GraphandModel> = (await DataField.getList({

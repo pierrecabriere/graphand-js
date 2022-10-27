@@ -331,9 +331,9 @@ class GraphandModel extends AbstractGraphandModel {
    */
   static sync(opts: { handleSocketTrigger?: ({ action, payload }) => boolean | void; force?: boolean } = {}) {
     const force = typeof opts === "boolean" ? opts : opts.force ?? false;
-    this._socketOptions = opts;
 
     if (force || (this._client && !this._socketSubscription)) {
+      this._socketOptions = opts;
       this._socketSubscription = this._client._socketSubject.subscribe((socket) => this.setupSocket(socket));
     }
 
