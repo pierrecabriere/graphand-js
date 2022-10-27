@@ -123,8 +123,8 @@ type ScopedModelType<T> = T extends ModelScopes.Account | "Account"
 export type RegisterHookOptions = {
   identifier?: string;
   model?: typeof GraphandModel;
-  events?: HooksEvents | HooksEvents[];
-  handler?: any;
+  events?: (HooksEvents | string) | (HooksEvents | string)[];
+  handler?: (payload: any, resolve?: (v: any) => void, reject?: (v: any) => void) => any | void;
   _await?: boolean;
   timeout?: number;
   priority?: number;
@@ -517,10 +517,10 @@ class GraphandClient {
     return this._models[_name];
   }
 
-  async registerModels(list, options: any = {}) {
+  async registerModels(list: any[], options: any = {}) {
     const modelsList = list.map((item) => (Array.isArray(item) ? item[0] : item));
     modelsList.forEach((m) => {
-      m._client = this;
+      m._client = m._client ?? this;
     });
 
     const scopes = modelsList.map((model) => (typeof model === "string" ? model : model.scope));

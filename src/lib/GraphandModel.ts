@@ -576,7 +576,11 @@ class GraphandModel extends AbstractGraphandModel {
    * @param handler {GraphandModelHookHandler} - The handler that will be executed
    * @param options
    */
-  static on(events: HooksEvents | HooksEvents[], handler, options: { await?: boolean } & Partial<RegisterHookOptions> = {}) {
+  static on(
+    events: (HooksEvents | string) | (HooksEvents | string)[],
+    handler: RegisterHookOptions["handler"],
+    options: RegisterHookOptions & { await?: boolean } = {},
+  ) {
     this._client.registerHook({ events, handler, model: this, _await: options.await, ...options });
   }
 
