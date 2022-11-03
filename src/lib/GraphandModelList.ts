@@ -98,12 +98,12 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
 
     if (Array.isArray(data)) {
       const list = data.map((i) => new model(i));
-      return new this({ model }, ...list);
+      return new GraphandModelList({ model }, ...list);
     }
 
     const { __count: count, __query: query, __payload } = data;
     const items = __payload ? __payload.map((i) => model.hydrate(i)) : [];
-    return new this({ model, count, query }, ...items);
+    return new GraphandModelList({ model, count, query }, ...items);
   }
 
   toArray() {

@@ -10,30 +10,27 @@ function hydrateModel<T extends typeof GraphandModel | GraphandClient>(input: T,
 
   switch (data.__type) {
     case "GraphandModelList":
-      return GraphandModelList.hydrate(data, Model);
+      const list = GraphandModelList.hydrate(data, Model);
+      upsert && Model.upsertStore(list);
+      return list;
     case "GraphandModel":
-      return new Model(data.__payload);
+      const instance = new Model(data.__payload);
+      upsert && Model.upsertStore([instance]);
+      return instance;
     default:
       break;
   }
 
-  let res;
   if (Array.isArray(data)) {
     const rows = data.map((i) => new Model(i));
-    res = new GraphandModelList({ model: Model, rows });
-
-    if (upsert) {
-      Model.upsertStore(res);
-    }
+    const list = new GraphandModelList({ model: Model, rows });
+    upsert && Model.upsertStore(list);
+    return list;
   } else {
-    res = new Model(data);
-
-    if (upsert) {
-      Model.upsertStore([res]);
-    }
+    const instance = new Model(data);
+    upsert && Model.upsertStore([instance]);
+    return instance;
   }
-
-  return res;
 }
 
 export default hydrateModel;

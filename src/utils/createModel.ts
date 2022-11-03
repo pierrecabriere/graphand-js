@@ -24,7 +24,7 @@ const createModel = async (Model: typeof GraphandModel, payload, hooks = true, u
     args.payload = parsePayload(args.payload);
     const req = Model._client._axios.post(url, args.payload, args.config).then(async (res) => {
       const { data } = res.data;
-      const inserted = Model.hydrate(data);
+      const inserted = Model.hydrate(data) as GraphandModel;
 
       Model.clearCache();
       Model.upsertStore([inserted], true);

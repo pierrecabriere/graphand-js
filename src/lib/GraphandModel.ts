@@ -533,7 +533,7 @@ class GraphandModel extends AbstractGraphandModel {
       switch (action) {
         case "create":
         case "update":
-          const items = this.hydrate(payload);
+          const items = this.hydrate(payload) as GraphandModelList<GraphandModel>;
           storeUpdated = this.upsertStore(items);
           break;
         case "delete":
@@ -555,7 +555,7 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   static handleUpdatedData(rows, upsert = false) {
-    const items = this.hydrate(rows);
+    const items = this.hydrate(rows) as GraphandModelList<GraphandModel>;
 
     if (upsert) {
       const upserted = this.upsertStore(items);

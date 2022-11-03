@@ -1,4 +1,5 @@
 import ModelScopes from "../../enums/model-scopes";
+import { GraphandModelMedia } from "../../index";
 import GraphandField from "../GraphandField";
 import GraphandModel from "../GraphandModel";
 import GraphandModelList from "../GraphandModelList";
@@ -69,6 +70,8 @@ class GraphandFieldRelation extends GraphandField {
 
 export type GraphandFieldRelationDefinition<T extends GraphandModel = GraphandModel, M extends boolean = true> = M extends true
   ? GraphandModelList<T> | GraphandModelListPromise<T>
+  : T extends GraphandModelMedia
+  ? T | (GraphandModelPromise<T> & { getUrl: typeof GraphandModelMedia.prototype.getUrl })
   : T | GraphandModelPromise<T>;
 
 export default GraphandFieldRelation;
