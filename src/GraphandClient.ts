@@ -520,6 +520,10 @@ class GraphandClient {
   async registerModels(list: any[], options: any = {}) {
     const modelsList = list.map((item) => (Array.isArray(item) ? item[0] : item));
     modelsList.forEach((m) => {
+      if (!m || typeof m !== "object") {
+        return;
+      }
+
       m._client = m._client ?? this;
     });
 
