@@ -21,9 +21,7 @@ class GraphandError extends Error {
     const { constructor } = Object.getPrototypeOf(this);
     this.name = constructor.name;
 
-    // @ts-ignore
     if (Error.captureStackTrace) {
-      // @ts-ignore
       Error.captureStackTrace(this, constructor);
     }
 

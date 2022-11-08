@@ -109,7 +109,7 @@ class GraphandModel extends AbstractGraphandModel {
   static isGlobal = false;
   static baseUrl = null;
   static queryUrl = null;
-  static schema = {};
+  static schema: { [key: string]: GraphandField } = {};
   static initialize: () => any;
 
   /**
@@ -446,7 +446,7 @@ class GraphandModel extends AbstractGraphandModel {
    * Add multiple customFields
    * @param fields {Object.<string, number>} - example: { customField: new GraphandFieldText() }
    */
-  static customFields(fields = {}) {
+  static customFields(fields: { [key: string]: GraphandField | ((fields: typeof GraphandModel.schema) => GraphandField | null) } = {}) {
     this._customFields = { ...this._customFields, ...fields };
     this._cachedFields = null;
     return this;

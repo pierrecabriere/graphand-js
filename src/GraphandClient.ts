@@ -576,7 +576,7 @@ class GraphandClient {
           await this._axios.post(`/sockethooks/${identifier}/end`, res ?? payload);
         } catch (e) {
           console.error(e);
-          this._axios.post(`/sockethooks/${identifier}/throw`, e);
+          this._axios.post(`/sockethooks/${identifier}/throw`, GraphandError.fromJSON(e));
         }
       } else {
         try {
