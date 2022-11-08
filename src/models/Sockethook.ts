@@ -1,9 +1,7 @@
 import HooksEvents from "../enums/hooks-events";
 import ModelScopes from "../enums/model-scopes";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
-import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
-import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
@@ -25,13 +23,8 @@ class Sockethook extends GraphandModel {
     fields: new GraphandFieldText({ multiple: true }),
     scope: new GraphandFieldScope(),
     await: new GraphandFieldBoolean(),
-    blocked: new GraphandFieldBoolean(),
     timeout: new GraphandFieldNumber(),
     priority: new GraphandFieldNumber({ defaultValue: 0 }),
-    hosts: new GraphandFieldRelation({
-      ref: "SockethookHost",
-      multiple: true,
-    }),
   };
 
   static Events = HooksEvents;
@@ -41,10 +34,8 @@ class Sockethook extends GraphandModel {
   fields;
   scope;
   await;
-  blocked;
   timeout;
   priority;
-  hosts;
 
   static async handleUpdateCall(payload) {
     if (payload.query._id) {

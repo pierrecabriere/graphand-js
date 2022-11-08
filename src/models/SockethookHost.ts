@@ -17,7 +17,6 @@ class SockethookHost extends GraphandModel {
   static baseUrl = "/sockethooks/hosts";
   static scope = ModelScopes.SockethookHost;
   static schema = {
-    ip: new GraphandFieldText(),
     name: new GraphandFieldText(),
     socket: new GraphandFieldText(),
     connectedAt: new GraphandFieldDate(),
@@ -26,7 +25,6 @@ class SockethookHost extends GraphandModel {
 
   static Events = HooksEvents;
 
-  ip: string;
   name: string;
   socket: string;
   connectedAt: Date;
