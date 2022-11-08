@@ -6,7 +6,7 @@ const setupSocket = (client: GraphandClient) => {
   let hostname = client._options.socketOptions?.hostname;
   if (!hostname) {
     try {
-      hostname = require("os")?.hostname();
+      hostname = process.env.HOSTNAME || require("os")?.hostname();
     } catch (e) {}
   }
 
