@@ -74,18 +74,17 @@ const _request = async (Model: typeof GraphandModel, query, hooks, cacheKey, opt
     // @ts-ignore
     axiosOpts.global = opts.global ?? Model.isGlobal;
     let singleId, params;
-    if (typeof query?.query?._id === "string" && Object.keys(query.query).length === 1) {
+    if (query?.ids?.length === 1 && !query?.query) {
       const {
-        query: { _id },
+        ids: [_id],
         ..._params
       } = query;
 
       singleId = _id;
       params = _params;
-      // } else if (query.isMergeable() && query?.ids?.length === 1) {
-    } else if (query?.ids?.length === 1) {
+    } else if (!query?.ids && typeof query?.query?._id === "string" && Object.keys(query.query).length === 1) {
       const {
-        ids: [_id],
+        query: { _id },
         ..._params
       } = query;
 
