@@ -5,7 +5,7 @@ import GraphandModelListPromise from "./GraphandModelListPromise";
 /**
  * @class GraphandModelList
  */
-class GraphandModelList<T extends GraphandModel> extends Array implements Array<T> {
+class GraphandModelList<T extends GraphandModel> extends Array<T> {
   count;
   private _observable;
   private _storeSub;
@@ -65,8 +65,8 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
    */
   get ids() {
     return this.toArray()
-      .map((item) => item?._id || item)
-      .filter(Boolean);
+      .map((item) => item?._id || String(item))
+      .filter(Boolean) as string[];
   }
 
   /**
@@ -107,11 +107,18 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
   }
 
   toArray() {
-    return new Array(...this);
+    return new Array<T>(...this);
   }
 
-  clone(concatWith?: GraphandModel | GraphandModelList<T>) {
-    const elements = concatWith ? this.toArray().concat(concatWith) : this.toArray();
+  clone(concatWith?: T | GraphandModelList<T>) {
+    let concatArray: ConcatArray<T>;
+    if (Array.isArray(concatWith)) {
+      concatArray = concatWith.toArray?.() || concatWith;
+    } else if (concatWith) {
+      concatArray = [concatWith];
+    }
+
+    const elements = concatArray?.length ? this.toArray().concat(concatArray) : this.toArray();
     return new GraphandModelList(this, ...elements);
   }
 
@@ -124,7 +131,7 @@ class GraphandModelList<T extends GraphandModel> extends Array implements Array<
 
   createObservable() {
     this._observable = new Observable((subscriber) => {
-      let prevLastUpdated = this.map((i) => i.updatedAt).sort((a, b) => b - a)[0];
+      let prevLastUpdated = this.map((i) => i.updatedAt).sort((a, b) => b.getTime() - a.getTime())[0];
 
       const _updater = async () => {
         await new Promise((resolve) => setTimeout(resolve));

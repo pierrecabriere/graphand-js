@@ -1,7 +1,7 @@
 import GraphandModel from "../lib/GraphandModel";
 import GraphandModelList from "../lib/GraphandModelList";
 
-const getModelListFromCache = (model: typeof GraphandModel, query: any) => {
+const getModelListFromCache = <T extends typeof GraphandModel>(model: T, query: any) => {
   const cacheKey = model.getCacheKey(query);
   const cacheEntry = model._cache[cacheKey];
   if (!cacheEntry) {
@@ -15,7 +15,7 @@ const getModelListFromCache = (model: typeof GraphandModel, query: any) => {
     return;
   }
 
-  return new GraphandModelList({ model, count, query, rows: cachedRows });
+  return new GraphandModelList<InstanceType<T>>({ model, count, query, rows: cachedRows });
 };
 
 export default getModelListFromCache;

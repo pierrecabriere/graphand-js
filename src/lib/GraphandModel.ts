@@ -728,7 +728,7 @@ class GraphandModel extends AbstractGraphandModel {
   ): GraphandModelList<InstanceType<T>> | GraphandModelListPromise<InstanceType<T>> {
     if (!query) {
       const list = this._listSubject.getValue();
-      return new GraphandModelList({ model: this }, ...list);
+      return new GraphandModelList<InstanceType<T>>({ model: this }, ...list);
     }
 
     return getModelList(this, query, opts);
