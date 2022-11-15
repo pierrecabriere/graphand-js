@@ -2,6 +2,7 @@ import copy from "fast-copy";
 import { get as lodashGet, set as lodashSet } from "lodash";
 import { BehaviorSubject, Observable, Subject, Subscription } from "rxjs";
 import HooksEvents from "../enums/hooks-events";
+import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import GraphandClient, { RegisterHookOptions } from "../GraphandClient";
 import Account from "../models/Account";
@@ -104,6 +105,8 @@ class GraphandModel extends AbstractGraphandModel {
    */
 
   // configurable fields
+  static scope: ModelScopes;
+  static envScope: ModelEnvScopes;
   static translatable = true;
   static queryFields = false;
   static isGlobal = false;

@@ -1,3 +1,4 @@
+import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
@@ -19,6 +20,7 @@ class Account extends GraphandModel {
   static apiIdentifier = "accounts";
   static baseUrl = "/accounts";
   static scope = ModelScopes.Account;
+  static envScope = ModelEnvScopes.ENV;
   static schema = {
     firstname: new GraphandFieldText(),
     lastname: new GraphandFieldText(),

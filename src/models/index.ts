@@ -7,7 +7,6 @@ import Environment from "./Environment";
 import EsMapping from "./EsMapping";
 import Log from "./Log";
 import Media from "./Media";
-import Module from "./Module";
 import Organization from "./Organization";
 import OrgInvitation from "./OrgInvitation";
 import Project from "./Project";
@@ -29,7 +28,6 @@ export {
   EsMapping,
   Log,
   Media,
-  Module,
   Project,
   Restriction,
   Role,

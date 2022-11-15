@@ -1,3 +1,4 @@
+import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import { GraphandModelPromise } from "../lib";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
@@ -16,6 +17,7 @@ class User extends GraphandModel {
   static baseUrl = "/users";
   static isGlobal = true;
   static scope = ModelScopes.User;
+  static envScope = ModelEnvScopes.GLOBAL;
   static schema = {
     firstname: new GraphandFieldText(),
     lastname: new GraphandFieldText(),

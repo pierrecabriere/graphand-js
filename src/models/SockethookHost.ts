@@ -1,4 +1,5 @@
 import HooksEvents from "../enums/hooks-events";
+import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldDate from "../lib/fields/GraphandFieldDate";
@@ -16,6 +17,7 @@ class SockethookHost extends GraphandModel {
   static apiIdentifier = "sockethookhosts";
   static baseUrl = "/sockethooks/hosts";
   static scope = ModelScopes.SockethookHost;
+  static envScope = ModelEnvScopes.ENV;
   static schema = {
     name: new GraphandFieldText(),
     socket: new GraphandFieldText(),

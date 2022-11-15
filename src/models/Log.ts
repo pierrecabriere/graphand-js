@@ -1,3 +1,4 @@
+import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
@@ -14,6 +15,7 @@ class Log extends GraphandModel {
   static apiIdentifier = "logs";
   static baseUrl = "/logs";
   static scope = ModelScopes.Log;
+  static envScope = ModelEnvScopes.PROJECT;
   static schema = {
     path: new GraphandFieldText(),
     status: new GraphandFieldNumber(),

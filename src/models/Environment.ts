@@ -1,3 +1,4 @@
+import EnvironmentStatuses from "../enums/environment-statuses";
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
@@ -15,11 +16,12 @@ class Environment extends GraphandModel {
   static apiIdentifier = "environments";
   static baseUrl = "/environments";
   static scope = ModelScopes.Environment;
+  static envScope = ModelEnvScopes.PROJECT;
   static schema = {
     name: new GraphandFieldText(),
     description: new GraphandFieldText(),
     cloneFrom: new GraphandFieldRelation({ ref: "Environment", multiple: false }),
-    status: new GraphandFieldText({ options: Object.values(ModelEnvScopes) }),
+    status: new GraphandFieldText({ options: Object.values(EnvironmentStatuses) }),
   };
 
   name;

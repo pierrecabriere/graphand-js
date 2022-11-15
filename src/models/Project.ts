@@ -1,4 +1,5 @@
 import Locales from "../enums/locales";
+import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import { GraphandModelPromise } from "../lib";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
@@ -19,6 +20,7 @@ class Project extends GraphandModel {
   static baseUrl = "/projects";
   static isGlobal = true;
   static scope = ModelScopes.Project;
+  static envScope = ModelEnvScopes.GLOBAL;
   static schema = {
     name: new GraphandFieldText(),
     slug: new GraphandFieldText(),

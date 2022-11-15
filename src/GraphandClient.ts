@@ -18,7 +18,6 @@ import {
   EsMapping,
   Log,
   Media,
-  Module,
   Project,
   Restriction,
   Role,
@@ -100,8 +99,6 @@ type ScopedModelType<T> = T extends ModelScopes.Account | "Account"
   ? typeof Log
   : T extends ModelScopes.Media | "Media"
   ? typeof Media
-  : T extends ModelScopes.Module | "Module"
-  ? typeof Module
   : T extends ModelScopes.Project | "Project"
   ? typeof Project
   : T extends ModelScopes.Restriction | "Restriction"

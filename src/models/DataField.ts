@@ -1,4 +1,5 @@
 import DataFieldTypes from "../enums/data-field-types";
+import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldDate from "../lib/fields/GraphandFieldDate";
@@ -21,6 +22,7 @@ class DataField extends GraphandModel {
   static apiIdentifier = "data-fields";
   static baseUrl = "/data-fields";
   static scope = ModelScopes.DataField;
+  static envScope = ModelEnvScopes.ENV;
   static schema = {
     name: new GraphandFieldText(),
     slug: new GraphandFieldText(),

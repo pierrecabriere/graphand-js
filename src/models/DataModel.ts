@@ -1,3 +1,4 @@
+import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import GraphandClient from "../GraphandClient";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
@@ -16,6 +17,7 @@ class DataModel extends GraphandModel {
   static apiIdentifier = "data-models";
   static baseUrl = "/data-models";
   static scope = ModelScopes.DataModel;
+  static envScope = ModelEnvScopes.ENV;
   static schema = {
     name: new GraphandFieldText(),
     slug: new GraphandFieldText(),

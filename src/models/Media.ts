@@ -1,3 +1,4 @@
+import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
@@ -30,6 +31,7 @@ class Media extends GraphandModel {
   static apiIdentifier = "medias";
   static baseUrl = "/medias";
   static scope = ModelScopes.Media;
+  static envScope = ModelEnvScopes.PROJECT;
   static queryFields = true;
   static schema = {
     name: new GraphandFieldText(),

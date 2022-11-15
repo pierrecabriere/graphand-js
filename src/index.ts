@@ -33,7 +33,6 @@ import Environment from "./models/Environment";
 import EsMapping from "./models/EsMapping";
 import Log from "./models/Log";
 import Media from "./models/Media";
-import Module from "./models/Module";
 import Organization from "./models/Organization";
 import OrgInvitation from "./models/OrgInvitation";
 import Project from "./models/Project";
@@ -72,7 +71,6 @@ export {
   Media as GraphandModelMedia,
   Project as GraphandModelProject,
   User as GraphandModelUser,
-  Module as GraphandModelModule,
   Token as GraphandModelToken,
   Webhook as GraphandModelWebhook,
   Aggregation as GraphandModelAggregation,

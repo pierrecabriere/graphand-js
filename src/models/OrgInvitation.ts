@@ -1,3 +1,4 @@
+import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
@@ -14,6 +15,7 @@ class OrgInvitation extends GraphandModel {
   static baseUrl = "/organizations/invitations";
   static isGlobal = true;
   static scope = ModelScopes.OrgInvitation;
+  static envScope = ModelEnvScopes.GLOBAL;
   static schema = {
     email: new GraphandFieldText(),
     organization: new GraphandFieldRelation({ ref: "Organization", multiple: false }),

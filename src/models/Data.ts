@@ -1,3 +1,4 @@
+import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import GraphandModel from "../lib/GraphandModel";
 
@@ -9,6 +10,7 @@ import GraphandModel from "../lib/GraphandModel";
 class Data extends GraphandModel {
   static _customFields = {};
 
+  static envScope = ModelEnvScopes.ENV;
   static queryFields = true;
   static apiIdentifier;
 
