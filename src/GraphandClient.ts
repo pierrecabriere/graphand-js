@@ -51,7 +51,7 @@ type ClientOptions = {
   initModels?: boolean;
   models?: any[];
   cache?: boolean;
-  plugins?: (typeof GraphandPlugin | GraphandPluginWithConf)[];
+  plugins?: (GraphandPlugin | typeof GraphandPlugin | GraphandPluginWithConf)[];
   socketOptions?: {
     hostname?: string;
     handleSocketTrigger?: ({ action: string, payload: any }) => Promise<boolean | void> | boolean | void;
@@ -712,13 +712,24 @@ class GraphandClient {
     return clone;
   }
 
-  plugin(Plugin: typeof GraphandPlugin, options: any = {}) {
+  plugin<T extends GraphandPluginOptions>(Plugin: typeof GraphandPlugin | GraphandPlugin<T>, options?: T) {
+    const _install = (plugin: GraphandPlugin<T>) => {
+      plugin.install(this);
+      this._plugins.add(plugin);
+    };
+
+    if ("install" in Plugin) {
+      _install(Plugin);
+      return this;
+    }
+
     if (!Plugin.prototype?.execute) {
       throw new GraphandError("Plugin must extends GraphandPlugin class", GraphandError.Codes.INVALID_PLUGIN);
     }
 
-    const plugin = new Plugin(this, options);
-    this._plugins.add(plugin);
+    const plugin = new Plugin(options);
+    _install(plugin);
+    return this;
   }
 
   connectSocket(force = false) {

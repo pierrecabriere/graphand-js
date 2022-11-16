@@ -1,4 +1,5 @@
 import "./utils/decorators";
+import DataFieldTypes from "./enums/data-field-types";
 import GraphandClient from "./GraphandClient";
 import AggregationExecutor from "./lib/AggregationExecutor";
 import GraphandFieldBoolean from "./lib/fields/GraphandFieldBoolean";
@@ -96,4 +97,5 @@ export {
   GraphandFieldBooleanDefinition,
   GraphandFieldJSONDefinition,
   GraphandFieldNumberDefinition,
+  DataFieldTypes,
 };
