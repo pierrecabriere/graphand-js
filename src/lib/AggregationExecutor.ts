@@ -1,7 +1,7 @@
 import GraphandClient from "../GraphandClient";
 import { parseQuery } from "../utils";
 
-class AggregationExecutor {
+class AggregationExecutor<T extends any> {
   static cache = {};
   _id: string;
   vars;
@@ -43,7 +43,7 @@ class AggregationExecutor {
     return this.execute().catch(...arguments);
   }
 
-  toPromise() {
+  toPromise(): Promise<{ data: T }> {
     return this.execute();
   }
 
@@ -57,7 +57,7 @@ class AggregationExecutor {
     return data;
   }
 
-  async execute() {
+  async execute(): Promise<{ data: T }> {
     await this.client._init();
 
     if (this.cacheKey) {

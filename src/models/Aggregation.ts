@@ -55,17 +55,17 @@ class Aggregation extends GraphandModel {
    * @param _id {string} - Id of aggregation
    * @param vars {Object=} - Values sent to api (used as params for target aggregation)
    */
-  static execute(_id, vars) {
-    return new AggregationExecutor({ _id, vars, client: this._client });
+  static execute<T extends any>(_id, vars) {
+    return new AggregationExecutor<T>({ _id, vars, client: this._client });
   }
 
   /**
    * Execute current aggregation
    * @param vars {Object=} - Values sent to api (used as params for target aggregation)
    */
-  execute(vars) {
+  execute<T extends any>(vars) {
     const client = this instanceof GraphandModelPromise ? this.model._client : Object.getPrototypeOf(this).constructor._client;
-    return new AggregationExecutor({ _id: this._id, vars, client });
+    return new AggregationExecutor<T>({ _id: this._id, vars, client });
   }
 }
 
