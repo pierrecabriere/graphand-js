@@ -1,6 +1,6 @@
-import HooksEvents from "../enums/hooks-events";
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
+import ServerHooksEvents from "../enums/server-hooks-events";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
@@ -29,7 +29,7 @@ class Sockethook extends GraphandModel {
     priority: new GraphandFieldNumber({ defaultValue: 0 }),
   };
 
-  static Events = HooksEvents;
+  static Events = ServerHooksEvents;
 
   identifier;
   actions;

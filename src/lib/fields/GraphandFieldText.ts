@@ -41,6 +41,6 @@ class GraphandFieldText extends GraphandField {
   }
 }
 
-export type GraphandFieldTextDefinition<M extends boolean = false> = M extends true ? string[] : string;
+export type GraphandFieldTextDefinition<M extends boolean = false> = (M extends true ? string[] : string) | undefined;
 
 export default GraphandFieldText;

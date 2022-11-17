@@ -1,4 +1,5 @@
 enum DataFieldTypes {
+  ID = "Id",
   TEXT = "Text",
   NUMBER = "Number",
   BOOLEAN = "Boolean",

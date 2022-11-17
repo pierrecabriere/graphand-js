@@ -14,6 +14,6 @@ class GraphandFieldDate extends GraphandField {
   }
 }
 
-export type GraphandFieldDateDefinition = Date;
+export type GraphandFieldDateDefinition = Date | undefined;
 
 export default GraphandFieldDate;

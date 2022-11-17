@@ -38,11 +38,7 @@ DataModel.hook("postCreate", (inserted, e) => {
 
   const clients = new Set();
 
-  if (Array.isArray(inserted)) {
-    inserted.forEach((p) => clients.add(p.constructor._client));
-  } else {
-    clients.add(inserted.constructor._client);
-  }
+  inserted.forEach((p) => clients.add(p._model._client));
 
   clients.forEach((client: GraphandClient) => {
     const [Module] = client.getModels(["Module"]);
@@ -50,7 +46,7 @@ DataModel.hook("postCreate", (inserted, e) => {
   });
 });
 
-DataModel.hook("postDelete", ({ payload }, e) => {
+DataModel.hook("postDelete", (e, { payload }) => {
   if (e) {
     return;
   }

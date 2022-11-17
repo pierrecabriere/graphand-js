@@ -1,6 +1,6 @@
-import HooksEvents from "../enums/hooks-events";
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
+import ServerHooksEvents from "../enums/server-hooks-events";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldDate from "../lib/fields/GraphandFieldDate";
 import GraphandFieldText from "../lib/fields/GraphandFieldText";
@@ -25,7 +25,7 @@ class SockethookHost extends GraphandModel {
     blocked: new GraphandFieldBoolean(),
   };
 
-  static Events = HooksEvents;
+  static Events = ServerHooksEvents;
 
   name: string;
   socket: string;

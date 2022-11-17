@@ -149,7 +149,7 @@ const updateModelInstance = async (instance: GraphandModel, payload, options: an
     }
 
     if (options.hooks) {
-      await constructor.execHook("postUpdate", [constructor.get(_id), null, payload]);
+      await constructor.execHook("postUpdate", [[constructor.get(_id)].filter(Boolean), null, payload]);
     }
   } catch (e) {
     if (options.revertOnError) {
@@ -157,7 +157,7 @@ const updateModelInstance = async (instance: GraphandModel, payload, options: an
     }
 
     if (options.hooks) {
-      await constructor.execHook("postUpdate", [e, payload]);
+      await constructor.execHook("postUpdate", [null, e, payload]);
     }
 
     throw e;

@@ -1,9 +1,9 @@
 import { Axios } from "axios";
 import { BehaviorSubject } from "rxjs";
 import { ManagerOptions } from "socket.io-client";
-import HooksEvents from "./enums/hooks-events";
 import ModelScopes from "./enums/model-scopes";
 import PluginLifecyclePhases from "./enums/plugin-lifecycle-phases";
+import ServerHooksEvents from "./enums/server-hooks-events";
 import * as lib from "./lib";
 import { GraphandError, GraphandModelList, GraphandValidationError } from "./lib";
 import GraphandModel from "./lib/GraphandModel";
@@ -120,7 +120,7 @@ type ScopedModelType<T> = T extends ModelScopes.Account | "Account"
 export type RegisterHookOptions = {
   identifier?: string;
   model?: typeof GraphandModel;
-  events?: (HooksEvents | string) | (HooksEvents | string)[];
+  events?: (ServerHooksEvents | string) | (ServerHooksEvents | string)[];
   handler?: (payload: any, resolve?: (v: any) => void, reject?: (v: any) => void) => any | void;
   _await?: boolean;
   timeout?: number;
@@ -386,7 +386,7 @@ class GraphandClient {
    * @returns {GraphandModel.constructor[]}
    */
   getModels<T1 extends ModelScopes | string, T2 extends ModelScopes | string, T3 extends ModelScopes | string, T4 extends ModelScopes | string>(
-    scopes: [T1?, T2?, T3?, T4?, ...(string[] | ModelScopes[])],
+    scopes: [T1?, T2?, T3?, T4?, ...(string | ModelScopes)[]],
     options: any = {},
   ): [ScopedModelType<T1>, ScopedModelType<T2>, ScopedModelType<T3>, ScopedModelType<T4>, ...typeof GraphandModel[]] {
     // @ts-ignore

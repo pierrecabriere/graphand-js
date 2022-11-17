@@ -1,9 +1,10 @@
 import copy from "fast-copy";
 import { get as lodashGet, set as lodashSet } from "lodash";
 import { BehaviorSubject, Observable, Subject, Subscription } from "rxjs";
-import HooksEvents from "../enums/hooks-events";
+import ClientHooksEvents from "../enums/client-hooks-events";
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
+import ServerHooksEvents from "../enums/server-hooks-events";
 import GraphandClient, { RegisterHookOptions } from "../GraphandClient";
 import Account from "../models/Account";
 import createModel from "../utils/createModel";
@@ -21,10 +22,29 @@ import updateModel, { updateModelInstance } from "../utils/updateModel";
 import GraphandFieldDate from "./fields/GraphandFieldDate";
 import GraphandFieldId from "./fields/GraphandFieldId";
 import GraphandFieldRelation from "./fields/GraphandFieldRelation";
+import GraphandError from "./GraphandError";
 import GraphandField from "./GraphandField";
 import GraphandModelList from "./GraphandModelList";
 import GraphandModelListPromise from "./GraphandModelListPromise";
 import GraphandModelPromise from "./GraphandModelPromise";
+
+type ClientHookCallbackBase<T extends any[]> = (...args: T) => void | false;
+
+type ClientHookArgs<T extends ClientHooksEvents | string, M extends GraphandModel> = T extends ClientHooksEvents.preCreate | "preCreate"
+  ? [{ payload: any; config: any } & any]
+  : T extends ClientHooksEvents.postCreate | "postCreate"
+  ? [M[] | null, GraphandError | null, ClientHookArgs<"preCreate", M>[0]]
+  : T extends ClientHooksEvents.preUpdate | "preUpdate"
+  ? [{ payload: any; instance?: M; config: any } & any]
+  : T extends ClientHooksEvents.postUpdate | "postUpdate"
+  ? [M[] | null, GraphandError | null, ClientHookArgs<"preUpdate", M>[0]]
+  : T extends ClientHooksEvents.preDelete | "preDelete"
+  ? [{ payload: any } & any]
+  : T extends ClientHooksEvents.postDelete | "postDelete"
+  ? [GraphandError | null, ClientHookArgs<"preDelete", M>[0]]
+  : any;
+
+type ClientHookCallback<T extends ClientHooksEvents | string, M extends GraphandModel> = ClientHookCallbackBase<ClientHookArgs<T, M>>;
 
 interface Query {
   query?: any;
@@ -163,6 +183,7 @@ class GraphandModel extends AbstractGraphandModel {
   _observable;
   _storeSub;
   _subscriptions = new Set();
+  _model: typeof GraphandModel;
 
   _id: string;
   _iat: number;
@@ -181,6 +202,7 @@ class GraphandModel extends AbstractGraphandModel {
     super();
 
     const { constructor } = Object.getPrototypeOf(this);
+    this._model = constructor;
 
     if (!constructor._client) {
       throw new Error(`Model ${constructor.scope} is not register. Please use Client.registerModel() before`);
@@ -580,7 +602,7 @@ class GraphandModel extends AbstractGraphandModel {
    * @param options
    */
   static on(
-    events: (HooksEvents | string) | (HooksEvents | string)[],
+    events: (ServerHooksEvents | string) | (ServerHooksEvents | string)[],
     handler: RegisterHookOptions["handler"],
     options: RegisterHookOptions & { await?: boolean } = {},
   ) {
@@ -771,7 +793,7 @@ class GraphandModel extends AbstractGraphandModel {
    */
   static create<T extends typeof GraphandModel>(
     this: T,
-    payload: Partial<InstanceType<T>>,
+    payload: Partial<{ [key in keyof InstanceType<T>]: InstanceType<T>[key] | any }>,
     hooks = true,
     url = this.baseUrl,
   ): Promise<InstanceType<T>> {
@@ -858,7 +880,11 @@ class GraphandModel extends AbstractGraphandModel {
    * @param args {any} - Args passed to the callbacks functions
    * @returns {Promise<any[]>}
    */
-  static async execHook(event: string, args: any): Promise<any[]> {
+  static async execHook<T extends ClientHooksEvents | string, M extends typeof GraphandModel>(
+    this: M,
+    event: T,
+    args: ClientHookArgs<T, InstanceType<M>>,
+  ): Promise<any[]> {
     const hook = this.getHook(event);
     if (!hook?.length) {
       return;
@@ -882,7 +908,11 @@ class GraphandModel extends AbstractGraphandModel {
    * @param event {"preCreate"|"postCreate"|"preUpdate"|"postUpdate"|"preDelete"|"postDelete"} - The event to listen. Graphand plugins can also implements new events
    * @param callback
    */
-  static hook(event: string, callback) {
+  static hook<T extends ClientHooksEvents | string, M extends typeof GraphandModel>(
+    this: M,
+    event: T,
+    callback: ClientHookCallback<T, InstanceType<M>>,
+  ) {
     this._hooks[event] = this._hooks[event] || new Set();
     this._hooks[event].add(callback);
   }

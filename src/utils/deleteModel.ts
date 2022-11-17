@@ -38,13 +38,13 @@ const deleteModel = async (Model: typeof GraphandModel, payload: GraphandModel |
       }
 
       if (options.hooks) {
-        await Model.execHook("postDelete", [args]);
+        await Model.execHook("postDelete", [null, args]);
       }
     } catch (e) {
       Model.upsertStore([payload]);
 
       if (options.hooks) {
-        await Model.execHook("postDelete", [args, e]);
+        await Model.execHook("postDelete", [e, args]);
       }
 
       throw e;
@@ -73,11 +73,11 @@ const deleteModel = async (Model: typeof GraphandModel, payload: GraphandModel |
       }
 
       if (options.hooks) {
-        await Model.execHook("postDelete", [args]);
+        await Model.execHook("postDelete", [null, args]);
       }
     } catch (e) {
       if (options.hooks) {
-        await Model.execHook("postDelete", [args, e]);
+        await Model.execHook("postDelete", [e, args]);
       }
 
       throw e;

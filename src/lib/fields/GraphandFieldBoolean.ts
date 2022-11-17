@@ -8,6 +8,6 @@ class GraphandFieldBoolean extends GraphandField {
   }
 }
 
-export type GraphandFieldBooleanDefinition = boolean;
+export type GraphandFieldBooleanDefinition = boolean | undefined;
 
 export default GraphandFieldBoolean;

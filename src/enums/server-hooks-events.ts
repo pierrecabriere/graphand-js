@@ -1,4 +1,4 @@
-enum HooksEvents {
+enum ServerHooksEvents {
   BEFORE_CREATE = "before_create",
   AFTER_CREATE = "after_create",
   BEFORE_UPDATE = "before_update",
@@ -13,4 +13,4 @@ enum HooksEvents {
   AFTER_REGISTER = "after_register",
 }
 
-export default HooksEvents;
+export default ServerHooksEvents;

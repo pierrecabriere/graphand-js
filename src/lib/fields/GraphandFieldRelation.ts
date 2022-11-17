@@ -68,10 +68,12 @@ class GraphandFieldRelation extends GraphandField {
   }
 }
 
-export type GraphandFieldRelationDefinition<T extends GraphandModel = GraphandModel, M extends boolean = true> = M extends true
-  ? GraphandModelList<T> | GraphandModelListPromise<T>
-  : T extends GraphandModelMedia
-  ? T | (GraphandModelPromise<T> & { getUrl: typeof GraphandModelMedia.prototype.getUrl })
-  : T | GraphandModelPromise<T>;
+export type GraphandFieldRelationDefinition<T extends GraphandModel = GraphandModel, M extends boolean = true> =
+  | (M extends true
+      ? GraphandModelList<T> | GraphandModelListPromise<T>
+      : T extends GraphandModelMedia
+      ? T | (GraphandModelPromise<T> & { getUrl: typeof GraphandModelMedia.prototype.getUrl })
+      : T | GraphandModelPromise<T>)
+  | undefined;
 
 export default GraphandFieldRelation;

@@ -64,6 +64,6 @@ class GraphandFieldJSON extends GraphandField {
   }
 }
 
-export type GraphandFieldJSONDefinition = { [key: string]: any };
+export type GraphandFieldJSONDefinition<T extends { [key: string]: any }> = T | undefined;
 
 export default GraphandFieldJSON;
