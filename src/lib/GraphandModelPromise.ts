@@ -43,7 +43,7 @@ class GraphandModelPromise<T extends GraphandModel | GraphandModelList<GraphandM
     self.query = query || {};
 
     if (model) {
-      model._universalPrototypeMethods.forEach((slug) => {
+      model._promiseAvailableMethods.forEach((slug) => {
         self[slug] = model.prototype[slug].bind(self);
       });
     }

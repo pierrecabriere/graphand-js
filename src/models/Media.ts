@@ -46,7 +46,7 @@ class Media extends GraphandModel {
     duration: new GraphandFieldNumber(),
   };
 
-  static _universalPrototypeMethods = ["getUrl"];
+  static _promiseAvailableMethods = ["getUrl"];
 
   name;
   description;

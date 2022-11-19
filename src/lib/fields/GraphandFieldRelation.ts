@@ -1,10 +1,16 @@
 import ModelScopes from "../../enums/model-scopes";
-import { GraphandModelMedia } from "../../index";
+import { GraphandModelAggregation, GraphandModelMedia } from "../../index";
 import GraphandField from "../GraphandField";
 import GraphandModel from "../GraphandModel";
 import GraphandModelList from "../GraphandModelList";
 import GraphandModelListPromise from "../GraphandModelListPromise";
 import GraphandModelPromise from "../GraphandModelPromise";
+
+type ModelPromiseMethods<T extends GraphandModel> = T extends GraphandModelMedia
+  ? { getUrl: typeof GraphandModelMedia.prototype.getUrl }
+  : T extends GraphandModelAggregation
+  ? { execute: typeof GraphandModelAggregation.prototype.execute }
+  : never;
 
 class GraphandFieldRelation extends GraphandField {
   static __fieldType = "Relation";
@@ -67,13 +73,19 @@ class GraphandFieldRelation extends GraphandField {
     }
   }
 }
-
-export type GraphandFieldRelationDefinition<T extends GraphandModel = GraphandModel, M extends boolean = true> =
-  | (M extends true
-      ? GraphandModelList<T> | GraphandModelListPromise<T>
-      : T extends GraphandModelMedia
-      ? T | (GraphandModelPromise<T> & { getUrl: typeof GraphandModelMedia.prototype.getUrl })
-      : T | GraphandModelPromise<T>)
-  | undefined;
+export type GraphandFieldRelationDefinition<
+  D extends {
+    model: GraphandModel;
+    multiple?: boolean;
+    required?: boolean;
+  },
+  Required extends boolean = false,
+> = Required extends true
+  ? D["multiple"] extends true
+    ? GraphandModelList<D["model"]> | GraphandModelListPromise<D["model"]>
+    : D["model"] | (GraphandModelPromise<D["model"]> & ModelPromiseMethods<D["model"]>)
+  : D["required"] extends true
+  ? GraphandFieldRelationDefinition<D, true>
+  : GraphandFieldRelationDefinition<D, true> | undefined;
 
 export default GraphandFieldRelation;

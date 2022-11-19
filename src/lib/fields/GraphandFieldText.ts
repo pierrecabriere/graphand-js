@@ -41,6 +41,32 @@ class GraphandFieldText extends GraphandField {
   }
 }
 
-export type GraphandFieldTextDefinition<M extends boolean = false> = (M extends true ? string[] : string) | undefined;
+type string_ = string & Partial<any>;
+
+type GraphandFieldTextDefinitionSingleType<
+  Options extends string[],
+  Creatable extends boolean = true,
+  DefaultType extends any = string_,
+> = Options extends string[]
+  ? Creatable extends false
+    ? Options[number]
+    : GraphandFieldTextDefinitionSingleType<Options, false> | DefaultType
+  : GraphandFieldTextDefinitionSingleType<[], Creatable, string>;
+
+export type GraphandFieldTextDefinition<
+  D extends {
+    required?: boolean;
+    options?: string[];
+    multiple?: boolean;
+    creatable?: boolean;
+  } = { multiple: false; required: false; creatable: true },
+  Required extends boolean = false,
+> = Required extends true
+  ? D["multiple"] extends true
+    ? GraphandFieldTextDefinitionSingleType<D["options"], D["creatable"]>[]
+    : GraphandFieldTextDefinitionSingleType<D["options"], D["creatable"]>
+  : D["required"] extends true
+  ? GraphandFieldTextDefinition<D, true>
+  : GraphandFieldTextDefinition<D, true> | undefined;
 
 export default GraphandFieldText;

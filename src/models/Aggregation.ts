@@ -38,7 +38,7 @@ class Aggregation extends GraphandModel {
     }),
   };
 
-  static _universalPrototypeMethods = ["execute"];
+  static _promiseAvailableMethods = ["execute"];
 
   name;
   description;

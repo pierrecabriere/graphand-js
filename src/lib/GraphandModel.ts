@@ -176,7 +176,7 @@ class GraphandModel extends AbstractGraphandModel {
   @ownProperty()
   static _dataFieldsList;
 
-  static _universalPrototypeMethods = [];
+  static _promiseAvailableMethods = [];
 
   _data: any = {};
   _locale = null;
