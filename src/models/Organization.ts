@@ -1,8 +1,9 @@
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
-import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldRelation, { GraphandFieldRelationDefinition } from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
+import User from "./User";
 
 /**
  * @class Organization
@@ -23,14 +24,13 @@ class Organization extends GraphandModel {
     users: new GraphandFieldRelation({ ref: "User", multiple: true }),
   };
 
-  name;
-  slug;
-  users;
+  name: GraphandFieldTextDefinition<{ required: true }>;
+  slug: GraphandFieldTextDefinition<{ required: true }>;
+  users: GraphandFieldRelationDefinition<{ model: User; multiple: true; required: true }>;
 
   async leave() {
-    const { constructor } = Object.getPrototypeOf(this);
-    const { data } = await constructor._client._axios.post(`/organizations/${this._id}/leave`);
-    constructor.handleUpdatedData([data.data]);
+    const { data } = await this._model._client._axios.post(`/organizations/${this._id}/leave`);
+    this._model.handleUpdatedData([data.data]);
   }
 }
 

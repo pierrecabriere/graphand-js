@@ -1,9 +1,9 @@
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import GraphandClient from "../GraphandClient";
-import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
-import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldBoolean, { GraphandFieldBooleanDefinition } from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldJSON, { GraphandFieldJSONDefinition } from "../lib/fields/GraphandFieldJSON";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
 /**
@@ -25,10 +25,10 @@ class DataModel extends GraphandModel {
     configuration: new GraphandFieldJSON(),
   };
 
-  name;
-  slug;
-  multiple;
-  configuration;
+  name: GraphandFieldTextDefinition<{ required: true }>;
+  slug: GraphandFieldTextDefinition<{ required: true }>;
+  multiple: GraphandFieldBooleanDefinition;
+  configuration: GraphandFieldJSONDefinition;
 }
 
 DataModel.hook("postCreate", (inserted, e) => {

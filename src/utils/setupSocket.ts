@@ -22,6 +22,11 @@ const setupSocket = (client: GraphandClient) => {
 
   socket.on("ping", () => socket.emit("pong"));
 
+  socket.on("replaceUid", () => {
+    console.log(`Disconnecting socket ${socket.id} because of duplicate connection ...`);
+    socket.close();
+  });
+
   socket.on("/uploads", ({ action, payload }) => {
     const queueItem = client._mediasQueueSubject.value.find((item) => (payload.socket ? item.socket === payload.socket : item.name === payload.name));
     payload.status = action;

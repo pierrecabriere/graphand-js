@@ -1,8 +1,9 @@
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
-import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldRelation, { GraphandFieldRelationDefinition } from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
+import Organization from "./Organization";
 
 /**
  * @class OrgInvitation
@@ -21,8 +22,8 @@ class OrgInvitation extends GraphandModel {
     organization: new GraphandFieldRelation({ ref: "Organization", multiple: false }),
   };
 
-  email;
-  organization;
+  email: GraphandFieldTextDefinition;
+  organization: GraphandFieldRelationDefinition<{ model: Organization; required: true }>;
 
   async accept() {
     const { constructor } = Object.getPrototypeOf(this);

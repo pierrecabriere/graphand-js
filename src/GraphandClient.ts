@@ -546,7 +546,9 @@ class GraphandClient {
     let hook;
     let socket;
 
-    retryStrategy = retryStrategy ?? ((retries) => 1000 * retries + 1000);
+    if (!retryStrategy) {
+      retryStrategy = (retries) => 1000 * retries + 1000;
+    }
 
     if (!identifier) {
       identifier = `${events.toString().replace(",", "-")}-${model.scope.replace("Data:", "")}`;
@@ -617,7 +619,7 @@ class GraphandClient {
       } catch (e) {
         socket.off(`/hooks/${identifier}`);
 
-        console.error(`error registering sockethook ${identifier} ...`);
+        console.error(`error registering sockethook ${identifier} ...`, e);
         const retryTimeout = retryStrategy(retries);
 
         if (typeof retryTimeout === "number" && retryTimeout) {

@@ -1,9 +1,9 @@
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
-import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
-import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
-import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldBoolean, { GraphandFieldBooleanDefinition } from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldJSON, { GraphandFieldJSONDefinition } from "../lib/fields/GraphandFieldJSON";
+import GraphandFieldScope, { GraphandFieldScopeDefinition } from "../lib/fields/GraphandFieldScope";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
 /**
@@ -36,15 +36,15 @@ class EsMapping extends GraphandModel {
     }),
   };
 
-  name;
-  description;
-  scope;
-  fields;
-  settings;
-  externalHost;
-  host;
-  conditions;
-  defaultQuery;
+  name: GraphandFieldTextDefinition;
+  description: GraphandFieldTextDefinition;
+  scope: GraphandFieldScopeDefinition<{ required: true }>;
+  fields: GraphandFieldJSONDefinition;
+  settings: GraphandFieldJSONDefinition;
+  externalHost: GraphandFieldBooleanDefinition;
+  host: GraphandFieldTextDefinition;
+  conditions: GraphandFieldJSONDefinition;
+  defaultQuery: GraphandFieldJSONDefinition;
 
   static async search(id, query) {
     const {

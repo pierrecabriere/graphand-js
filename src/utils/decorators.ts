@@ -1,3 +1,5 @@
+import DataFieldTypes from "../enums/data-field-types";
+
 export const ownProperty = (getDefaultValue?, assignRecursive?: (a: any, b: any) => any) => {
   return <T>(target: T, key: keyof T) => {
     const _key = `#${key}`;
@@ -23,4 +25,8 @@ export const ownProperty = (getDefaultValue?, assignRecursive?: (a: any, b: any)
       },
     });
   };
+};
+
+export const schemaField = (type: string | DataFieldTypes, options?: any) => {
+  return <T>(target: T, key: keyof T) => {};
 };

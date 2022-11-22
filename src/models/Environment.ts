@@ -1,8 +1,8 @@
 import EnvironmentStatuses from "../enums/environment-statuses";
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
-import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldRelation, { GraphandFieldRelationDefinition } from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
 /**
@@ -24,10 +24,10 @@ class Environment extends GraphandModel {
     status: new GraphandFieldText({ options: Object.values(EnvironmentStatuses) }),
   };
 
-  name;
-  description;
-  cloneFrom;
-  status;
+  name: GraphandFieldTextDefinition;
+  description: GraphandFieldTextDefinition;
+  cloneFrom: GraphandFieldRelationDefinition<{ model: Environment; required: true }>;
+  status: EnvironmentStatuses | GraphandFieldTextDefinition<{ required: true }>;
 
   async merge(opts) {
     const { constructor } = Object.getPrototypeOf(this);

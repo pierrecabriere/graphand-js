@@ -2,10 +2,12 @@ import Locales from "../enums/locales";
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import { GraphandModelPromise } from "../lib";
-import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
-import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldNumber, { GraphandFieldNumberDefinition } from "../lib/fields/GraphandFieldNumber";
+import GraphandFieldRelation, { GraphandFieldRelationDefinition } from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
+import Account from "./Account";
+import Organization from "./Organization";
 import Role from "./Role";
 
 /**
@@ -42,16 +44,16 @@ class Project extends GraphandModel {
     return this.get(client._options.project);
   }
 
-  name;
-  slug;
-  locales;
-  defaultLocale;
-  defaultRegisterRole;
-  accessTokenLifetime;
-  refreshTokenLifetime;
-  organization;
-  plan;
-  owner;
+  name: GraphandFieldTextDefinition<{ required: true }>;
+  slug: GraphandFieldTextDefinition<{ required: true }>;
+  locales: GraphandFieldTextDefinition<{ multiple: true; required: true }>;
+  defaultLocale: GraphandFieldTextDefinition<{ required: true }>;
+  defaultRegisterRole: GraphandFieldRelationDefinition<{ model: Role; multiple: false }>;
+  accessTokenLifetime: GraphandFieldNumberDefinition<{ required: true }>;
+  refreshTokenLifetime: GraphandFieldNumberDefinition<{ required: true }>;
+  organization: GraphandFieldRelationDefinition<{ model: Organization; multiple: false; required: true }>;
+  plan: any;
+  owner: GraphandFieldRelationDefinition<{ model: Account; multiple: false; required: true }>;
 }
 
 export default Project;

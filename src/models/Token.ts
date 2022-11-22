@@ -1,9 +1,10 @@
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import GraphandFieldDate from "../lib/fields/GraphandFieldDate";
-import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldRelation, { GraphandFieldRelationDefinition } from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
+import Role from "./Role";
 
 /**
  * @class Token
@@ -25,10 +26,10 @@ class Token extends GraphandModel {
     expiration: new GraphandFieldDate(),
   };
 
-  name;
-  description;
-  accessToken;
-  role;
+  name: GraphandFieldTextDefinition;
+  description: GraphandFieldTextDefinition;
+  accessToken: GraphandFieldTextDefinition<{ required: true }>;
+  role: GraphandFieldRelationDefinition<{ model: Role; required: true }>;
   expiration;
 }
 

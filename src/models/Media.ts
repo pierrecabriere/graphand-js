@@ -1,8 +1,8 @@
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
-import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
-import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldBoolean, { GraphandFieldBooleanDefinition } from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldNumber, { GraphandFieldNumberDefinition } from "../lib/fields/GraphandFieldNumber";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 import GraphandModelPromise from "../lib/GraphandModelPromise";
 import isId from "../utils/isId";
@@ -48,16 +48,17 @@ class Media extends GraphandModel {
 
   static _promiseAvailableMethods = ["getUrl"];
 
-  name;
-  description;
-  url;
-  mimetype;
-  originalname;
-  size;
-  private;
-  width;
-  height;
-  duration;
+  name: GraphandFieldTextDefinition<{ required: true }>;
+  description: GraphandFieldTextDefinition;
+  url: GraphandFieldTextDefinition<{ required: true }>;
+  mimetype: GraphandFieldTextDefinition<{ required: true }>;
+  originalname: GraphandFieldTextDefinition<{ required: true }>;
+  size: GraphandFieldNumberDefinition<{ required: true }>;
+  private: GraphandFieldBooleanDefinition;
+  width: GraphandFieldNumberDefinition;
+  height: GraphandFieldNumberDefinition;
+  duration: GraphandFieldNumberDefinition;
+
   [prop: string]: any;
 
   /**

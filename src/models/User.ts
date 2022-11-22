@@ -2,7 +2,7 @@ import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import { GraphandModelPromise } from "../lib";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
 /**
@@ -29,11 +29,11 @@ class User extends GraphandModel {
     invite: new GraphandFieldBoolean(),
   };
 
-  firstname;
-  lastname;
+  firstname: GraphandFieldTextDefinition;
+  lastname: GraphandFieldTextDefinition;
   picture;
   job;
-  email;
+  email: GraphandFieldTextDefinition<{ required: true }>;
   password;
   status;
   invite;

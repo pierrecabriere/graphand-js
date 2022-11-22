@@ -1,9 +1,9 @@
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import ServerHooksEvents from "../enums/server-hooks-events";
-import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldBoolean, { GraphandFieldBooleanDefinition } from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldDate from "../lib/fields/GraphandFieldDate";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
 /**
@@ -27,10 +27,10 @@ class SockethookHost extends GraphandModel {
 
   static Events = ServerHooksEvents;
 
-  name: string;
-  socket: string;
+  name: GraphandFieldTextDefinition<{ required: true }>;
+  socket: GraphandFieldTextDefinition<{ required: true }>;
   connectedAt: Date;
-  blocked;
+  blocked: GraphandFieldBooleanDefinition;
 
   /**
    * Ping current sockethook

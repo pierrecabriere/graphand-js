@@ -3,7 +3,7 @@ import ModelScopes from "../enums/model-scopes";
 import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
 import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
 /**
@@ -34,12 +34,15 @@ class Webhook extends GraphandModel {
     active: new GraphandFieldBoolean({ defaultValue: true }),
   };
 
-  name;
-  description;
-  endpoint;
-  method;
+  name: GraphandFieldTextDefinition;
+  description: GraphandFieldTextDefinition;
+  endpoint: GraphandFieldTextDefinition<{ required: true }>;
+  method: GraphandFieldTextDefinition<{ options: ["get", "post", "put", "patch", "delete"]; required: true }>;
   scope;
-  actions;
+  actions: GraphandFieldTextDefinition<{
+    multiple: true;
+    options: ["before_create", "after_create", "before_update", "after_update", "before_delete", "after_delete", "before_execute", "after_execute"];
+  }>;
   await;
   timeout;
   priority;

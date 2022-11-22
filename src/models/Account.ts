@@ -1,9 +1,9 @@
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
-import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldRelation, { GraphandFieldRelationDefinition } from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
-import { ownProperty } from "../utils/decorators";
+import { ownProperty, schemaField } from "../utils/decorators";
 import Role from "./Role";
 
 /**
@@ -15,8 +15,6 @@ class Account extends GraphandModel {
   static _customFields = {};
 
   static queryFields = true;
-  @ownProperty()
-  static _currentId = undefined;
   static apiIdentifier = "accounts";
   static baseUrl = "/accounts";
   static scope = ModelScopes.Account;
@@ -29,11 +27,15 @@ class Account extends GraphandModel {
     role: new GraphandFieldRelation({ ref: "Role", multiple: false }),
   };
 
-  firstname;
-  lastname;
-  email;
-  password;
-  role;
+  @ownProperty()
+  static _currentId = undefined;
+
+  firstname: GraphandFieldTextDefinition;
+  lastname: GraphandFieldTextDefinition;
+  email: GraphandFieldTextDefinition<{ required: true }>;
+  password: GraphandFieldTextDefinition;
+  role: GraphandFieldRelationDefinition<{ model: Role; required: true }>;
+
   [prop: string]: any;
 
   get fullname() {

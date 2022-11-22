@@ -1,11 +1,12 @@
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
-import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
-import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
-import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
-import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldBoolean, { GraphandFieldBooleanDefinition } from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldJSON, { GraphandFieldJSONDefinition } from "../lib/fields/GraphandFieldJSON";
+import GraphandFieldRelation, { GraphandFieldRelationDefinition } from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldScope, { GraphandFieldScopeDefinition } from "../lib/fields/GraphandFieldScope";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
+import Role from "./Role";
 
 /**
  * @class Rule
@@ -30,11 +31,11 @@ class Rule extends GraphandModel {
     conditions: new GraphandFieldJSON(),
   };
 
-  role;
-  scope;
-  actions;
-  prohibition;
-  conditions;
+  role: GraphandFieldRelationDefinition<{ model: Role; multiple: false; required: true }>;
+  scope: GraphandFieldScopeDefinition<{ required: true }>;
+  actions: GraphandFieldTextDefinition<{ multiple: true }>;
+  prohibition: GraphandFieldBooleanDefinition;
+  conditions: GraphandFieldJSONDefinition;
 }
 
 export default Rule;

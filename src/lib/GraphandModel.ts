@@ -307,14 +307,12 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   get _translations() {
-    const { constructor } = Object.getPrototypeOf(this);
-
     const translations = this._data.translations ? Object.keys(this._data.translations) : [];
-    return translations.concat(constructor._client._project?.defaultLocale);
+    return translations.concat(this._model._client._project?.defaultLocale);
   }
 
   get HistoryModel(): typeof GraphandModel {
-    const { constructor } = Object.getPrototypeOf(this);
+    const constructor = this._model;
     const modelName = `${constructor.scope}_${this._id}_history`;
     const parent = this;
     if (!constructor._client._models[modelName]) {
@@ -942,15 +940,12 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   populate(paths?) {
-    const { constructor } = Object.getPrototypeOf(this);
-    this._data = processPopulate(this._data, constructor.getFields(), constructor._client, paths);
+    this._data = processPopulate(this._data, this._model.getFields(), this._model._client, paths);
     return this;
   }
 
   translate(locale) {
-    const { constructor } = Object.getPrototypeOf(this);
-
-    if (constructor.translatable) {
+    if (this._model.translatable) {
       this._locale = locale;
     }
 
@@ -962,12 +957,12 @@ class GraphandModel extends AbstractGraphandModel {
    * @param locale
    */
   clone(locale?) {
-    const { constructor } = Object.getPrototypeOf(this);
-    const clone = new constructor(this.raw ? copy(parsePayload(this.raw)) : {});
+    const clone = new this._model(this.raw ? copy(parsePayload(this.raw)) : {});
     if (locale) {
       clone.translate(locale);
     }
-    return clone;
+
+    return clone as typeof this;
   }
 
   /**
@@ -978,14 +973,17 @@ class GraphandModel extends AbstractGraphandModel {
    * @param fallback
    */
   get(slug, parse = true, _locale = this._locale, fallback = true) {
-    const { constructor } = Object.getPrototypeOf(this);
-
+    const constructor = this._model;
     const field = constructor.fields[slug];
     if (!field) {
       return undefined;
     }
 
-    let value = lodashGet(this._data, slug);
+    let value = this._data[slug];
+
+    if (value === undefined && slug.includes(".")) {
+      value = lodashGet(this._data, slug);
+    }
 
     if (constructor.translatable) {
       const locale = _locale || constructor._client.locale;
@@ -1014,9 +1012,7 @@ class GraphandModel extends AbstractGraphandModel {
    * @param parse {boolean=} - Default true. If false set raw value
    */
   set(slug, value, upsert, parse = true) {
-    const { constructor } = Object.getPrototypeOf(this);
-
-    const field = constructor.getFields()[slug];
+    const field = this._model.getFields()[slug];
 
     upsert = upsert ?? (field && !["_id", "createdAt", "createdBy", "updatedAt", "updatedBy"].includes(slug));
 
@@ -1039,7 +1035,6 @@ class GraphandModel extends AbstractGraphandModel {
    * @param upsert {boolean=} - Define if the setter will trigger a store upsert action
    */
   assign(values?, upsert = true, updatedAtNow = true) {
-    const { constructor } = Object.getPrototypeOf(this);
     values = values && parsePayload(values);
 
     if (!upsert) {
@@ -1071,20 +1066,19 @@ class GraphandModel extends AbstractGraphandModel {
       });
     }
 
-    const upserted = constructor.upsertStore([clone], true);
+    const upserted = this._model.upsertStore([clone], true);
     this._data = clone._data;
 
     return this;
   }
 
   createObservable() {
-    const { constructor } = Object.getPrototypeOf(this);
     this._observable = new Observable((subscriber) => {
       let lastUpdated = this.updatedAt;
 
       const _updater = async (_list) => {
         await new Promise((resolve) => setTimeout(resolve));
-        const item = this.isTemporary() ? _list.find((i) => i._id === this._id) : await constructor.get(this._id);
+        const item = this.isTemporary() ? _list.find((i) => i._id === this._id) : await this._model.get(this._id);
 
         if (!item || item.updatedAt > lastUpdated) {
           if (item) {
@@ -1094,7 +1088,7 @@ class GraphandModel extends AbstractGraphandModel {
         }
       };
 
-      this._storeSub = constructor._listSubject.subscribe(_updater);
+      this._storeSub = this._model._listSubject.subscribe(_updater);
     });
   }
 
@@ -1133,9 +1127,7 @@ class GraphandModel extends AbstractGraphandModel {
   }
 
   reloadFields() {
-    const { constructor } = Object.getPrototypeOf(this);
-
-    constructor.setPrototypeFields(this);
+    this._model.setPrototypeFields(this);
   }
 
   encodeQuery() {
@@ -1145,15 +1137,13 @@ class GraphandModel extends AbstractGraphandModel {
   // format
 
   refresh() {
-    const { constructor } = Object.getPrototypeOf(this);
-    const newItem = constructor.get(this._id, false);
+    const newItem = this._model.get(this._id, false);
     this.assign(newItem, false);
     return this;
   }
 
   getInvertedRelation(model: typeof GraphandModel, query, opts, ...args) {
-    const { constructor } = Object.getPrototypeOf(this);
-    model = typeof model === "string" ? constructor._client.getModel(model) : model;
+    model = typeof model === "string" ? this._model._client.getModel(model) : model;
     query = typeof query === "object" ? query : { [query]: this._id };
     return model.getList({ ...opts, query }, ...args);
   }
@@ -1163,14 +1153,11 @@ class GraphandModel extends AbstractGraphandModel {
    * @returns {Object}
    */
   serialize() {
-    const { constructor } = Object.getPrototypeOf(this);
-
-    return { __type: "GraphandModel", __scope: constructor.scope, __payload: this._data };
+    return { __type: "GraphandModel", __scope: this._model.scope, __payload: this._data };
   }
 
   toObject() {
-    const { constructor } = Object.getPrototypeOf(this);
-    const fields = constructor.getFields();
+    const fields = this._model.getFields();
     return Object.keys(fields).reduce((final, slug) => Object.assign(final, { [slug]: this.get(slug) }), {});
   }
 
@@ -1179,8 +1166,7 @@ class GraphandModel extends AbstractGraphandModel {
    * @return {Object}
    */
   toJSON<T extends GraphandModel>(this: T): Partial<T> {
-    const { constructor } = Object.getPrototypeOf(this);
-    const fields = constructor.getFields();
+    const fields = this._model.getFields();
     return Object.keys(fields).reduce((final, slug) => {
       return Object.assign(final, { [slug]: this.get(slug, false) });
     }, {});

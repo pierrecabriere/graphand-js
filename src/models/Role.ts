@@ -1,9 +1,9 @@
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
-import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldBoolean, { GraphandFieldBooleanDefinition } from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
-import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldRelation, { GraphandFieldRelationDefinition } from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
 /**
@@ -27,18 +27,13 @@ class Role extends GraphandModel {
       ref: "Role",
       multiple: true,
     }),
-    modules: new GraphandFieldRelation({
-      ref: "Module",
-      multiple: true,
-    }),
   };
 
-  name;
-  description;
-  admin;
+  name: GraphandFieldTextDefinition;
+  description: GraphandFieldTextDefinition;
+  admin: GraphandFieldBooleanDefinition;
   level;
-  inherits;
-  modules;
+  inherits: GraphandFieldRelationDefinition<{ model: Role; multiple: true; required: true }>;
 }
 
 export default Role;

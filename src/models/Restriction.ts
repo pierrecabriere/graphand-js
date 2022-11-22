@@ -1,10 +1,11 @@
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
-import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
-import GraphandFieldRelation from "../lib/fields/GraphandFieldRelation";
-import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldJSON, { GraphandFieldJSONDefinition } from "../lib/fields/GraphandFieldJSON";
+import GraphandFieldRelation, { GraphandFieldRelationDefinition } from "../lib/fields/GraphandFieldRelation";
+import GraphandFieldScope, { GraphandFieldScopeDefinition } from "../lib/fields/GraphandFieldScope";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
+import Role from "./Role";
 
 /**
  * @class Restriction
@@ -26,11 +27,11 @@ class Restriction extends GraphandModel {
     conditions: new GraphandFieldJSON(),
   };
 
-  role;
-  scope;
-  actions;
-  fields;
-  conditions;
+  role: GraphandFieldRelationDefinition<{ model: Role; multiple: false; required: true }>;
+  scope: GraphandFieldScopeDefinition<{ required: true }>;
+  actions: GraphandFieldTextDefinition<{ multiple: true }>;
+  fields: GraphandFieldTextDefinition<{ multiple: true }>;
+  conditions: GraphandFieldJSONDefinition;
 }
 
 export default Restriction;

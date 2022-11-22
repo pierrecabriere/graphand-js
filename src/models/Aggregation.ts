@@ -1,11 +1,11 @@
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import AggregationExecutor from "../lib/AggregationExecutor";
-import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
-import GraphandFieldJSON from "../lib/fields/GraphandFieldJSON";
-import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
-import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldBoolean, { GraphandFieldBooleanDefinition } from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldJSON, { GraphandFieldJSONDefinition } from "../lib/fields/GraphandFieldJSON";
+import GraphandFieldNumber, { GraphandFieldNumberDefinition } from "../lib/fields/GraphandFieldNumber";
+import GraphandFieldScope, { GraphandFieldScopeDefinition } from "../lib/fields/GraphandFieldScope";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 import GraphandModelPromise from "../lib/GraphandModelPromise";
 
@@ -40,15 +40,20 @@ class Aggregation extends GraphandModel {
 
   static _promiseAvailableMethods = ["execute"];
 
-  name;
-  description;
-  scope;
-  pipeline;
-  defaultVars;
-  cache;
-  cacheExpiredToleration;
-  cacheMaxAge;
-  cacheKey;
+  name: GraphandFieldTextDefinition;
+  description: GraphandFieldTextDefinition;
+  scope: GraphandFieldScopeDefinition;
+  pipeline: GraphandFieldJSONDefinition;
+  defaultVars: GraphandFieldJSONDefinition;
+  cache: GraphandFieldBooleanDefinition;
+  cacheExpiredToleration: GraphandFieldBooleanDefinition;
+  cacheMaxAge: GraphandFieldNumberDefinition;
+  cacheKey: GraphandFieldJSONDefinition<{
+    fields: {
+      scope: GraphandFieldScopeDefinition;
+      conditions: GraphandFieldJSONDefinition;
+    };
+  }>;
 
   /**
    * Execute aggregation by id

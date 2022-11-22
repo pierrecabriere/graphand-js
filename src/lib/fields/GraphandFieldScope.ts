@@ -1,5 +1,5 @@
 import verifyScopeFormat from "../../utils/verifyScopeFormat";
-import GraphandFieldText from "./GraphandFieldText";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "./GraphandFieldText";
 
 class GraphandFieldScope extends GraphandFieldText {
   options = [];
@@ -12,5 +12,7 @@ class GraphandFieldScope extends GraphandFieldText {
     return value;
   }
 }
+
+export type GraphandFieldScopeDefinition<T extends any = any> = GraphandFieldTextDefinition<T>;
 
 export default GraphandFieldScope;

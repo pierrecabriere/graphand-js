@@ -1,10 +1,10 @@
 import ModelEnvScopes from "../enums/model-env-scopes";
 import ModelScopes from "../enums/model-scopes";
 import ServerHooksEvents from "../enums/server-hooks-events";
-import GraphandFieldBoolean from "../lib/fields/GraphandFieldBoolean";
+import GraphandFieldBoolean, { GraphandFieldBooleanDefinition } from "../lib/fields/GraphandFieldBoolean";
 import GraphandFieldNumber from "../lib/fields/GraphandFieldNumber";
-import GraphandFieldScope from "../lib/fields/GraphandFieldScope";
-import GraphandFieldText from "../lib/fields/GraphandFieldText";
+import GraphandFieldScope, { GraphandFieldScopeDefinition } from "../lib/fields/GraphandFieldScope";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
 
 /**
@@ -31,11 +31,11 @@ class Sockethook extends GraphandModel {
 
   static Events = ServerHooksEvents;
 
-  identifier;
-  actions;
-  fields;
-  scope;
-  await;
+  identifier: GraphandFieldTextDefinition<{ required: true }>;
+  actions: GraphandFieldTextDefinition<{ multiple: true }>;
+  fields: GraphandFieldTextDefinition<{ multiple: true }>;
+  scope: GraphandFieldScopeDefinition<{ required: true }>;
+  await: GraphandFieldBooleanDefinition;
   timeout;
   priority;
 
@@ -59,6 +59,19 @@ class Sockethook extends GraphandModel {
     const { constructor } = Object.getPrototypeOf(this);
     try {
       const { data } = await constructor._client._axios.get(`${constructor.baseUrl}/${this._id}/ping`);
+      return data.data;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * Get current selected host for sockethook
+   */
+  async selectedHost() {
+    const { constructor } = Object.getPrototypeOf(this);
+    try {
+      const { data } = await constructor._client._axios.get(`${constructor.baseUrl}/${this._id}/selected-host`);
       return data.data;
     } catch (e) {
       return false;
