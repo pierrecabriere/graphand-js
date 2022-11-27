@@ -186,7 +186,7 @@ class GraphandClient {
       });
     }
 
-    debugClient(`client ${this._uid} created with options ${JSON.stringify(this._options)}`);
+    debugClient(`client ${this._uid} created`);
 
     if (this._options.realtime) {
       this.connectSocket();
