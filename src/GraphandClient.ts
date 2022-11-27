@@ -30,6 +30,8 @@ import Data from "./models/Data";
 import Sockethook from "./models/Sockethook";
 import { setupAxios, setupSocket } from "./utils";
 import hydrateModel from "./utils/hydrateModel";
+const debugClient = require("debug")("graphand-js:client");
+const debugSockethooks = require("debug")("graphand-js:sockethooks");
 
 type GraphandPluginWithConf = [plugin: typeof GraphandPlugin, options: GraphandPluginOptions];
 
@@ -183,6 +185,8 @@ class GraphandClient {
         }
       });
     }
+
+    debugClient(`client ${this._uid} created with options ${JSON.stringify(this._options)}`);
 
     if (this._options.realtime) {
       this.connectSocket();
@@ -555,7 +559,7 @@ class GraphandClient {
     }
 
     if (this._registerHooks.has(identifier)) {
-      console.warn(`Duplicate identifier ${identifier} for differents sockethooks`);
+      debugSockethooks(`Duplicate identifier ${identifier} for differents sockethooks`);
     } else {
       this._registerHooks.add(identifier);
     }
@@ -615,15 +619,14 @@ class GraphandClient {
 
         hook = await Sockethook.create(payload);
 
-        console.log(`sockethook ${identifier} registered on socket ${socket.id}`);
+        debugSockethooks(`sockethook ${identifier} registered on socket ${socket.id}`);
       } catch (e) {
         socket.off(`/hooks/${identifier}`);
 
-        console.error(`error registering sockethook ${identifier} ...`, e);
+        debugSockethooks(`error registering sockethook ${identifier} ... waiting for retry`, e);
         const retryTimeout = retryStrategy(retries);
 
         if (typeof retryTimeout === "number" && retryTimeout) {
-          console.error(`... retry`);
           await new Promise((resolve) => setTimeout(resolve, retryTimeout));
           await _register(_socket, retries + 1);
         } else {
@@ -632,7 +635,9 @@ class GraphandClient {
       }
     };
 
-    this._socketSubject.subscribe((_socket) => _register(_socket));
+    this._socketSubject.subscribe((_socket) => {
+      _register(_socket);
+    });
     this.connectSocket();
   }
 
@@ -739,8 +744,7 @@ class GraphandClient {
       return this.socket;
     }
 
-    const socket = setupSocket(this);
-    this._socketSubject.next(socket);
+    setupSocket(this);
 
     return this;
   }
