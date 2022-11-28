@@ -27,15 +27,6 @@ class GraphandPlugin<T extends GraphandPluginOptions = any> {
     return this;
   }
 
-  // constructor(client: GraphandClient, options: Partial<T> = {}) {
-  //   const { constructor } = Object.getPrototypeOf(this);
-  //
-  //   this.client = client;
-  //   this.options = Object.assign({}, constructor.defaultOptions, options);
-  //
-  //   this.execute(PluginLifecyclePhases.INSTALL);
-  // }
-
   onInstall(): void {
     return;
   }

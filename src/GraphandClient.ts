@@ -157,13 +157,13 @@ class GraphandClient {
 
   /**
    * Graphand Client
-   * @param project {ClientOptions|string} - Your project _id or client options
+   * @param optionsOrProject {ClientOptions|string} - Your project _id or client options
    * @param options {ClientOptions=} - Client options
    */
-  constructor(project: string | ClientOptions, options: ClientOptions = {}) {
-    options = project && typeof project === "object" ? { ...project, ...options } : options;
-    if (typeof project === "string" && !options.project) {
-      options.project = project;
+  constructor(optionsOrProject: string | ClientOptions, options: ClientOptions = {}) {
+    options = optionsOrProject && typeof optionsOrProject === "object" ? { ...optionsOrProject, ...options } : options;
+    if (typeof optionsOrProject === "string" && !options.project) {
+      options.project = optionsOrProject;
     }
     options.env = options.env || "master";
 
@@ -638,7 +638,6 @@ class GraphandClient {
     this._socketSubject.subscribe((_socket) => {
       _register(_socket);
     });
-    this.connectSocket();
   }
 
   async getStats() {
