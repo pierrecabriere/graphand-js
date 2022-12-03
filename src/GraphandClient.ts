@@ -738,6 +738,16 @@ class GraphandClient {
     return this;
   }
 
+  /**
+   * Decode JWT Token. Only an admin role can use this method
+   * @param encodedToken {string}
+   */
+  async decodeToken(encodedToken: string) {
+    const { data } = await this._axios.post("/decode-token", { encodedToken });
+    console.log(data);
+    return null;
+  }
+
   connectSocket(force = false) {
     if (!force && this.socket) {
       return this.socket;

@@ -1011,7 +1011,7 @@ class GraphandModel extends AbstractGraphandModel {
    * @param upsert {boolean=} - Define if the setter will trigger a store upsert action
    * @param parse {boolean=} - Default true. If false set raw value
    */
-  set(slug, value, upsert, parse = true) {
+  set(slug: string, value: any, upsert?: boolean, parse = true) {
     const field = this._model.getFields()[slug];
 
     upsert = upsert ?? (field && !["_id", "createdAt", "createdBy", "updatedAt", "updatedBy"].includes(slug));
@@ -1034,7 +1034,7 @@ class GraphandModel extends AbstractGraphandModel {
    * @param values {Object}
    * @param upsert {boolean=} - Define if the setter will trigger a store upsert action
    */
-  assign(values?, upsert = true, updatedAtNow = true) {
+  assign(values?: any, upsert = true, updatedAtNow = true) {
     values = values && parsePayload(values);
 
     if (!upsert) {

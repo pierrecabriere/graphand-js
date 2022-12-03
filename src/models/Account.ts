@@ -3,7 +3,7 @@ import ModelScopes from "../enums/model-scopes";
 import GraphandFieldRelation, { GraphandFieldRelationDefinition } from "../lib/fields/GraphandFieldRelation";
 import GraphandFieldText, { GraphandFieldTextDefinition } from "../lib/fields/GraphandFieldText";
 import GraphandModel from "../lib/GraphandModel";
-import { ownProperty, schemaField } from "../utils/decorators";
+import { ownProperty } from "../utils/decorators";
 import Role from "./Role";
 
 /**
