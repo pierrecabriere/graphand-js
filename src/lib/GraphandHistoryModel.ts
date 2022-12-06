@@ -1,18 +1,26 @@
-import GraphandFieldDate from "./fields/GraphandFieldDate";
-import GraphandFieldJSON from "./fields/GraphandFieldJSON";
-import GraphandFieldRelation from "./fields/GraphandFieldRelation";
-import GraphandFieldText from "./fields/GraphandFieldText";
+import Account from "../models/Account";
+import GraphandFieldDate, { GraphandFieldDateDefinition } from "./fields/GraphandFieldDate";
+import GraphandFieldJSON, { GraphandFieldJSONDefinition } from "./fields/GraphandFieldJSON";
+import GraphandFieldRelation, { GraphandFieldRelationDefinition } from "./fields/GraphandFieldRelation";
+import GraphandFieldText, { GraphandFieldTextDefinition } from "./fields/GraphandFieldText";
 import GraphandModel from "./GraphandModel";
 
 class GraphandHistoryModel extends GraphandModel {
-  static get baseFields() {
-    return {
-      diffs: new GraphandFieldJSON(),
-      date: new GraphandFieldDate({ time: true }),
-      kind: new GraphandFieldText({ options: ["create", "update", "delete"] }),
-      "metas.account": new GraphandFieldRelation({ ref: "Account", multiple: false }),
-    };
-  }
+  static schema = {
+    diffs: new GraphandFieldJSON(),
+    date: new GraphandFieldDate({ time: true }),
+    kind: new GraphandFieldText({ options: ["create", "update", "delete"] }),
+    metas: new GraphandFieldJSON({
+      fields: {
+        account: new GraphandFieldRelation({ ref: "Account", multiple: false }),
+      },
+    }),
+  };
+
+  diffs: GraphandFieldJSONDefinition;
+  date: GraphandFieldDateDefinition;
+  kind: GraphandFieldTextDefinition<{ options: ["create", "update", "delete"] }>;
+  metas: GraphandFieldJSONDefinition<{ account: GraphandFieldRelationDefinition<{ model: Account }> }>;
 }
 
 export default GraphandHistoryModel;

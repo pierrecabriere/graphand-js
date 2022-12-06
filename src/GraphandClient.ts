@@ -432,7 +432,7 @@ class GraphandClient {
     let model = found && Array.isArray(found) ? found[0] : found;
 
     if (model?.apiIdentifier) {
-      options.extend = options.extend ?? true;
+      options.extend ??= true;
     } else {
       const DataConstructorFound = this._options.models.find((m: any) => (Array.isArray(m) ? m[0]?.scope === "Data" : m.scope === "Data")) || Data;
       const DataConstructor = Array.isArray(DataConstructorFound) ? DataConstructorFound[0] : DataConstructorFound;

@@ -166,6 +166,11 @@ Media.hook("preCreate", (args) => {
     args.config.headers = args.config.headers || {};
     args.config.headers["Content-Type"] = "multipart/form-data";
 
+    if ("getHeaders" in formData) {
+      const getHeaders = formData["getHeaders"] as () => any;
+      Object.assign(args.config.headers, getHeaders?.apply(formData));
+    }
+
     args._rawPayload = args.payload;
     args.payload = formData;
   }
