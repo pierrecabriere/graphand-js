@@ -8,7 +8,6 @@ enum ModelScopes {
   EsMapping = "EsMapping",
   Log = "Log",
   Media = "Media",
-  Module = "Module",
   Project = "Project",
   Organization = "Organization",
   OrgInvitation = "OrgInvitation",

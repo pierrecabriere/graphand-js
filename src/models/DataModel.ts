@@ -31,21 +31,6 @@ class DataModel extends GraphandModel {
   configuration: GraphandFieldJSONDefinition;
 }
 
-DataModel.hook("postCreate", (inserted, e) => {
-  if (e) {
-    return;
-  }
-
-  const clients = new Set();
-
-  inserted.forEach((p) => clients.add(p._model._client));
-
-  clients.forEach((client: GraphandClient) => {
-    const [Module] = client.getModels(["Module"]);
-    Module.reinit();
-  });
-});
-
 DataModel.hook("postDelete", (e, { payload }) => {
   if (e) {
     return;
@@ -60,9 +45,8 @@ DataModel.hook("postDelete", (e, { payload }) => {
   }
 
   clients.forEach((client: GraphandClient) => {
-    const [DataField, Module] = client.getModels(["DataField", "Module"]);
+    const [DataField] = client.getModels(["DataField"]);
     DataField.reinit();
-    Module.reinit();
   });
 });
 

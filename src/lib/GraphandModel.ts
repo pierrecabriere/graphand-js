@@ -114,7 +114,7 @@ class GraphandModel extends AbstractGraphandModel {
   /**
    * Model fetching options
    * @typedef ModelScopes
-   * @property scope {"Account"|"Aggregation"|"DataField"|"DataModel"|"Environment"|"EsMapping"|"Log"|"Media"|"Module"|"Project"|"Restriction"|"Role"|"Rule"|"Sockethook"|"Token"|"User"|"Webhook"}
+   * @property scope {"Account"|"Aggregation"|"DataField"|"DataModel"|"Environment"|"EsMapping"|"Log"|"Media"|"Project"|"Restriction"|"Role"|"Rule"|"Sockethook"|"Token"|"User"|"Webhook"}
    */
 
   /**
