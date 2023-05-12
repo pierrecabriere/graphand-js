@@ -1,0 +1,18 @@
+{
+    "sourceFile": "package.json",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1683911162434,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1683911162434,
+            "name": "Commit-0",
+            "content": "{\n  \"name\": \"graphand-js\",\n  \"version\": \"0.30.14-beta\",\n  \"description\": \"\",\n  \"homepage\": \"https://github.com/pierrecabriere/graphand-js\",\n  \"repository\": \"pierrecabriere/graphand-js\",\n  \"main\": \"dist/index.min.js\",\n  \"browser\": \"dist/browser.min.js\",\n  \"types\": \"dist/types/index.d.ts\",\n  \"author\": \"Pierre Cabrière\",\n  \"license\": \"MIT\",\n  \"source\": \"src/index.ts\",\n  \"scripts\": {\n    \"build\": \"webpack\",\n    \"build:watch\": \"WATCH=1 webpack\",\n    \"build:doc\": \"mkdir -p docs && tsc --project tsconfig.json --outDir dist-docs && node generate-doc.js && rm -rf dist-docs\",\n    \"test\": \"jest\"\n  },\n  \"dependencies\": {\n    \"axios\": \"^0.26.1\",\n    \"debug\": \"^4.3.4\",\n    \"fast-copy\": \"^2.1.3\",\n    \"kareem\": \"^2.3.5\",\n    \"lodash\": \"^4.17.21\",\n    \"rxjs\": \"^7.5.5\",\n    \"socket.io-client\": \"^4.4.1\"\n  },\n  \"devDependencies\": {\n    \"@faker-js/faker\": \"^6.1.2\",\n    \"@types/jest\": \"^27.4.1\",\n    \"@types/node\": \"^17.0.21\",\n    \"@typescript-eslint/eslint-plugin\": \"^4.8.1\",\n    \"@typescript-eslint/parser\": \"^4.8.1\",\n    \"bufferutil\": \"^4.0.6\",\n    \"eslint\": \"^7.13.0\",\n    \"eslint-config-prettier\": \"^6.15.0\",\n    \"eslint-config-typescript\": \"^3.0.0\",\n    \"eslint-plugin-import\": \"^2.22.1\",\n    \"eslint-plugin-prettier\": \"^3.1.4\",\n    \"jest\": \"^27.5.1\",\n    \"jest-circus\": \"^27.5.1\",\n    \"jsdoc-to-markdown\": \"^7.1.1\",\n    \"prettier\": \"^2.6.2\",\n    \"terser-webpack-plugin\": \"^5.3.1\",\n    \"ts-jest\": \"^27.1.4\",\n    \"ts-loader\": \"^9.2.8\",\n    \"ts-node\": \"^10.7.0\",\n    \"typescript\": \"^4.6.3\",\n    \"utf-8-validate\": \"^5.0.9\",\n    \"webpack\": \"^5.72.0\",\n    \"webpack-cli\": \"^4.9.2\"\n  }\n}\n"
+        }
+    ]
+}

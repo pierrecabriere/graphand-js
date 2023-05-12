@@ -534,7 +534,7 @@ class GraphandClient {
       query: { scope: { $in: scopes } },
       pageSize: 1000,
     })) as GraphandModelList<GraphandModel>;
-    const fields = dataFields.toArray();
+    const fields = dataFields?.toArray?.() || [];
     await Promise.all(
       modelsList.map(async (model, index) => {
         const scope = typeof model === "string" ? model : model.scope;

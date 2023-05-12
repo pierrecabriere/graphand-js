@@ -721,7 +721,6 @@ class GraphandModel extends AbstractGraphandModel {
     payload.forEach((item) => (_list = _upsert(_list, item)));
 
     if (refresh) {
-      // this.clearRelationsCache();
       this._listSubject.next(_list);
       return true;
     }
@@ -750,8 +749,8 @@ class GraphandModel extends AbstractGraphandModel {
     opts?: ModelListOptions | boolean,
   ): GraphandModelList<InstanceType<T>> | GraphandModelListPromise<InstanceType<T>> {
     if (!query) {
-      const list = this._listSubject.getValue();
-      return new GraphandModelList<InstanceType<T>>({ model: this }, ...list);
+      const rows = this._listSubject.getValue() || [];
+      return new GraphandModelList<InstanceType<T>>({ model: this, rows });
     }
 
     return getModelList(this, query, opts);

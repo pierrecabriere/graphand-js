@@ -16,16 +16,16 @@ class GraphandModelList<T extends GraphandModel> extends Array<T> {
       elements = [];
     }
 
-    if (rows?.length) {
-      elements = elements.concat(rows);
-    }
-
     if (!model) {
       // @ts-ignore
-      return super(...elements);
+      return Array.from(elements);
     }
 
     super(...elements);
+
+    if (rows?.length) {
+      this.push(...rows);
+    }
 
     this._model = model;
     this.count = count || 0;
