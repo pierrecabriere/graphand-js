@@ -1,8 +1,6 @@
-import DataFieldTypes from "../enums/data-field-types";
-
 export const ownProperty = (getDefaultValue?, assignRecursive?: (a: any, b: any) => any) => {
   return <T>(target: T, key: keyof T) => {
-    const _key = `#${key}`;
+    const _key = `#${String(key)}`;
 
     Object.defineProperty(target, key, {
       get() {
@@ -15,7 +13,7 @@ export const ownProperty = (getDefaultValue?, assignRecursive?: (a: any, b: any)
             return assignRecursive(this[_key], this.__proto__[key]);
           }
         } catch (e) {
-          console.warn(`Unable to process recursive @ownProperty ${key}`);
+          console.warn(`Unable to process recursive @ownProperty ${String(key)}`);
         }
 
         return this[_key];
@@ -25,8 +23,4 @@ export const ownProperty = (getDefaultValue?, assignRecursive?: (a: any, b: any)
       },
     });
   };
-};
-
-export const schemaField = (type: string | DataFieldTypes, options?: any) => {
-  return <T>(target: T, key: keyof T) => {};
 };

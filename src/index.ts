@@ -1,4 +1,3 @@
-import "./utils/decorators";
 import DataFieldTypes from "./enums/data-field-types";
 import GraphandClient from "./GraphandClient";
 import AggregationExecutor from "./lib/AggregationExecutor";
